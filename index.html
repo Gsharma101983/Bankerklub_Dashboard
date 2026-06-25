@@ -1,227 +1,590 @@
-// ============================================================
-//  BankersKlub Dashboard — Google Apps Script Web App
-//  Code.gs  |  Upgraded Version with:
-//    • Referral Partner Count (Pipeline Overview)
-//    • Source Name column in Raw Data
-//    • CORS headers for direct browser fetch
-//    • Multi-tab support (Master, Bankers Onboarding, CP Onboarding, Lender Tagging)
-// ============================================================
 
-function doGet(e) {
-  var sheetId = '1zo85_oRIDLQsR--kCmwWSYBDgm-ZElHIkoC9PNaUB2k';
-  var ss = SpreadsheetApp.openById(sheetId);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankersKlub Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  // ── Which tab? ──────────────────────────────────────────
-  var tabName = e.parameter.tab || 'Master';
-  var sheet   = ss.getSheetByName(tabName);
-
-  if (!sheet) {
-    return buildResponse(JSON.stringify({
-      error: 'Sheet tab not found: ' + tabName
-    }));
-  }
-
-  var data    = sheet.getDataRange().getValues();
-  var headers = data[0].map(function(h){ return String(h).trim(); });
-  var rows    = [];
-
-  for (var i = 1; i < data.length; i++) {
-    var row = {};
-    var hasData = false;
-    for (var j = 0; j < headers.length; j++) {
-      var val = data[i][j];
-      // Convert Date objects to ISO strings
-      if (val instanceof Date) {
-        val = val.toISOString();
-      }
-      row[headers[j]] = val;
-      if (val !== '' && val !== null && val !== undefined) hasData = true;
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 20px;
     }
-    if (hasData) rows.push(row);   // skip fully blank rows
-  }
 
-  // ── Extra aggregates only for Master tab ────────────────
-  var aggregates = {};
-  if (tabName === 'Master') {
-    aggregates = buildAggregates(headers, rows);
-  }
-
-  var result = {
-    tab:         tabName,
-    headers:     headers,
-    rows:        rows,
-    totalRows:   rows.length,
-    aggregates:  aggregates,
-    lastUpdated: new Date().toISOString()
-  };
-
-  return buildResponse(JSON.stringify(result));
-}
-
-// ── Build pipeline aggregates (called for Master tab) ───────
-function buildAggregates(headers, rows) {
-
-  // ── Helper: find header index (case-insensitive, partial match) ──
-  function col(keyword) {
-    var kw = keyword.toLowerCase();
-    for (var k = 0; k < headers.length; k++) {
-      if (headers[k].toLowerCase().indexOf(kw) !== -1) return headers[k];
+    .header {
+      text-align: center;
+      padding: 20px 0 30px;
     }
-    return null;
-  }
 
-  // ── Key column names (auto-detected) ────────────────────
-  var colLeadSource      = col('lead source')   || col('source name') || col('source');
-  var colMandateType     = col('mandate type');
-  var colBankerName      = col('banker name')   || col('banker');
-  var colCPName          = col('channel partner') || col('cp name') || col('cp');
-  var colReferralPartner = col('referral partner') || col('referral');
-  var colLender          = col('lender');
-  var colDebtAmt         = col('debt')          || col('loan amount');
-  var colEquityAmt       = col('equity');
-  var colCaseStatus      = col('case status')   || col('status');
-  var colSignoffDate     = col('signoff')        || col('mandate signoff');
-  var colLeadDate        = col('lead date')      || col('date');
-  var colRevPipeline     = col('rev in pipeline') || col('revenue pipeline') || col('expected revenue');
-  var colRevExpected     = col('revenue expected') || col('rev expected');
-  var colAdvance         = col('advance');
-  var colRevCollected    = col('revenue collected') || col('collected');
-  var colRefund          = col('refund');
-  var colMandateStatus   = col('mandate status');
+    .header h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
 
-  // ── Counters ─────────────────────────────────────────────
-  var totalCount       = rows.length;
-  var uniqueBankers    = {};
-  var uniqueCPs        = {};
-  var uniqueReferrals  = {};
-  var lenderCases      = 0;
-  var debtTotal        = 0;
-  var equityTotal      = 0;
-  var tatDays          = [];
+    .header .subtitle {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
 
-  var revPipeline   = 0, revExpected  = 0;
-  var advanceAmt    = 0, revCollected = 0, refundAmt = 0;
+    .refresh-info {
+      text-align: center;
+      color: #888;
+      font-size: 0.8rem;
+      margin-bottom: 20px;
+    }
 
-  var mandateStatusDist = {};
-  var mandateTypeDist   = {};
-  var sourceDist        = {};
+    .refresh-info span {
+      color: #00d2ff;
+      font-weight: bold;
+    }
 
-  rows.forEach(function(r) {
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
 
-    // Bankers
-    if (colBankerName && r[colBankerName]) {
-      String(r[colBankerName]).split(',').forEach(function(b){
-        var t = b.trim();
-        if (t) uniqueBankers[t] = true;
+    .tab-btn {
+      padding: 10px 20px;
+      border: 1px solid #3a7bd5;
+      border-radius: 25px;
+      background: transparent;
+      color: #3a7bd5;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn:hover, .tab-btn.active {
+      background: #3a7bd5;
+      color: #fff;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .kpi-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 210, 255, 0.2);
+    }
+
+    .kpi-card .value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #00d2ff;
+      margin-bottom: 5px;
+    }
+
+    .kpi-card .label {
+      font-size: 0.85rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Charts Section */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .chart-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .chart-card h3 {
+      margin-bottom: 15px;
+      color: #00d2ff;
+      font-size: 1rem;
+    }
+
+    .chart-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .chart-bar .bar-label {
+      width: 140px;
+      font-size: 0.8rem;
+      color: #ccc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chart-bar .bar-track {
+      flex: 1;
+      height: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 10px;
+    }
+
+    .chart-bar .bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+      transition: width 0.8s ease;
+    }
+
+    .chart-bar .bar-value {
+      font-size: 0.8rem;
+      color: #00d2ff;
+      width: 40px;
+      text-align: right;
+    }
+
+    /* Data Table */
+    .table-section {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      overflow-x: auto;
+      margin-bottom: 30px;
+    }
+
+    .table-section h3 {
+      margin-bottom: 15px;
+      color: #00d2ff;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .data-table th {
+      background: rgba(58, 123, 213, 0.3);
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 2px solid #3a7bd5;
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+
+    .data-table tr:hover td {
+      background: rgba(0, 210, 255, 0.05);
+    }
+
+    /* Loading & Error States */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+    }
+
+    .loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top: 4px solid #00d2ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-msg {
+      text-align: center;
+      color: #ff6b6b;
+      padding: 20px;
+    }
+
+    /* Financial Section */
+    .finance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .finance-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .finance-card .f-value {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #4ecdc4;
+    }
+
+    .finance-card .f-value.negative {
+      color: #ff6b6b;
+    }
+
+    .finance-card .f-label {
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .header h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🏦 BankersKlub Dashboard</h1>
+    <p class="subtitle">Real-Time Business Intelligence</p>
+  </div>
+
+  <div class="refresh-info">
+    Auto-refreshes every <span>5 minutes</span> | Last updated: <span id="lastUpdated">Loading...</span>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="Master">Master</button>
+    <button class="tab-btn" data-tab="Bankers Onboarding">Bankers Onboarding</button>
+    <button class="tab-btn" data-tab="CP Onboarding">CP Onboarding</button>
+    <button class="tab-btn" data-tab="Lender Tagging">Lender Tagging</button>
+  </div>
+
+  <!-- Main Content Area -->
+  <div id="dashboardContent">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading dashboard data...</p>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // CONFIGURATION — Replace with your deployed Apps Script URL
+    // ═══════════════════════════════════════════════════════════
+    const WEBAPP_URL = 'YOUR_WEBAPP_URL_HERE';
+    // Example: 'https://script.google.com/macros/s/AKfycbx.../exec'
+
+    const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    let currentTab = 'Master';
+    let refreshTimer = null;
+
+    // ═══════════════════════════════════════════════════════════
+    // TAB NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentTab = this.dataset.tab;
+        fetchData();
       });
-    }
+    });
 
-    // Channel Partners
-    if (colCPName && r[colCPName]) {
-      String(r[colCPName]).split(',').forEach(function(c){
-        var t = c.trim();
-        if (t) uniqueCPs[t] = true;
-      });
-    }
+    // ═══════════════════════════════════════════════════════════
+    // FETCH DATA FROM APPS SCRIPT
+    // ═══════════════════════════════════════════════════════════
+    async function fetchData() {
+      const container = document.getElementById('dashboardContent');
+      container.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading ${currentTab} data...</p>
+        </div>`;
 
-    // Referral Partners (NEW) ────────────────────────────
-    // Strategy 1: dedicated Referral Partner column
-    if (colReferralPartner && r[colReferralPartner]) {
-      String(r[colReferralPartner]).split(',').forEach(function(rp){
-        var t = rp.trim();
-        if (t) uniqueReferrals[t] = true;
-      });
-    }
-    // Strategy 2: Lead Source = "Referral" rows → count unique names from CP / Banker col
-    if (colLeadSource && r[colLeadSource]) {
-      var src = String(r[colLeadSource]).trim().toLowerCase();
-      if (src === 'referral' || src.indexOf('referral') !== -1) {
-        // Use CP name or Banker name as the referral entity
-        var entity = (colCPName && r[colCPName]) || (colBankerName && r[colBankerName]) || '';
-        if (entity) uniqueReferrals[String(entity).trim()] = true;
-      }
-    }
-
-    // Lender
-    if (colLender && r[colLender]) lenderCases++;
-
-    // Amounts
-    if (colDebtAmt)   debtTotal   += parseFloat(r[colDebtAmt])   || 0;
-    if (colEquityAmt) equityTotal += parseFloat(r[colEquityAmt]) || 0;
-
-    // Revenue
-    if (colRevPipeline)  revPipeline   += parseFloat(r[colRevPipeline])  || 0;
-    if (colRevExpected)  revExpected   += parseFloat(r[colRevExpected])  || 0;
-    if (colAdvance)      advanceAmt    += parseFloat(r[colAdvance])      || 0;
-    if (colRevCollected) revCollected  += parseFloat(r[colRevCollected]) || 0;
-    if (colRefund)       refundAmt     += parseFloat(r[colRefund])       || 0;
-
-    // TAT
-    if (colLeadDate && colSignoffDate && r[colLeadDate] && r[colSignoffDate]) {
       try {
-        var d1 = new Date(r[colLeadDate]);
-        var d2 = new Date(r[colSignoffDate]);
-        var diff = Math.round((d2 - d1) / 86400000);
-        if (!isNaN(diff) && diff >= 0) tatDays.push(diff);
-      } catch(ex){}
+        const url = `${WEBAPP_URL}?tab=${encodeURIComponent(currentTab)}`;
+        const response = await fetch(url);
+
+        if (!response.ok) throw new Error('Network response error: ' + response.status);
+
+        const data = await response.json();
+
+        if (data.error) {
+          container.innerHTML = `<div class="error-msg">⚠️ ${data.error}</div>`;
+          return;
+        }
+
+        // Update last updated timestamp
+        const lastUp = data.lastUpdated ? new Date(data.lastUpdated) : new Date();
+        document.getElementById('lastUpdated').textContent = lastUp.toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        });
+
+        // Render based on tab
+        if (currentTab === 'Master' && data.aggregates) {
+          renderMasterDashboard(data);
+        } else {
+          renderGenericTable(data);
+        }
+
+      } catch (error) {
+        container.innerHTML = `
+          <div class="error-msg">
+            ⚠️ Failed to load data: ${error.message}<br>
+            <small>Will retry in 5 minutes...</small>
+          </div>`;
+        console.error('Fetch error:', error);
+      }
     }
 
-    // Mandate Status distribution
-    if (colMandateStatus && r[colMandateStatus]) {
-      var ms = String(r[colMandateStatus]).trim();
-      mandateStatusDist[ms] = (mandateStatusDist[ms] || 0) + 1;
+    // ═══════════════════════════════════════════════════════════
+    // RENDER MASTER DASHBOARD
+    // ═══════════════════════════════════════════════════════════
+    function renderMasterDashboard(data) {
+      const agg = data.aggregates;
+      const container = document.getElementById('dashboardContent');
+
+      let html = '';
+
+      // KPI Cards
+      html += `<div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="value">${agg.totalCount || 0}</div>
+          <div class="label">Total Cases</div>
+        </div>
+        <div class="kpi-card">
+          <div class="value">${agg.bankerCount || 0}</div>
+          <div class="label">Unique Bankers</div>
+        </div>
+        <div class="kpi-card">
+          <div class="value">${agg.cpCount || 0}</div>
+          <div class="label">Channel Partners</div>
+        </div>
+        <div class="kpi-card">
+          <div class="value">${agg.referralPartnerCount || 0}</div>
+          <div class="label">Referral Partners</div>
+        </div>
+        <div class="kpi-card">
+          <div class="value">${agg.lenderCases || 0}</div>
+          <div class="label">Lender Cases</div>
+        </div>
+        <div class="kpi-card">
+          <div class="value">${agg.avgTAT || 0} days</div>
+          <div class="label">Avg TAT</div>
+        </div>
+      </div>`;
+
+      // Financial Cards
+      html += `<div class="finance-grid">
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.debtTotal)}</div>
+          <div class="f-label">Total Debt</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.equityTotal)}</div>
+          <div class="f-label">Total Equity</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.revPipeline)}</div>
+          <div class="f-label">Rev Pipeline</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.revExpected)}</div>
+          <div class="f-label">Rev Expected</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.advanceAmt)}</div>
+          <div class="f-label">Advance Amt</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.revCollected)}</div>
+          <div class="f-label">Rev Collected</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value ${agg.refundAmt > 0 ? 'negative' : ''}">₹${formatCurrency(agg.refundAmt)}</div>
+          <div class="f-label">Refunds</div>
+        </div>
+        <div class="finance-card">
+          <div class="f-value">₹${formatCurrency(agg.netRevenue)}</div>
+          <div class="f-label">Net Revenue</div>
+        </div>
+      </div>`;
+
+      // Charts: Distributions
+      html += `<div class="charts-grid">`;
+
+      // Mandate Status Distribution
+      if (agg.mandateStatusDist && Object.keys(agg.mandateStatusDist).length > 0) {
+        html += renderBarChart('Mandate Status Distribution', agg.mandateStatusDist);
+      }
+
+      // Mandate Type Distribution
+      if (agg.mandateTypeDist && Object.keys(agg.mandateTypeDist).length > 0) {
+        html += renderBarChart('Mandate Type Distribution', agg.mandateTypeDist);
+      }
+
+      // Source Distribution
+      if (agg.sourceDist && Object.keys(agg.sourceDist).length > 0) {
+        html += renderBarChart('Lead Source Distribution', agg.sourceDist);
+      }
+
+      html += `</div>`;
+
+      // Data Table (show first 50 rows)
+      html += renderDataTable(data.headers, data.rows, 50);
+
+      container.innerHTML = html;
     }
 
-    // Mandate Type distribution
-    if (colMandateType && r[colMandateType]) {
-      var mt = String(r[colMandateType]).trim();
-      mandateTypeDist[mt] = (mandateTypeDist[mt] || 0) + 1;
+    // ═══════════════════════════════════════════════════════════
+    // RENDER BAR CHART
+    // ═══════════════════════════════════════════════════════════
+    function renderBarChart(title, distObj) {
+      const entries = Object.entries(distObj).sort((a, b) => b[1] - a[1]);
+      const maxVal = entries.length > 0 ? entries[0][1] : 1;
+
+      let bars = '';
+      entries.forEach(([label, value]) => {
+        const pct = Math.round((value / maxVal) * 100);
+        bars += `
+          <div class="chart-bar">
+            <div class="bar-label" title="${label}">${label}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: ${pct}%"></div>
+            </div>
+            <div class="bar-value">${value}</div>
+          </div>`;
+      });
+
+      return `
+        <div class="chart-card">
+          <h3>${title}</h3>
+          ${bars}
+        </div>`;
     }
 
-    // Source Name distribution (NEW) ────────────────────
-    if (colLeadSource && r[colLeadSource]) {
-      var sn = String(r[colLeadSource]).trim();
-      if (sn) sourceDist[sn] = (sourceDist[sn] || 0) + 1;
+    // ═══════════════════════════════════════════════════════════
+    // RENDER GENERIC TABLE (for non-Master tabs)
+    // ═══════════════════════════════════════════════════════════
+    function renderGenericTable(data) {
+      const container = document.getElementById('dashboardContent');
+
+      let html = `
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="value">${data.totalRows || 0}</div>
+            <div class="label">Total Records</div>
+          </div>
+        </div>`;
+
+      html += renderDataTable(data.headers, data.rows, 100);
+      container.innerHTML = html;
     }
-  });
 
-  var avgTAT = tatDays.length
-    ? Math.round(tatDays.reduce(function(a,b){ return a+b; }, 0) / tatDays.length)
-    : 0;
+    // ═══════════════════════════════════════════════════════════
+    // RENDER DATA TABLE
+    // ═══════════════════════════════════════════════════════════
+    function renderDataTable(headers, rows, maxRows) {
+      if (!headers || headers.length === 0) return '';
 
-  return {
-    totalCount:           totalCount,
-    bankerCount:          Object.keys(uniqueBankers).length,
-    cpCount:              Object.keys(uniqueCPs).length,
-    referralPartnerCount: Object.keys(uniqueReferrals).length,   // ← NEW
-    lenderCases:          lenderCases,
-    debtTotal:            debtTotal,
-    equityTotal:          equityTotal,
-    avgTAT:               avgTAT,
-    revPipeline:          revPipeline,
-    revExpected:          revExpected,
-    advanceAmt:           advanceAmt,
-    revCollected:         revCollected,
-    refundAmt:            refundAmt,
-    netRevenue:           revCollected - refundAmt,
-    mandateStatusDist:    mandateStatusDist,
-    mandateTypeDist:      mandateTypeDist,
-    sourceDist:           sourceDist,                            // ← NEW
-    detectedColumns: {                                           // ← diagnostic
-      leadSource:      colLeadSource,
-      referralPartner: colReferralPartner,
-      banker:          colBankerName,
-      cp:              colCPName,
-      mandateStatus:   colMandateStatus,
-      mandateType:     colMandateType,
-      lender:          colLender
+      const displayRows = rows.slice(0, maxRows);
+
+      let headerHtml = headers.map(h => `<th>${h}</th>`).join('');
+      let bodyHtml = '';
+
+      displayRows.forEach(row => {
+        let cells = headers.map(h => {
+          let val = row[h] !== null && row[h] !== undefined ? row[h] : '';
+          // Truncate long values
+          if (String(val).length > 50) val = String(val).substring(0, 50) + '...';
+          return `<td>${val}</td>`;
+        }).join('');
+        bodyHtml += `<tr>${cells}</tr>`;
+      });
+
+      return `
+        <div class="table-section">
+          <h3>📋 Data (showing ${displayRows.length} of ${rows.length} rows)</h3>
+          <table class="data-table">
+            <thead><tr>${headerHtml}</tr></thead>
+            <tbody>${bodyHtml}</tbody>
+          </table>
+        </div>`;
     }
-  };
-}
 
-// ── Wrap response with CORS headers ─────────────────────────
-function buildResponse(jsonString) {
-  return ContentService
-    .createTextOutput(jsonString)
-    .setMimeType(ContentService.MimeType.JSON);
-}
+    // ═══════════════════════════════════════════════════════════
+    // UTILITY: Format Currency
+    // ═══════════════════════════════════════════════════════════
+    function formatCurrency(num) {
+      if (!num || isNaN(num)) return '0';
+      num = parseFloat(num);
+      if (num >= 10000000) return (num / 10000000).toFixed(2) + ' Cr';
+      if (num >= 100000) return (num / 100000).toFixed(2) + ' L';
+      if (num >= 1000) return (num / 1000).toFixed(1) + ' K';
+      return num.toFixed(0);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AUTO-REFRESH EVERY 5 MINUTES
+    // ═══════════════════════════════════════════════════════════
+    function startAutoRefresh() {
+      // Clear any existing timer
+      if (refreshTimer) clearInterval(refreshTimer);
+
+      // Set up 5-minute interval
+      refreshTimer = setInterval(function() {
+        console.log('[BankersKlub] Auto-refreshing at', new Date().toLocaleTimeString());
+        fetchData();
+      }, REFRESH_INTERVAL);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // INITIALIZE
+    // ═══════════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchData();        // Initial load
+      startAutoRefresh(); // Start 5-min auto-refresh
+    });
+  </script>
+</body>
+</html>
+
