@@ -1,4 +1,5 @@
 ```python
+```python
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -38,9 +39,15 @@
         .kpi-label{font-size:.7rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px}
         .kpi-value{font-size:1.5rem;font-weight:700;color:var(--dark);margin-top:4px}
         .kpi-sub{font-size:.66rem;color:#aaa;margin-top:2px}
+        .kpi-pct{font-size:.72rem;color:var(--accent);font-weight:600;margin-top:2px}
         .kpi-card.revenue{border-left-color:var(--success)}
         .kpi-card.alert{border-left-color:var(--danger)}
         .kpi-card.info{border-left-color:var(--warning)}
+        .kpi-card.banker-card{border-left-color:#1565c0}
+        .kpi-card.cp-card{border-left-color:#6a1b9a}
+        .kpi-card.referral-card{border-left-color:#e65100}
+        .kpi-card.direct-card{border-left-color:#2e7d32}
+        .kpi-card.untagged-card{border-left-color:#78909c}
         .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px;margin-bottom:20px}
         .chart-card{background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)}
         .chart-card h3{font-size:.95rem;color:var(--dark);margin-bottom:15px}
@@ -86,6 +93,14 @@
         @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
         .debug-panel{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:.8rem;font-family:monospace;display:none}
         .debug-panel.visible{display:block}
+        .alloc-summary{background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+        .alloc-summary h3{color:var(--primary);margin-bottom:15px;font-size:1rem}
+        .alloc-bar{display:flex;height:30px;border-radius:8px;overflow:hidden;margin-bottom:10px}
+        .alloc-bar-segment{display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:600;transition:.3s}
+        .alloc-bar-segment:hover{opacity:.85}
+        .alloc-legend{display:flex;flex-wrap:wrap;gap:15px;margin-top:10px}
+        .alloc-legend-item{display:flex;align-items:center;gap:5px;font-size:.78rem}
+        .alloc-legend-dot{width:12px;height:12px;border-radius:3px}
         @media(max-width:768px){.header{flex-direction:column;gap:10px;padding:12px 15px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.filters-grid{grid-template-columns:repeat(2,1fr)}.reco-inputs{grid-template-columns:1fr}}
     </style>
 </head>
@@ -123,8 +138,13 @@
         </div>
     </div>
 
-    <!-- TAB 2: Lead Allocation -->
+    <!-- TAB 2: Lead Allocation (ENHANCED with Drill-Down) -->
     <div class="tab-content" id="tab-allocation">
+        <div class="alloc-summary">
+            <h3>📊 Lead Allocation Overview</h3>
+            <div class="alloc-bar" id="allocBar"></div>
+            <div class="alloc-legend" id="allocLegend"></div>
+        </div>
         <div class="kpi-grid" id="allocationKPIs"></div>
         <div class="charts-grid">
             <div class="chart-card"><h3>Lead Allocation Bifurcation</h3><canvas id="allocationChart"></canvas></div>
@@ -204,35 +224,25 @@ function fetchSheetWithFallback(gid, tabName) {
     var url3 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + gid;
 
     return tryFetch(url1, tabName, 'gviz')
-        .then(function(data) {
-            if (data && data.length > 0) return data;
-            return tryFetch(url2, tabName, 'pub');
-        })
-        .then(function(data) {
-            if (data && data.length > 0) return data;
-            return tryFetch(url3, tabName, 'export');
-        })
+        .then(function(data) { if (data && data.length > 0) return data; return tryFetch(url2, tabName, 'pub'); })
+        .then(function(data) { if (data && data.length > 0) return data; return tryFetch(url3, tabName, 'export'); })
         .then(function(data) {
             if (data && data.length > 0) { debugLog.push('✅ ' + tabName + ': ' + data.length + ' rows'); return data; }
-            debugLog.push('❌ ' + tabName + ': ALL endpoints failed');
-            return [];
+            debugLog.push('❌ ' + tabName + ': ALL endpoints failed'); return [];
         });
 }
 
 function tryFetch(url, tabName, method) {
     return fetch(url)
-        .then(function(response) {
-            if (!response.ok) { debugLog.push('❌ ' + tabName + ' (' + method + '): HTTP ' + response.status); return []; }
-            return response.text();
-        })
+        .then(function(response) { if (!response.ok) return []; return response.text(); })
         .then(function(text) {
             if (!text || typeof text !== 'string') return [];
             var trimmed = text.trim();
-            if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) { return []; }
+            if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) return [];
             var parsed = Papa.parse(trimmed, { header: true, skipEmptyLines: true });
             return parsed.data || [];
         })
-        .catch(function(err) { debugLog.push('❌ ' + tabName + ' (' + method + '): ' + err.message); return []; });
+        .catch(function(err) { return []; });
 }
 
 // ================================================================
@@ -260,9 +270,7 @@ function refreshData() {
         document.getElementById('lastSync').textContent = '✓ ' + now.toLocaleTimeString() + ' | M:' + masterData.length + ' B:' + bankersData.length + ' CP:' + cpData.length + ' L:' + lenderData.length;
 
         if (masterData.length === 0) { showDebug(); } else { hideDebug(); }
-
         console.log('=== BANKERKLUB DEBUG ===');
-        debugLog.forEach(function(l) { console.log(l); });
         if (masterData.length > 0) console.log('All columns:', Object.keys(masterData[0]));
 
         renderDashboard();
@@ -270,7 +278,7 @@ function refreshData() {
         populateRecoDropdowns();
     }).catch(function(err) {
         document.getElementById('lastSync').textContent = '❌ Sync failed';
-        debugLog.push('❌ ' + err.message); showDebug();
+        showDebug();
     });
 }
 
@@ -289,7 +297,7 @@ function detectLeadDealColumn() {
     if (leadDealCol) {
         var vals = {};
         masterData.forEach(function(r) { var v = (r[leadDealCol] || '').toString().trim(); if (v) vals[v] = (vals[v] || 0) + 1; });
-        console.log('📊 Lead/Deal unique values:', JSON.stringify(vals));
+        console.log('📊 Lead/Deal values:', JSON.stringify(vals));
     }
 }
 
@@ -348,45 +356,50 @@ function getTagBadge(v) { var s = (v || '').toString().toLowerCase().trim(); if 
 function getRowClass(v) { var s = (v || '').toString().toLowerCase().trim(); if (s === 'alert' || s === 'red') return 'row-alert'; if (s === 'on track' || s === 'green' || s === 'ontrack') return 'row-ontrack'; if (s === 'wip' || s === 'amber' || s === 'yellow') return 'row-wip'; return ''; }
 
 // ================================================================
-// CLASSIFY ROW: LEAD vs DEAL (BINARY - No third category!)
-// Rule: Leads + Deals MUST ALWAYS = Total Count
-// A record is a DEAL if it has ANY deal indicator. Otherwise it's a LEAD.
+// CLASSIFY: LEAD vs DEAL (Binary - Leads + Deals = Total ALWAYS)
 // ================================================================
 function classifyRow(r) {
-    // CHECK 1: Explicit "Lead / Deal Status" column
     if (leadDealCol) {
         var val = (r[leadDealCol] || '').toString().toLowerCase().trim();
-        if (val) {
-            // If it explicitly says "deal" → DEAL
-            if (val.indexOf('deal') >= 0 || val === 'converted' || val === 'won' || val === 'mandate signed' || val === 'closed won') {
-                return 'deal';
-            }
-            // If it explicitly says "lead" → LEAD
-            if (val.indexOf('lead') >= 0 || val === 'new' || val === 'open' || val === 'fresh' || val === 'prospect') {
-                return 'lead';
-            }
-            // For any OTHER value (like "Dead", "Lost", "On Hold", "Pending", etc.)
-            // We still need to check deal indicators below
-        }
+        if (val.indexOf('deal') >= 0 || val === 'converted' || val === 'won' || val === 'mandate signed' || val === 'closed won') return 'deal';
     }
-
-    // CHECK 2: Deal indicators from other columns
     var dealStage = (r['Deal Stage'] || '').toString().trim();
     var mandateSignoff = (r['Mandate Sigoff Date'] || r['Mandate Signoff Date'] || '').toString().trim();
     var dealConvertedDate = (r['Deal Converted Date'] || '').toString().trim();
     var mandateStatus = (r['Mandate Status'] || '').toString().trim().toLowerCase();
-
-    // If has Deal Stage value → DEAL
     if (dealStage) return 'deal';
-    // If has Mandate Signoff Date → DEAL
     if (mandateSignoff) return 'deal';
-    // If has Deal Converted Date → DEAL
     if (dealConvertedDate) return 'deal';
-    // If Mandate Status has a meaningful value → DEAL
     if (mandateStatus && mandateStatus !== 'na' && mandateStatus !== 'n/a' && mandateStatus !== '-' && mandateStatus !== '--') return 'deal';
-
-    // EVERYTHING ELSE = LEAD (ensures Leads + Deals = Total)
     return 'lead';
+}
+
+// ================================================================
+// CLASSIFY ALLOCATION: Who sourced/handled the case
+// Uses "Current Tagging In" + "Lead Source" columns
+// Categories: Banker | Channel Partner | Referral | Direct (Inhouse)
+// ================================================================
+function classifyAllocation(r) {
+    var tagging = (r['Current Tagging In'] || '').toString().toLowerCase().trim();
+    var leadSource = (r['Lead Source'] || '').toString().toLowerCase().trim();
+    var sourceName = (r['Source Name'] || '').toString().toLowerCase().trim();
+    var combined = tagging + ' ' + leadSource + ' ' + sourceName;
+
+    // Banker
+    if (combined.indexOf('banker') >= 0) return 'banker';
+    // Channel Partner
+    if (combined.indexOf('channel') >= 0 || combined.indexOf('cp') >= 0 || combined.indexOf('partner') >= 0) return 'cp';
+    // Referral
+    if (combined.indexOf('referral') >= 0 || combined.indexOf('refer') >= 0) return 'referral';
+    // Direct / Inhouse
+    if (combined.indexOf('direct') >= 0 || combined.indexOf('inhouse') >= 0 || combined.indexOf('in-house') >= 0 || combined.indexOf('in house') >= 0 || combined.indexOf('internal') >= 0 || combined.indexOf('team') >= 0 || combined.indexOf('self') >= 0 || combined.indexOf('website') >= 0 || combined.indexOf('online') >= 0 || combined.indexOf('walk-in') >= 0 || combined.indexOf('walkin') >= 0) return 'direct';
+
+    // If "Current Tagging In" has a value but doesn't match above → use it as-is
+    // If Lead Source has a value → Direct (company's own lead)
+    if (tagging === '' && leadSource === '' && sourceName === '') return 'direct';
+
+    // Default: Direct (Inhouse) - all untagged cases are direct/inhouse
+    return 'direct';
 }
 
 // ================================================================
@@ -396,28 +409,15 @@ function renderDashboard() { renderKPIs(); renderCharts(); renderRawData(); }
 
 function renderKPIs() {
     var d = filteredData, total = d.length;
-
-    // Count using BINARY classification (no records left behind)
     var leads = 0, deals = 0;
-    d.forEach(function(r) {
-        if (classifyRow(r) === 'deal') deals++;
-        else leads++;
-    });
-
-    // VALIDATION: Leads + Deals must = Total
-    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Sum:', (leads + deals), '| Match:', (leads + deals === total) ? '✅' : '❌');
+    d.forEach(function(r) { if (classifyRow(r) === 'deal') deals++; else leads++; });
+    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Match:', (leads + deals === total) ? '✅' : '❌');
 
     var bCt = bankersData.length, cCt = cpData.length;
     var ln = {}; lenderData.forEach(function(r) { var n = (r['Lender Name'] || '').trim(); if (n) ln[n] = true; }); var lCt = Object.keys(ln).length;
 
     var revP = 0, revC = 0, adv = 0, ref = 0, net = 0;
-    d.forEach(function(r) {
-        revP += parseNum(r['Total Expected Revenue']);
-        revC += parseNum(r['Total Payment Received']);
-        adv += parseNum(r['Advance Amt']);
-        ref += parseNum(r['Refund']);
-        net += parseNum(r['Net Revenue']);
-    });
+    d.forEach(function(r) { revP += parseNum(r['Total Expected Revenue']); revC += parseNum(r['Total Payment Received']); adv += parseNum(r['Advance Amt']); ref += parseNum(r['Refund']); net += parseNum(r['Net Revenue']); });
 
     var kpis = [
         {l: 'Total Count', d: total, c: '', f: 'all'},
@@ -434,9 +434,7 @@ function renderKPIs() {
     ];
 
     var h = '';
-    kpis.forEach(function(k) {
-        h += '<div class="kpi-card ' + k.c + '" onclick="openDrill(\'' + k.l + '\',\'' + k.f + '\')"><div class="kpi-label">' + k.l + '</div><div class="kpi-value">' + k.d + '</div><div class="kpi-sub">Click to drill-down →</div></div>';
-    });
+    kpis.forEach(function(k) { h += '<div class="kpi-card ' + k.c + '" onclick="openDrill(\'' + k.l + '\',\'' + k.f + '\')"><div class="kpi-label">' + k.l + '</div><div class="kpi-value">' + k.d + '</div><div class="kpi-sub">Click to drill-down →</div></div>'; });
     document.getElementById('kpiContainer').innerHTML = h;
 
     var tatV = d.map(function(r) { return parseNum(r['TAT (In Days) Leads to Mandate Signoff']); }).filter(function(v) { return v > 0; });
@@ -451,7 +449,6 @@ var ch1 = null, ch2 = null, ch3 = null, ch4 = null;
 function renderCharts() {
     var sc = {};
     filteredData.forEach(function(r) { var s = (r['Mandate Status'] || '').trim(); if (s) sc[s] = (sc[s] || 0) + 1; });
-
     if (ch1) ch1.destroy();
     ch1 = new Chart(document.getElementById('pipelineChart').getContext('2d'), {
         type: 'bar',
@@ -461,7 +458,6 @@ function renderCharts() {
 
     var rD = 0, rE = 0, rF = 0, rC = 0, rA = 0;
     filteredData.forEach(function(r) { rD += parseNum(r['Total Debt Amt']); rE += parseNum(r['Total Equity Amt']); rF += parseNum(r['Total Fixed Fee Amt']); rC += parseNum(r['Total Payment Received']); rA += parseNum(r['Advance Amt']); });
-
     if (ch2) ch2.destroy();
     ch2 = new Chart(document.getElementById('revenueChart').getContext('2d'), {
         type: 'doughnut',
@@ -474,6 +470,7 @@ function renderCharts() {
 // RAW DATA
 // ================================================================
 var RAW_COLS = ['Company Name', 'Tagging', 'Unit Name', 'Mandate Branch', 'Execution Owner', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Case Status', 'Ticket Size', 'Total Expected Revenue', 'Total Payment Received', 'Refund', 'Net Revenue', 'Comments'];
+var ALLOC_COLS = ['Company Name', 'Current Tagging In', 'Lead Source', 'Source Name', 'Unit Name', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Execution Owner', 'Total Expected Revenue', 'Tagging'];
 
 function buildTable(data, cols, colorTag) {
     if (!data || !data.length) return '<div class="no-data">No data available.</div>';
@@ -504,37 +501,26 @@ function renderRawData() {
 }
 
 // ================================================================
-// DRILL-DOWN
+// DRILL-DOWN MODAL
 // ================================================================
 function openDrill(title, flt) {
     var dd;
-    if (flt === 'leads') {
-        dd = filteredData.filter(function(r) { return classifyRow(r) === 'lead'; });
-    } else if (flt === 'deals') {
-        dd = filteredData.filter(function(r) { return classifyRow(r) === 'deal'; });
-    } else if (flt === 'bankers') {
-        document.getElementById('modalTitle').textContent = 'Banker Details';
-        document.getElementById('modalCount').textContent = bankersData.length + ' records';
-        document.getElementById('modalBody').innerHTML = buildTable(bankersData, ['Banker Name', 'City', 'State', 'Banking Experience', 'Core_Expertise', 'Services.', 'Core Expertise'], false);
-        document.getElementById('drillModal').classList.add('active'); return;
-    } else if (flt === 'cp') {
-        document.getElementById('modalTitle').textContent = 'Channel Partner Details';
-        document.getElementById('modalCount').textContent = cpData.length + ' records';
-        document.getElementById('modalBody').innerHTML = buildTable(cpData, ['Channel Partner Name', 'City', 'Channel Partner Owner Name', 'EXPERTISE'], false);
-        document.getElementById('drillModal').classList.add('active'); return;
-    } else if (flt === 'lenders') {
-        document.getElementById('modalTitle').textContent = 'Lender Details';
-        document.getElementById('modalCount').textContent = lenderData.length + ' records';
-        document.getElementById('modalBody').innerHTML = buildTable(lenderData, ['Lender Name', 'Lender Type', 'Unit Name', 'Lender Status', 'Amount', 'Deals'], false);
-        document.getElementById('drillModal').classList.add('active'); return;
-    } else if (flt === 'rev') {
-        dd = filteredData.filter(function(r) { return parseNum(r['Total Expected Revenue']) > 0 || parseNum(r['Total Payment Received']) > 0; });
-    } else {
-        dd = filteredData;
-    }
+    if (flt === 'leads') { dd = filteredData.filter(function(r) { return classifyRow(r) === 'lead'; }); }
+    else if (flt === 'deals') { dd = filteredData.filter(function(r) { return classifyRow(r) === 'deal'; }); }
+    else if (flt === 'bankers') { document.getElementById('modalTitle').textContent = 'Banker Details'; document.getElementById('modalCount').textContent = bankersData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(bankersData, ['Banker Name', 'City', 'State', 'Banking Experience', 'Core_Expertise', 'Services.', 'Core Expertise'], false); document.getElementById('drillModal').classList.add('active'); return; }
+    else if (flt === 'cp') { document.getElementById('modalTitle').textContent = 'Channel Partner Details'; document.getElementById('modalCount').textContent = cpData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(cpData, ['Channel Partner Name', 'City', 'Channel Partner Owner Name', 'EXPERTISE'], false); document.getElementById('drillModal').classList.add('active'); return; }
+    else if (flt === 'lenders') { document.getElementById('modalTitle').textContent = 'Lender Details'; document.getElementById('modalCount').textContent = lenderData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(lenderData, ['Lender Name', 'Lender Type', 'Unit Name', 'Lender Status', 'Amount', 'Deals'], false); document.getElementById('drillModal').classList.add('active'); return; }
+    else if (flt === 'rev') { dd = filteredData.filter(function(r) { return parseNum(r['Total Expected Revenue']) > 0 || parseNum(r['Total Payment Received']) > 0; }); }
+    else if (flt === 'alloc-banker') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'banker'; }); title = 'Cases Done by Banker'; }
+    else if (flt === 'alloc-cp') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'cp'; }); title = 'Cases Done by Channel Partner'; }
+    else if (flt === 'alloc-referral') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'referral'; }); title = 'Cases Done by Referral'; }
+    else if (flt === 'alloc-direct') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'direct'; }); title = 'Cases Done Direct (Inhouse)'; }
+    else { dd = filteredData; }
+
+    var useCols = (flt && flt.startsWith('alloc-')) ? ALLOC_COLS : RAW_COLS;
     document.getElementById('modalTitle').textContent = 'Drill-Down: ' + title;
     document.getElementById('modalCount').textContent = (dd ? dd.length : 0) + ' records';
-    document.getElementById('modalBody').innerHTML = buildTable(dd || [], RAW_COLS, true);
+    document.getElementById('modalBody').innerHTML = buildTable(dd || [], useCols, true);
     document.getElementById('drillModal').classList.add('active');
 }
 
@@ -553,33 +539,65 @@ function switchTab(id, el) {
 }
 
 // ================================================================
-// ALLOCATION TAB
+// LEAD ALLOCATION TAB (ENHANCED with Drill-Down)
 // ================================================================
 function renderAllocation() {
-    var d = filteredData, ct = {inhouse: 0, banker: 0, cp: 0, referral: 0, other: 0};
+    var d = filteredData, total = d.length;
+    var groups = { banker: [], cp: [], referral: [], direct: [] };
+
+    // Classify each record
     d.forEach(function(r) {
-        var t = ((r['Current Tagging In'] || '') + ' ' + (r['Job Allocation'] || '')).toLowerCase();
-        if (t.indexOf('banker') >= 0) ct.banker++;
-        else if (t.indexOf('channel') >= 0 || t.indexOf('cp') >= 0 || t.indexOf('partner') >= 0) ct.cp++;
-        else if (t.indexOf('referral') >= 0 || t.indexOf('refer') >= 0) ct.referral++;
-        else if (t.indexOf('inhouse') >= 0 || t.indexOf('in-house') >= 0 || t.indexOf('in house') >= 0 || t.indexOf('internal') >= 0 || t.indexOf('team') >= 0) ct.inhouse++;
-        else ct.other++;
+        var cat = classifyAllocation(r);
+        groups[cat].push(r);
     });
 
-    document.getElementById('allocationKPIs').innerHTML =
-        '<div class="kpi-card"><div class="kpi-label">Inhouse</div><div class="kpi-value">' + ct.inhouse + '</div></div>' +
-        '<div class="kpi-card"><div class="kpi-label">Banker</div><div class="kpi-value">' + ct.banker + '</div></div>' +
-        '<div class="kpi-card"><div class="kpi-label">Channel Partner</div><div class="kpi-value">' + ct.cp + '</div></div>' +
-        '<div class="kpi-card"><div class="kpi-label">Referral</div><div class="kpi-value">' + ct.referral + '</div></div>' +
-        '<div class="kpi-card info"><div class="kpi-label">Others</div><div class="kpi-value">' + ct.other + '</div></div>';
+    var ct = {
+        banker: groups.banker.length,
+        cp: groups.cp.length,
+        referral: groups.referral.length,
+        direct: groups.direct.length
+    };
 
+    console.log('📊 Allocation → Banker:', ct.banker, '| CP:', ct.cp, '| Referral:', ct.referral, '| Direct:', ct.direct, '| Sum:', (ct.banker + ct.cp + ct.referral + ct.direct));
+
+    // Percentage calculation
+    var pctB = total ? ((ct.banker / total) * 100).toFixed(1) : 0;
+    var pctC = total ? ((ct.cp / total) * 100).toFixed(1) : 0;
+    var pctR = total ? ((ct.referral / total) * 100).toFixed(1) : 0;
+    var pctD = total ? ((ct.direct / total) * 100).toFixed(1) : 0;
+
+    // Stacked progress bar
+    var barHtml = '';
+    if (ct.banker > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctB + '%;background:#1565c0" title="Banker: ' + ct.banker + ' (' + pctB + '%)">' + (pctB > 8 ? ct.banker : '') + '</div>';
+    if (ct.cp > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctC + '%;background:#6a1b9a" title="CP: ' + ct.cp + ' (' + pctC + '%)">' + (pctC > 8 ? ct.cp : '') + '</div>';
+    if (ct.referral > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctR + '%;background:#e65100" title="Referral: ' + ct.referral + ' (' + pctR + '%)">' + (pctR > 8 ? ct.referral : '') + '</div>';
+    if (ct.direct > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctD + '%;background:#2e7d32" title="Direct: ' + ct.direct + ' (' + pctD + '%)">' + (pctD > 8 ? ct.direct : '') + '</div>';
+    document.getElementById('allocBar').innerHTML = barHtml;
+
+    // Legend
+    document.getElementById('allocLegend').innerHTML =
+        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#1565c0"></div>Banker: ' + ct.banker + ' (' + pctB + '%)</div>' +
+        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#6a1b9a"></div>Channel Partner: ' + ct.cp + ' (' + pctC + '%)</div>' +
+        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#e65100"></div>Referral: ' + ct.referral + ' (' + pctR + '%)</div>' +
+        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#2e7d32"></div>Direct (Inhouse): ' + ct.direct + ' (' + pctD + '%)</div>';
+
+    // KPI Cards with drill-down
+    document.getElementById('allocationKPIs').innerHTML =
+        '<div class="kpi-card banker-card" onclick="openDrill(\'Banker Cases\',\'alloc-banker\')"><div class="kpi-label">🏦 Banker</div><div class="kpi-value">' + ct.banker + '</div><div class="kpi-pct">' + pctB + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
+        '<div class="kpi-card cp-card" onclick="openDrill(\'Channel Partner Cases\',\'alloc-cp\')"><div class="kpi-label">🤝 Channel Partner</div><div class="kpi-value">' + ct.cp + '</div><div class="kpi-pct">' + pctC + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
+        '<div class="kpi-card referral-card" onclick="openDrill(\'Referral Cases\',\'alloc-referral\')"><div class="kpi-label">🔗 Referral</div><div class="kpi-value">' + ct.referral + '</div><div class="kpi-pct">' + pctR + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
+        '<div class="kpi-card direct-card" onclick="openDrill(\'Direct (Inhouse) Cases\',\'alloc-direct\')"><div class="kpi-label">🏢 Direct (Inhouse)</div><div class="kpi-value">' + ct.direct + '</div><div class="kpi-pct">' + pctD + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
+        '<div class="kpi-card" onclick="openDrill(\'All Cases\',\'all\')"><div class="kpi-label">📋 Total</div><div class="kpi-value">' + total + '</div><div class="kpi-pct">100%</div><div class="kpi-sub">Click to drill-down →</div></div>';
+
+    // Pie Chart
     if (ch3) ch3.destroy();
     ch3 = new Chart(document.getElementById('allocationChart').getContext('2d'), {
         type: 'pie',
-        data: { labels: ['Inhouse', 'Banker', 'CP', 'Referral', 'Others'], datasets: [{ data: [ct.inhouse, ct.banker, ct.cp, ct.referral, ct.other], backgroundColor: ['#1a237e', '#3f51b5', '#7986cb', '#f57c00', '#90a4ae'] }] },
+        data: { labels: ['Banker', 'Channel Partner', 'Referral', 'Direct (Inhouse)'], datasets: [{ data: [ct.banker, ct.cp, ct.referral, ct.direct], backgroundColor: ['#1565c0', '#6a1b9a', '#e65100', '#2e7d32'] }] },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 
+    // Region-wise bar chart
     var rg = {};
     d.forEach(function(r) { var u = (r['Unit Name'] || '').trim(); if (u) rg[u] = (rg[u] || 0) + 1; });
     if (ch4) ch4.destroy();
@@ -597,7 +615,6 @@ function populateRecoDropdowns() {
     var states = {}, cities = {};
     bankersData.forEach(function(r) { var s = (r['State'] || '').trim(), c = (r['City'] || '').trim(); if (s) states[s] = true; if (c) cities[c] = true; });
     cpData.forEach(function(r) { var c = (r['City'] || '').trim(); if (c) cities[c] = true; });
-
     document.getElementById('recoState').innerHTML = '<option value="">-- All --</option>' + Object.keys(states).sort().map(function(s) { return '<option>' + s + '</option>'; }).join('');
     document.getElementById('recoCity').innerHTML = '<option value="">-- All --</option>' + Object.keys(cities).sort().map(function(c) { return '<option>' + c + '</option>'; }).join('');
 
@@ -616,16 +633,16 @@ function runBankerReco() {
 
     var terms = [mt.toLowerCase()];
     var ml = mt.toLowerCase();
-    if (ml === 'npa/ots') { terms.push('npa', 'ots'); }
-    if (ml === 'debt+equity') { terms.push('debt', 'equity'); }
-    if (ml === 'retail loan - lap') { terms.push('retail', 'lap'); }
-    if (ml === 'ipo advisory') { terms.push('ipo'); }
-    if (ml === 'pre-ipo') { terms.push('pre-ipo', 'pre ipo'); }
-    if (ml === 'working capital') { terms.push('working capital', 'wc'); }
-    if (ml === 'term loan') { terms.push('term loan', 'tl'); }
-    if (ml === 'structured debt') { terms.push('structured'); }
-    if (ml === 'bill discounting') { terms.push('bill discounting', 'bill'); }
-    if (ml === 'acquisition finance') { terms.push('acquisition'); }
+    if (ml === 'npa/ots') terms.push('npa', 'ots');
+    if (ml === 'debt+equity') terms.push('debt', 'equity');
+    if (ml === 'retail loan - lap') terms.push('retail', 'lap');
+    if (ml === 'ipo advisory') terms.push('ipo');
+    if (ml === 'pre-ipo') terms.push('pre-ipo', 'pre ipo');
+    if (ml === 'working capital') terms.push('working capital', 'wc');
+    if (ml === 'term loan') terms.push('term loan', 'tl');
+    if (ml === 'structured debt') terms.push('structured');
+    if (ml === 'bill discounting') terms.push('bill discounting', 'bill');
+    if (ml === 'acquisition finance') terms.push('acquisition');
 
     var results = [];
     if (type === 'banker' || type === 'both') {
