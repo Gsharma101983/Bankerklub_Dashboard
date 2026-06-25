@@ -23,7 +23,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); color: #333; }
         
-        /* Header */
         .header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .header h1 { font-size: 1.5rem; }
         .header-actions { display: flex; gap: 10px; align-items: center; }
@@ -32,28 +31,24 @@
         .btn-refresh:hover { background: rgba(255,255,255,0.3); }
         .last-sync { font-size: 0.75rem; opacity: 0.8; }
 
-        /* Navigation Tabs */
         .nav-tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; padding: 0 20px; overflow-x: auto; }
         .nav-tab { padding: 12px 24px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #666; transition: all 0.3s; white-space: nowrap; }
         .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
         .nav-tab:hover { color: var(--primary); background: #f0f2ff; }
 
-        /* Main Content */
         .main-content { padding: 20px; max-width: 1600px; margin: 0 auto; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Filters */
         .filters-panel { background: white; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .filters-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
         .filter-group label { font-size: 0.7rem; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 3px; }
         .filter-group select { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.8rem; background: white; }
         .filter-group select:focus { border-color: var(--accent); outline: none; }
-        .btn-clear-filters { background: #ef5350; color: white; padding: 6px 14px; border-radius: 5px; font-size: 0.75rem; margin-left: auto; }
+        .btn-clear-filters { background: #ef5350; color: white; padding: 6px 14px; border-radius: 5px; font-size: 0.75rem; margin-left: auto; cursor: pointer; border: none; }
         .btn-clear-filters:hover { background: #c62828; }
 
-        /* KPI Cards */
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .kpi-card { background: white; border-radius: 10px; padding: 18px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid var(--accent); }
         .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
@@ -64,13 +59,11 @@
         .kpi-card.alert { border-left-color: var(--danger); }
         .kpi-card.info { border-left-color: var(--warning); }
 
-        /* Charts Section */
         .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px; }
         .chart-card { background: white; border-radius: 10px; padding: 20px; box-shadow: var(--shadow); }
         .chart-card h3 { font-size: 0.95rem; color: var(--dark); margin-bottom: 15px; }
         .chart-card .tat-highlight { color: var(--primary); font-weight: 700; }
 
-        /* Data Table */
         .data-table-container { background: white; border-radius: 10px; padding: 20px; box-shadow: var(--shadow); overflow-x: auto; }
         .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         .data-table th { background: var(--primary); color: white; padding: 10px 12px; text-align: left; font-weight: 600; white-space: nowrap; position: sticky; top: 0; }
@@ -80,12 +73,10 @@
         .data-table tr.row-ontrack { background: #e8f5e9; }
         .data-table tr.row-wip { background: #fff3e0; }
 
-        /* Tagging Badges */
         .tag-alert { background: #ffebee; color: #c62828; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; display: inline-block; }
         .tag-ontrack { background: #e8f5e9; color: #2e7d32; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; display: inline-block; }
         .tag-wip { background: #fff3e0; color: #f57c00; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; display: inline-block; }
 
-        /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal { background: white; border-radius: 12px; width: 92%; max-width: 1300px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -96,7 +87,6 @@
         .modal-body { padding: 20px; overflow: auto; flex: 1; }
         .modal-count { font-size: 0.8rem; opacity: 0.8; }
 
-        /* Recommendation Engine */
         .reco-section { background: white; border-radius: 10px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 20px; }
         .reco-section h3 { color: var(--primary); margin-bottom: 5px; font-size: 1.1rem; }
         .reco-section .reco-desc { color: #666; margin-bottom: 15px; font-size: 0.85rem; }
@@ -104,7 +94,7 @@
         .reco-inputs label { font-size: 0.8rem; font-weight: 600; color: #555; display: block; margin-bottom: 5px; }
         .reco-inputs select, .reco-inputs input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
         .reco-inputs select:focus, .reco-inputs input:focus { border-color: var(--accent); outline: none; }
-        .btn-recommend { background: var(--primary); color: white; padding: 10px 24px; border-radius: 6px; font-size: 0.9rem; }
+        .btn-recommend { background: var(--primary); color: white; padding: 10px 24px; border-radius: 6px; font-size: 0.9rem; border: none; cursor: pointer; }
         .btn-recommend:hover { background: var(--secondary); }
         .reco-results { margin-top: 20px; }
         .reco-results h4 { color: var(--dark); margin-bottom: 12px; }
@@ -117,15 +107,11 @@
         .reco-card .match-score { background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
         .reco-card .match-score.medium { background: var(--warning); }
 
-        /* Loading */
         .loading { text-align: center; padding: 40px; color: #888; }
         .spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* No Data */
         .no-data { text-align: center; padding: 30px; color: #999; font-size: 0.9rem; }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 10px; padding: 12px 15px; }
             .header h1 { font-size: 1.2rem; }
@@ -139,7 +125,6 @@
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
     <h1>📊 BankerKlub - Management Dashboard</h1>
     <div class="header-actions">
@@ -148,7 +133,6 @@
     </div>
 </div>
 
-<!-- Navigation -->
 <div class="nav-tabs">
     <div class="nav-tab active" data-tab="overview" onclick="switchTab('overview', this)">📋 Stage 1: Overview</div>
     <div class="nav-tab" data-tab="allocation" onclick="switchTab('allocation', this)">📊 Lead Allocation</div>
@@ -157,31 +141,25 @@
     <div class="nav-tab" data-tab="rawdata" onclick="switchTab('rawdata', this)">📄 All Records</div>
 </div>
 
-<!-- Main Content -->
 <div class="main-content">
 
     <!-- TAB 1: Overview -->
     <div class="tab-content active" id="tab-overview">
-        <!-- Filters -->
         <div class="filters-panel">
             <div class="filters-title">
                 🔍 Live Filters
-                <button class="btn btn-clear-filters" onclick="clearAllFilters()">✕ Clear All</button>
+                <button class="btn-clear-filters" onclick="clearAllFilters()">✕ Clear All</button>
             </div>
             <div class="filters-grid" id="filtersContainer"></div>
         </div>
-
-        <!-- KPI Cards -->
         <div class="kpi-grid" id="kpiContainer"></div>
-
-        <!-- Pipeline & Revenue Charts -->
         <div class="charts-grid">
             <div class="chart-card">
                 <h3>Pipeline Overview | Avg TAT: <span class="tat-highlight" id="avgTAT">--</span> Days</h3>
                 <canvas id="pipelineChart"></canvas>
             </div>
             <div class="chart-card">
-                <h3>Revenue Summary (₹ in Cr.)</h3>
+                <h3>Revenue Summary (₹ Cr.)</h3>
                 <canvas id="revenueChart"></canvas>
             </div>
         </div>
@@ -206,29 +184,29 @@
     <div class="tab-content" id="tab-reco-banker">
         <div class="reco-section">
             <h3>🏦 Banker & Channel Partner Recommendation Engine</h3>
-            <p class="reco-desc">Select criteria below to find the best-matched Bankers or Channel Partners based on expertise, location & experience. Results show top 10-15 matches.</p>
+            <p class="reco-desc">Select criteria to find best-matched Bankers or Channel Partners. Algorithm searches expertise text fields (Core_Expertise, Services, EXPERTISE) for matching keywords, then filters by location.</p>
             <div class="reco-inputs">
                 <div>
                     <label>Mandate Type *</label>
                     <select id="recoMandateType">
                         <option value="">-- Select Mandate Type --</option>
-                        <option>Debt</option>
-                        <option>Debt+Equity</option>
-                        <option>Equity</option>
-                        <option>Structured Debt</option>
-                        <option>IPO Advisory</option>
-                        <option>Pre-IPO</option>
-                        <option>NPA/OTS</option>
-                        <option>Bill Discounting</option>
-                        <option>Acquisition Finance</option>
-                        <option>Working Capital</option>
-                        <option>Term Loan</option>
-                        <option>Other</option>
-                        <option>Retail Loan - LAP</option>
+                        <option value="Debt">Debt</option>
+                        <option value="Debt+Equity">Debt+Equity</option>
+                        <option value="Equity">Equity</option>
+                        <option value="Structured Debt">Structured Debt</option>
+                        <option value="IPO Advisory">IPO Advisory</option>
+                        <option value="Pre-IPO">Pre-IPO</option>
+                        <option value="NPA/OTS">NPA/OTS</option>
+                        <option value="Bill Discounting">Bill Discounting</option>
+                        <option value="Acquisition Finance">Acquisition Finance</option>
+                        <option value="Working Capital">Working Capital</option>
+                        <option value="Term Loan">Term Loan</option>
+                        <option value="Other">Other</option>
+                        <option value="Retail Loan - LAP">Retail Loan - LAP</option>
                     </select>
                 </div>
                 <div>
-                    <label>State</label>
+                    <label>State (Banker only)</label>
                     <select id="recoState"><option value="">-- All States --</option></select>
                 </div>
                 <div>
@@ -253,34 +231,34 @@
     <div class="tab-content" id="tab-reco-lender">
         <div class="reco-section">
             <h3>🏛️ Lender Shortlisting Recommendation Engine</h3>
-            <p class="reco-desc">Find 10-15 possible lenders based on mandate type, location & required amount. Algorithm matches lender expertise against your deal requirements.</p>
+            <p class="reco-desc">Find possible lenders based on historical tagging data. Algorithm identifies unique lenders who have been previously tagged to similar Mandate Types and filters by Lender Type and Unit.</p>
             <div class="reco-inputs">
                 <div>
                     <label>Mandate Type *</label>
                     <select id="lenderMandateType">
                         <option value="">-- Select Mandate Type --</option>
-                        <option>Debt</option>
-                        <option>Debt+Equity</option>
-                        <option>Equity</option>
-                        <option>Structured Debt</option>
-                        <option>IPO Advisory</option>
-                        <option>Pre-IPO</option>
-                        <option>NPA/OTS</option>
-                        <option>Bill Discounting</option>
-                        <option>Acquisition Finance</option>
-                        <option>Working Capital</option>
-                        <option>Term Loan</option>
-                        <option>Other</option>
-                        <option>Retail Loan - LAP</option>
+                        <option value="Debt">Debt</option>
+                        <option value="Debt+Equity">Debt+Equity</option>
+                        <option value="Equity">Equity</option>
+                        <option value="Structured Debt">Structured Debt</option>
+                        <option value="IPO Advisory">IPO Advisory</option>
+                        <option value="Pre-IPO">Pre-IPO</option>
+                        <option value="NPA/OTS">NPA/OTS</option>
+                        <option value="Bill Discounting">Bill Discounting</option>
+                        <option value="Acquisition Finance">Acquisition Finance</option>
+                        <option value="Working Capital">Working Capital</option>
+                        <option value="Term Loan">Term Loan</option>
+                        <option value="Other">Other</option>
+                        <option value="Retail Loan - LAP">Retail Loan - LAP</option>
                     </select>
                 </div>
                 <div>
-                    <label>State</label>
-                    <select id="lenderState"><option value="">-- All States --</option></select>
+                    <label>Lender Type</label>
+                    <select id="lenderTypeFilter"><option value="">-- All Types --</option></select>
                 </div>
                 <div>
-                    <label>City</label>
-                    <select id="lenderCity"><option value="">-- All Cities --</option></select>
+                    <label>Unit Name</label>
+                    <select id="lenderUnitFilter"><option value="">-- All Units --</option></select>
                 </div>
                 <div>
                     <label>Required Amount (₹ Cr.)</label>
@@ -296,7 +274,7 @@
     <div class="tab-content" id="tab-rawdata">
         <div class="data-table-container">
             <h3 style="margin-bottom:15px; color:var(--primary);">📄 All Records - Raw Data View</h3>
-            <p style="font-size:0.8rem; color:#888; margin-bottom:15px;">Showing filtered data. Color coding: <span class="tag-ontrack">On Track</span> <span class="tag-wip">WIP</span> <span class="tag-alert">Alert</span></p>
+            <p style="font-size:0.8rem; color:#888; margin-bottom:15px;">Color coding: <span class="tag-ontrack">On Track</span> <span class="tag-wip">WIP</span> <span class="tag-alert">Alert</span></p>
             <div id="rawDataTable"><div class="loading"><div class="spinner"></div>Loading data...</div></div>
         </div>
     </div>
@@ -317,13 +295,76 @@
 </div>
 
 <script>
-// ============ CONFIGURATION ============
+// ============================================================
+// CONFIGURATION - CORRECT GIDs mapped to your Google Sheet
+// ============================================================
 const SHEET_ID = '1zo85_oRIDLQsR--kCmwWSYBDgm-ZElHIkoC9PNaUB2k';
 const TABS = {
     master: { gid: '397920580', name: 'Master Data' },
     bankers: { gid: '1311522759', name: 'Bankers Onboarding' },
     channelPartners: { gid: '949525485', name: 'Channel Partner Onboarding' },
     lenderTagging: { gid: '695157663', name: 'Lender Tagging' }
+};
+
+// ============================================================
+// EXACT COLUMN NAMES FROM YOUR GOOGLE SHEET
+// ============================================================
+const COLS = {
+    // Master Data - Filters (exact sequence as required)
+    CASE_STATUS: 'Case Status',
+    UNIT_NAME: 'Unit Name',
+    MANDATE_BRANCH: 'Mandate Branch',
+    TAGGING: 'Tagging',
+    LEAD_SOURCE: 'Lead Source',
+    CURRENT_TAGGING_IN: 'Current Tagging In',
+    MANDATE_STATUS: 'Mandate Status',
+    EXECUTION_OWNER: 'Execution Owner',
+    MANDATE_TYPE: 'Mandate Type',
+    DEAL_STAGE: 'Deal Stage',
+    AGEING_SLAB: 'Ageing Slab',
+    TICKET_SIZE: 'Ticket Size',
+    COMPANY_NAME: 'Company Name',
+    LENDER_SHORTLIST: 'Lender Shortlist',
+    DOABILITY_BRANCH: 'Doability Branch',
+    
+    // Master Data - KPI & Revenue
+    LEAD_DEAL_STATUS: 'Lead / Deal Status',
+    TOTAL_DEBT_AMT: 'Total Debt Amt',
+    TOTAL_EQUITY_AMT: 'Total Equity Amt',
+    TOTAL_FIXED_FEE: 'Total Fixed Fee Amt',
+    PCT_FEE_DEBT: '% Fee on Debt Amt',
+    PCT_FEE_EQUITY: '% Fee on Equity Amt',
+    PCT_FEE_FIXED: '% Fee on Fixed Amt',
+    TOTAL_EXPECTED_REVENUE: 'Total Expected Revenue',
+    TOTAL_PAYMENT_RECEIVED: 'Total Payment Received',
+    REFUND: 'Refund',
+    NET_REVENUE: 'Net Revenue',
+    ADVANCE_AMT: 'Advance Amt',
+    TAT_DAYS: 'TAT (In Days) Leads to Mandate Signoff',
+    JOB_ALLOCATION: 'Job Allocation',
+    COMMENTS: 'Comments',
+    
+    // Banker columns
+    BANKER_NAME: 'Banker Name',
+    BANKER_STATE: 'State',
+    BANKER_CITY: 'City',
+    BANKER_EXPERIENCE: 'Banking Experience',
+    BANKER_CORE_EXPERTISE: 'Core_Expertise',
+    BANKER_SERVICES: 'Services.',
+    BANKER_CORE_EXPERTISE2: 'Core Expertise',
+    
+    // Channel Partner columns
+    CP_NAME: 'Channel Partner Name',
+    CP_CITY: 'City',
+    CP_EXPERTISE: 'EXPERTISE',
+    
+    // Lender columns
+    LENDER_NAME: 'Lender Name',
+    LENDER_TYPE: 'Lender Type',
+    LENDER_UNIT: 'Unit Name',
+    LENDER_STATUS: 'Lender Status',
+    LENDER_AMOUNT: 'Amount',
+    LENDER_DEALS: 'Deals'
 };
 
 // Global Data Store
@@ -333,7 +374,9 @@ let cpData = [];
 let lenderData = [];
 let filteredData = [];
 
-// ============ DATA FETCHING ============
+// ============================================================
+// DATA FETCHING
+// ============================================================
 function getSheetURL(gid) {
     return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 }
@@ -369,37 +412,43 @@ async function refreshData() {
         lenderData = lender.filter(r => Object.values(r).some(v => v && v.toString().trim()));
         filteredData = [...masterData];
 
-        console.log(`Loaded: Master(${masterData.length}), Bankers(${bankersData.length}), CP(${cpData.length}), Lenders(${lenderData.length})`);
+        console.log(`✅ Loaded: Master(${masterData.length}), Bankers(${bankersData.length}), CP(${cpData.length}), Lenders(${lenderData.length})`);
+        console.log('Master columns:', Object.keys(masterData[0] || {}));
+        console.log('Banker columns:', Object.keys(bankersData[0] || {}));
+        console.log('CP columns:', Object.keys(cpData[0] || {}));
+        console.log('Lender columns:', Object.keys(lenderData[0] || {}));
 
         renderDashboard();
         populateFilters();
         populateRecoDropdowns();
         
         const now = new Date();
-        document.getElementById('lastSync').textContent = `✓ Last synced: ${now.toLocaleTimeString()}`;
+        document.getElementById('lastSync').textContent = `✓ Synced: ${now.toLocaleTimeString()} | M:${masterData.length} B:${bankersData.length} CP:${cpData.length} L:${lenderData.length}`;
     } catch (error) {
-        document.getElementById('lastSync').textContent = '❌ Sync failed - check sheet permissions';
+        document.getElementById('lastSync').textContent = '❌ Sync failed - ensure sheet is Published to Web';
         console.error('Refresh error:', error);
     }
 }
 
-// ============ FILTERS ============
+// ============================================================
+// FILTERS - Using EXACT column names from your sheet
+// ============================================================
 const FILTER_CONFIG = [
-    { key: 'Case Status', label: 'Case Status' },
-    { key: 'Unit Name', label: 'Unit Name' },
-    { key: 'Mandate Branch', label: 'Mandate Branch' },
-    { key: 'Tagging', label: 'Tagging' },
-    { key: 'Lead Source', label: 'Lead Source' },
-    { key: 'Current Tagging In', label: 'Current Tagging In' },
-    { key: 'Mandate Status', label: 'Mandate Status' },
-    { key: 'Mandate Owner', label: 'Mandate Owner' },
-    { key: 'Mandate Type', label: 'Mandate Type' },
-    { key: 'Deal Stage', label: 'Deal Stage' },
-    { key: 'Ageing Slab', label: 'Ageing Slab' },
-    { key: 'Ticket Size', label: 'Ticket Size' },
-    { key: 'Company Name', label: 'Company Name' },
-    { key: 'Lender Shortlist', label: 'Lender Shortlist' },
-    { key: 'Doability Branch', label: 'Doability Branch' }
+    { key: COLS.CASE_STATUS, label: 'Case Status' },
+    { key: COLS.UNIT_NAME, label: 'Unit Name' },
+    { key: COLS.MANDATE_BRANCH, label: 'Mandate Branch' },
+    { key: COLS.TAGGING, label: 'Tagging' },
+    { key: COLS.LEAD_SOURCE, label: 'Lead Source' },
+    { key: COLS.CURRENT_TAGGING_IN, label: 'Current Tagging In' },
+    { key: COLS.MANDATE_STATUS, label: 'Mandate Status' },
+    { key: COLS.EXECUTION_OWNER, label: 'Execution Owner' },
+    { key: COLS.MANDATE_TYPE, label: 'Mandate Type' },
+    { key: COLS.DEAL_STAGE, label: 'Deal Stage' },
+    { key: COLS.AGEING_SLAB, label: 'Ageing Slab' },
+    { key: COLS.TICKET_SIZE, label: 'Ticket Size' },
+    { key: COLS.COMPANY_NAME, label: 'Company Name' },
+    { key: COLS.LENDER_SHORTLIST, label: 'Lender Shortlist' },
+    { key: COLS.DOABILITY_BRANCH, label: 'Doability Branch' }
 ];
 
 function populateFilters() {
@@ -408,7 +457,6 @@ function populateFilters() {
     
     FILTER_CONFIG.forEach(filter => {
         const values = [...new Set(masterData.map(r => (r[filter.key] || '').toString().trim()).filter(Boolean))].sort();
-        if (values.length === 0) return; // Skip if no data for this filter
         
         const div = document.createElement('div');
         div.className = 'filter-group';
@@ -441,7 +489,9 @@ function clearAllFilters() {
     renderDashboard();
 }
 
-// ============ UTILITY FUNCTIONS ============
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 function parseNum(val) {
     if (!val) return 0;
     return parseFloat(val.toString().replace(/[^0-9.-]/g, '')) || 0;
@@ -467,7 +517,9 @@ function getRowClass(tagging) {
     return '';
 }
 
-// ============ DASHBOARD RENDERING ============
+// ============================================================
+// KPI RENDERING - Using CORRECT column names
+// ============================================================
 function renderDashboard() {
     renderKPIs();
     renderCharts();
@@ -477,24 +529,27 @@ function renderDashboard() {
 function renderKPIs() {
     const data = filteredData;
     const totalCount = data.length;
+    
+    // Use "Lead / Deal Status" column to split leads vs deals
     const leadsCount = data.filter(r => {
-        const status = (r['Case Status'] || '').toLowerCase();
-        return status.includes('lead') || status === 'new' || status === 'open';
+        const status = (r[COLS.LEAD_DEAL_STATUS] || r[COLS.CASE_STATUS] || '').toLowerCase();
+        return status.includes('lead') || status === 'new' || status === 'open' || status === 'fresh';
     }).length;
     const dealsCount = data.filter(r => {
-        const status = (r['Case Status'] || '').toLowerCase();
-        return status.includes('deal') || status.includes('mandate') || status.includes('convert');
+        const status = (r[COLS.LEAD_DEAL_STATUS] || r[COLS.CASE_STATUS] || '').toLowerCase();
+        return status.includes('deal') || status.includes('mandate') || status.includes('convert') || status.includes('won');
     }).length;
+    
     const bankerCount = bankersData.length;
     const cpCount = cpData.length;
-    const lenderCount = lenderData.length;
+    const lenderCount = [...new Set(lenderData.map(r => (r[COLS.LENDER_NAME] || '').trim()).filter(Boolean))].length;
 
-    const revPipeline = data.reduce((s, r) => s + parseNum(r['Total Expected Revenue (In Cr.)']), 0);
-    const revExpected = data.reduce((s, r) => s + parseNum(r['Total Expected Revenue (In Cr.)']), 0);
-    const revCollected = data.reduce((s, r) => s + parseNum(r['Total Payment Received']), 0);
-    const advanceAmt = data.reduce((s, r) => s + parseNum(r['Advance Amt']), 0);
-    const refund = data.reduce((s, r) => s + parseNum(r['Refund']), 0);
-    const netRevenue = data.reduce((s, r) => s + parseNum(r['Net Revenue']), 0);
+    // Revenue KPIs - CORRECT column names (no "In Cr." suffix)
+    const revPipeline = data.reduce((s, r) => s + parseNum(r[COLS.TOTAL_EXPECTED_REVENUE]), 0);
+    const revCollected = data.reduce((s, r) => s + parseNum(r[COLS.TOTAL_PAYMENT_RECEIVED]), 0);
+    const advanceAmt = data.reduce((s, r) => s + parseNum(r[COLS.ADVANCE_AMT]), 0);
+    const refund = data.reduce((s, r) => s + parseNum(r[COLS.REFUND]), 0);
+    const netRevenue = data.reduce((s, r) => s + parseNum(r[COLS.NET_REVENUE]), 0);
 
     const kpis = [
         { label: 'Total Count', value: totalCount, display: totalCount, type: '', filter: 'all' },
@@ -502,9 +557,8 @@ function renderKPIs() {
         { label: 'Deals Count', value: dealsCount, display: dealsCount, type: '', filter: 'deals' },
         { label: 'Banker Count', value: bankerCount, display: bankerCount, type: 'info', filter: 'bankers' },
         { label: 'CP Count', value: cpCount, display: cpCount, type: 'info', filter: 'cp' },
-        { label: 'Lender Details', value: lenderCount, display: lenderCount, type: 'info', filter: 'lenders' },
+        { label: 'Unique Lenders', value: lenderCount, display: lenderCount, type: 'info', filter: 'lenders' },
         { label: 'Revenue Pipeline', value: revPipeline, display: formatCurrency(revPipeline), type: 'revenue', filter: 'rev_pipeline' },
-        { label: 'Revenue Expected', value: revExpected, display: formatCurrency(revExpected), type: 'revenue', filter: 'rev_expected' },
         { label: 'Revenue Collected', value: revCollected, display: formatCurrency(revCollected), type: 'revenue', filter: 'rev_collected' },
         { label: 'Advance Amt', value: advanceAmt, display: formatCurrency(advanceAmt), type: 'revenue', filter: 'advance' },
         { label: 'Refund Amount', value: refund, display: formatCurrency(refund), type: 'alert', filter: 'refund' },
@@ -516,17 +570,19 @@ function renderKPIs() {
         <div class="kpi-card ${kpi.type}" onclick="openDrillDown('${kpi.label}', '${kpi.filter}')">
             <div class="kpi-label">${kpi.label}</div>
             <div class="kpi-value">${kpi.display}</div>
-            <div class="kpi-sub">Click to view details →</div>
+            <div class="kpi-sub">Click to drill-down →</div>
         </div>
     `).join('');
 
-    // Average TAT
-    const tatValues = data.map(r => parseNum(r['TAT (In Days) Leads to Mandate Signoff'])).filter(v => v > 0);
+    // Average TAT - using CORRECT column name
+    const tatValues = data.map(r => parseNum(r[COLS.TAT_DAYS])).filter(v => v > 0);
     const avgTAT = tatValues.length > 0 ? (tatValues.reduce((a, b) => a + b, 0) / tatValues.length).toFixed(1) : '--';
     document.getElementById('avgTAT').textContent = avgTAT;
 }
 
-// ============ CHARTS ============
+// ============================================================
+// CHARTS
+// ============================================================
 let pipelineChartInstance = null;
 let revenueChartInstance = null;
 let allocationChartInstance = null;
@@ -536,7 +592,7 @@ function renderCharts() {
     // Pipeline Chart - by Mandate Status
     const statusCounts = {};
     filteredData.forEach(r => {
-        const status = (r['Mandate Status'] || 'Unknown').toString().trim();
+        const status = (r[COLS.MANDATE_STATUS] || '').toString().trim();
         if (status) statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
 
@@ -545,10 +601,10 @@ function renderCharts() {
     pipelineChartInstance = new Chart(ctx1, {
         type: 'bar',
         data: {
-            labels: Object.keys(statusCounts).slice(0, 12),
+            labels: Object.keys(statusCounts),
             datasets: [{
-                label: 'Count by Status',
-                data: Object.values(statusCounts).slice(0, 12),
+                label: 'Count by Mandate Status',
+                data: Object.values(statusCounts),
                 backgroundColor: '#3f51b5',
                 borderRadius: 4
             }]
@@ -560,14 +616,14 @@ function renderCharts() {
         }
     });
 
-    // Revenue Doughnut Chart
+    // Revenue Doughnut - using CORRECT column names
     const revData = {
-        'Debt Amt': filteredData.reduce((s, r) => s + parseNum(r['Total Debt Amt (In Cr.)']), 0),
-        'Equity Amt': filteredData.reduce((s, r) => s + parseNum(r['Total Equity Amt (In Cr.)']), 0),
-        'Fixed Fee': filteredData.reduce((s, r) => s + parseNum(r['Total Fixed  Fee Amt (In Cr.)']), 0),
-        'Collected': filteredData.reduce((s, r) => s + parseNum(r['Total Payment Received']), 0),
-        'Advance': filteredData.reduce((s, r) => s + parseNum(r['Advance Amt']), 0),
-        'Refund': filteredData.reduce((s, r) => s + parseNum(r['Refund']), 0)
+        'Debt Amt': filteredData.reduce((s, r) => s + parseNum(r[COLS.TOTAL_DEBT_AMT]), 0),
+        'Equity Amt': filteredData.reduce((s, r) => s + parseNum(r[COLS.TOTAL_EQUITY_AMT]), 0),
+        'Fixed Fee': filteredData.reduce((s, r) => s + parseNum(r[COLS.TOTAL_FIXED_FEE]), 0),
+        'Collected': filteredData.reduce((s, r) => s + parseNum(r[COLS.TOTAL_PAYMENT_RECEIVED]), 0),
+        'Advance': filteredData.reduce((s, r) => s + parseNum(r[COLS.ADVANCE_AMT]), 0),
+        'Refund': filteredData.reduce((s, r) => s + parseNum(r[COLS.REFUND]), 0)
     };
 
     if (revenueChartInstance) revenueChartInstance.destroy();
@@ -585,14 +641,30 @@ function renderCharts() {
     });
 }
 
-// ============ DRILL-DOWN MODAL ============
+// ============================================================
+// DRILL-DOWN MODAL - Using CORRECT column names
+// ============================================================
 const RAW_COLUMNS = [
-    'Company Name', 'Tagging', 'Unit Name', 'Mandate Branch', 'Execution Owner',
-    'Mandate Type', 'Mandate Status', 'TAT (In Days) Leads to Mandate Signoff',
-    'Current Status', 'Comments', 'Total Debt Amt (In Cr.)', 'Total Equity Amt (In Cr.)',
-    'Total Fixed  Fee Amt (In Cr.)', '% Fee on Debt Amt', '% Fee on Equity Amt',
-    '% Fee on Fixed Amt', 'Total Expected Revenue (In Cr.)', 'Total Payment Received',
-    'Refund', 'Net Revenue'
+    'Company Name',
+    'Tagging',
+    'Unit Name',
+    'Mandate Branch',
+    'Execution Owner',
+    'Mandate Type',
+    'Mandate Status',
+    'TAT (In Days) Leads to Mandate Signoff',
+    'Case Status',
+    'Comments',
+    'Total Debt Amt',
+    'Total Equity Amt',
+    'Total Fixed Fee Amt',
+    '% Fee on Debt Amt',
+    '% Fee on Equity Amt',
+    '% Fee on Fixed Amt',
+    'Total Expected Revenue',
+    'Total Payment Received',
+    'Refund',
+    'Net Revenue'
 ];
 
 function openDrillDown(title, filter) {
@@ -604,36 +676,35 @@ function openDrillDown(title, filter) {
             break;
         case 'leads':
             drillData = filteredData.filter(r => {
-                const s = (r['Case Status'] || '').toLowerCase();
-                return s.includes('lead') || s === 'new' || s === 'open';
+                const s = (r[COLS.LEAD_DEAL_STATUS] || r[COLS.CASE_STATUS] || '').toLowerCase();
+                return s.includes('lead') || s === 'new' || s === 'open' || s === 'fresh';
             });
             break;
         case 'deals':
             drillData = filteredData.filter(r => {
-                const s = (r['Case Status'] || '').toLowerCase();
-                return s.includes('deal') || s.includes('mandate') || s.includes('convert');
+                const s = (r[COLS.LEAD_DEAL_STATUS] || r[COLS.CASE_STATUS] || '').toLowerCase();
+                return s.includes('deal') || s.includes('mandate') || s.includes('convert') || s.includes('won');
             });
             break;
         case 'bankers':
-            // Show bankers data
-            document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+            document.getElementById('modalTitle').textContent = `Banker Details`;
             document.getElementById('modalCount').textContent = `${bankersData.length} records`;
-            const bankerCols = Object.keys(bankersData[0] || {}).slice(0, 10);
-            document.getElementById('modalBody').innerHTML = buildTable(bankersData, bankerCols, false);
+            const bCols = ['Banker Name', 'City', 'State', 'Banking Experience', 'Core_Expertise', 'Services.', 'Core Expertise'];
+            document.getElementById('modalBody').innerHTML = buildTable(bankersData, bCols, false);
             document.getElementById('drillModal').classList.add('active');
             return;
         case 'cp':
-            document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+            document.getElementById('modalTitle').textContent = `Channel Partner Details`;
             document.getElementById('modalCount').textContent = `${cpData.length} records`;
-            const cpCols = Object.keys(cpData[0] || {}).slice(0, 10);
-            document.getElementById('modalBody').innerHTML = buildTable(cpData, cpCols, false);
+            const cCols = ['Channel Partner Name', 'City', 'Channel Partner Owner Name', 'EXPERTISE'];
+            document.getElementById('modalBody').innerHTML = buildTable(cpData, cCols, false);
             document.getElementById('drillModal').classList.add('active');
             return;
         case 'lenders':
-            document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+            document.getElementById('modalTitle').textContent = `Lender Tagging Details`;
             document.getElementById('modalCount').textContent = `${lenderData.length} records`;
-            const lenderCols = Object.keys(lenderData[0] || {}).slice(0, 10);
-            document.getElementById('modalBody').innerHTML = buildTable(lenderData, lenderCols, false);
+            const lCols = ['Lender Name', 'Lender Type', 'Unit Name', 'Lender Status', 'Amount', 'Deals'];
+            document.getElementById('modalBody').innerHTML = buildTable(lenderData, lCols, false);
             document.getElementById('drillModal').classList.add('active');
             return;
         default:
@@ -651,47 +722,51 @@ function closeModal() {
 }
 
 function buildTable(data, columns, useTagging) {
-    if (!data || !data.length) return '<div class="no-data">No data available for this selection.</div>';
+    if (!data || !data.length) return '<div class="no-data">No data available.</div>';
     
-    // Filter columns that exist in data
-    const availableCols = columns.filter(col => data.some(row => row[col] !== undefined));
+    const availableCols = columns.filter(col => data.some(row => row[col] !== undefined && row[col] !== ''));
     if (availableCols.length === 0) {
-        // Fallback: use first 10 keys from data
-        const allKeys = Object.keys(data[0]);
-        availableCols.push(...allKeys.slice(0, 10));
+        const allKeys = Object.keys(data[0] || {}).filter(k => k.trim());
+        availableCols.push(...allKeys.slice(0, 12));
     }
 
     let html = '<table class="data-table"><thead><tr>';
     availableCols.forEach(col => { html += `<th>${col}</th>`; });
     html += '</tr></thead><tbody>';
     
-    data.forEach(row => {
-        const rowClass = useTagging ? getRowClass(row['Tagging']) : '';
+    data.slice(0, 500).forEach(row => {
+        const rowClass = useTagging ? getRowClass(row[COLS.TAGGING]) : '';
         html += `<tr class="${rowClass}">`;
         availableCols.forEach(col => {
             if (col === 'Tagging') {
                 html += `<td>${getTagBadge(row[col])}</td>`;
             } else {
-                html += `<td>${(row[col] || '--').toString().substring(0, 50)}</td>`;
+                const val = (row[col] || '--').toString();
+                html += `<td>${val.substring(0, 60)}</td>`;
             }
         });
         html += '</tr>';
     });
     html += '</tbody></table>';
+    if (data.length > 500) html += `<p style="text-align:center;color:#888;margin-top:10px;">Showing 500 of ${data.length} records</p>`;
     return html;
 }
 
-// ============ RAW DATA TAB ============
+// ============================================================
+// RAW DATA TAB
+// ============================================================
 function renderRawData() {
     const container = document.getElementById('rawDataTable');
     if (filteredData.length === 0) {
-        container.innerHTML = '<div class="no-data">No data loaded. Click Refresh to sync with Google Sheet.</div>';
+        container.innerHTML = '<div class="no-data">No data loaded. Click ⟳ Refresh to sync with Google Sheet.</div>';
         return;
     }
     container.innerHTML = buildTable(filteredData, RAW_COLUMNS, true);
 }
 
-// ============ TAB NAVIGATION ============
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
 function switchTab(tabId, element) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -701,71 +776,61 @@ function switchTab(tabId, element) {
     if (tabId === 'allocation') renderAllocationTab();
 }
 
-// ============ ALLOCATION TAB ============
+// ============================================================
+// ALLOCATION TAB - Using "Current Tagging In" and "Job Allocation"
+// ============================================================
 function renderAllocationTab() {
     const data = filteredData;
     
-    // Count allocations
     const getCount = (keywords) => {
         return data.filter(r => {
-            const val = (r['Current Tagging In'] || '').toLowerCase();
-            return keywords.some(k => val.includes(k));
+            const taggingIn = (r[COLS.CURRENT_TAGGING_IN] || '').toLowerCase();
+            const jobAlloc = (r[COLS.JOB_ALLOCATION] || '').toLowerCase();
+            const combined = taggingIn + ' ' + jobAlloc;
+            return keywords.some(k => combined.includes(k));
         }).length;
     };
 
-    const inhouse = getCount(['inhouse', 'in-house', 'in house', 'internal']);
+    const inhouse = getCount(['inhouse', 'in-house', 'in house', 'internal', 'team']);
     const banker = getCount(['banker']);
     const cp = getCount(['channel', 'cp', 'partner']);
     const referral = getCount(['referral', 'refer']);
-    const other = data.length - inhouse - banker - cp - referral;
+    const other = Math.max(0, data.length - inhouse - banker - cp - referral);
 
     document.getElementById('allocationKPIs').innerHTML = `
         <div class="kpi-card" onclick="openDrillDown('Inhouse Team','all')">
-            <div class="kpi-label">Inhouse Team</div>
-            <div class="kpi-value">${inhouse}</div>
-            <div class="kpi-sub">Click for details →</div>
+            <div class="kpi-label">Inhouse Team</div><div class="kpi-value">${inhouse}</div><div class="kpi-sub">Click for details →</div>
         </div>
-        <div class="kpi-card" onclick="openDrillDown('Banker Allocated','all')">
-            <div class="kpi-label">Banker Allocated</div>
-            <div class="kpi-value">${banker}</div>
-            <div class="kpi-sub">Click for details →</div>
+        <div class="kpi-card" onclick="openDrillDown('Banker','all')">
+            <div class="kpi-label">Banker Allocated</div><div class="kpi-value">${banker}</div><div class="kpi-sub">Click for details →</div>
         </div>
         <div class="kpi-card" onclick="openDrillDown('Channel Partner','all')">
-            <div class="kpi-label">Channel Partner</div>
-            <div class="kpi-value">${cp}</div>
-            <div class="kpi-sub">Click for details →</div>
+            <div class="kpi-label">Channel Partner</div><div class="kpi-value">${cp}</div><div class="kpi-sub">Click for details →</div>
         </div>
         <div class="kpi-card" onclick="openDrillDown('Referral','all')">
-            <div class="kpi-label">Referral</div>
-            <div class="kpi-value">${referral}</div>
-            <div class="kpi-sub">Click for details →</div>
+            <div class="kpi-label">Referral</div><div class="kpi-value">${referral}</div><div class="kpi-sub">Click for details →</div>
         </div>
-        <div class="kpi-card info" onclick="openDrillDown('Others/Untagged','all')">
-            <div class="kpi-label">Others / Untagged</div>
-            <div class="kpi-value">${other}</div>
-            <div class="kpi-sub">Click for details →</div>
+        <div class="kpi-card info" onclick="openDrillDown('Others','all')">
+            <div class="kpi-label">Others / Untagged</div><div class="kpi-value">${other}</div><div class="kpi-sub">Click for details →</div>
         </div>
     `;
 
-    // Allocation Pie Chart
+    // Pie Chart
     if (allocationChartInstance) allocationChartInstance.destroy();
     const ctx = document.getElementById('allocationChart').getContext('2d');
     allocationChartInstance = new Chart(ctx, {
         type: 'pie',
         data: {
             labels: ['Inhouse', 'Banker', 'Channel Partner', 'Referral', 'Others'],
-            datasets: [{
-                data: [inhouse, banker, cp, referral, other],
-                backgroundColor: ['#1a237e', '#3f51b5', '#7986cb', '#f57c00', '#90a4ae']
-            }]
+            datasets: [{ data: [inhouse, banker, cp, referral, other], backgroundColor: ['#1a237e', '#3f51b5', '#7986cb', '#f57c00', '#90a4ae'] }]
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 
-    // Region Chart
+    // Region Chart using "Unit Name"
     const regions = {};
     data.forEach(r => {
-        const region = (r['Unit Name'] || 'Unknown').toString().trim();
+        const region = (r[COLS.UNIT_NAME] || '').toString().trim();
         if (region) regions[region] = (regions[region] || 0) + 1;
     });
     
@@ -775,45 +840,37 @@ function renderAllocationTab() {
         type: 'bar',
         data: {
             labels: Object.keys(regions),
-            datasets: [{
-                label: 'Leads by Region',
-                data: Object.values(regions),
-                backgroundColor: '#2e7d32',
-                borderRadius: 4
-            }]
+            datasets: [{ label: 'Leads by Unit', data: Object.values(regions), backgroundColor: '#2e7d32', borderRadius: 4 }]
         },
-        options: {
-            responsive: true,
-            indexAxis: 'y',
-            plugins: { legend: { display: false } },
-            scales: { x: { beginAtZero: true } }
-        }
+        options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
     });
 }
 
-// ============ RECOMMENDATION ENGINE: BANKER/CP ============
+// ============================================================
+// RECOMMENDATION ENGINE: BANKER / CHANNEL PARTNER
+// Uses text search in Core_Expertise, Services., Core Expertise, EXPERTISE
+// ============================================================
 function populateRecoDropdowns() {
-    // Collect states and cities from all data sources
-    const allPeople = [...bankersData, ...cpData, ...lenderData];
+    // States from Bankers (CP doesn't have State)
+    const states = [...new Set(bankersData.map(r => (r[COLS.BANKER_STATE] || '').trim()).filter(Boolean))].sort();
+    // Cities from both Bankers and CP
+    const cities = [...new Set([
+        ...bankersData.map(r => (r[COLS.BANKER_CITY] || '').trim()),
+        ...cpData.map(r => (r[COLS.CP_CITY] || '').trim())
+    ].filter(Boolean))].sort();
+
+    const stateEl = document.getElementById('recoState');
+    stateEl.innerHTML = '<option value="">-- All States --</option>' + states.map(s => `<option value="${s}">${s}</option>`).join('');
     
-    const getField = (row, fields) => {
-        for (const f of fields) {
-            if (row[f] && row[f].toString().trim()) return row[f].toString().trim();
-        }
-        return '';
-    };
+    const cityEl = document.getElementById('recoCity');
+    cityEl.innerHTML = '<option value="">-- All Cities --</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
 
-    const states = [...new Set(allPeople.map(r => getField(r, ['State', 'state', 'STATE'])).filter(Boolean))].sort();
-    const cities = [...new Set(allPeople.map(r => getField(r, ['City', 'city', 'CITY'])).filter(Boolean))].sort();
-
-    ['recoState', 'lenderState'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<option value="">-- All States --</option>' + states.map(s => `<option value="${s}">${s}</option>`).join('');
-    });
-    ['recoCity', 'lenderCity'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<option value="">-- All Cities --</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
-    });
+    // Lender dropdowns
+    const lenderTypes = [...new Set(lenderData.map(r => (r[COLS.LENDER_TYPE] || '').trim()).filter(Boolean))].sort();
+    const lenderUnits = [...new Set(lenderData.map(r => (r[COLS.LENDER_UNIT] || '').trim()).filter(Boolean))].sort();
+    
+    document.getElementById('lenderTypeFilter').innerHTML = '<option value="">-- All Types --</option>' + lenderTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    document.getElementById('lenderUnitFilter').innerHTML = '<option value="">-- All Units --</option>' + lenderUnits.map(u => `<option value="${u}">${u}</option>`).join('');
 }
 
 function runBankerRecommendation() {
@@ -822,183 +879,123 @@ function runBankerRecommendation() {
     const city = document.getElementById('recoCity').value;
     const searchType = document.getElementById('recoSearchType').value;
 
-    if (!mandateType) {
-        alert('Please select a Mandate Type to proceed.');
-        return;
-    }
+    if (!mandateType) { alert('Please select a Mandate Type.'); return; }
 
-    let sourceData = [];
-    if (searchType === 'banker') sourceData = bankersData;
-    else if (searchType === 'cp') sourceData = cpData;
-    else sourceData = [...bankersData.map(r => ({...r, _source: 'Banker'})), ...cpData.map(r => ({...r, _source: 'CP'}))];
-
+    let results = [];
     const mandateLower = mandateType.toLowerCase().trim();
     
-    // Find matching experts
-    let results = sourceData.filter(row => {
-        // Method 1: Check if any column header matches mandate type and value is "YES"
-        const hasDirectExpertise = Object.keys(row).some(key => {
-            const keyLower = key.toLowerCase().trim();
-            const val = (row[key] || '').toString().toUpperCase().trim();
-            // Check for exact or partial match in column name
-            return (keyLower.includes(mandateLower) || mandateLower.includes(keyLower)) && 
-                   (val === 'YES' || val === 'Y' || val === '✓' || val === 'TRUE');
+    // Build search keywords (handle variations)
+    const searchTerms = [mandateLower];
+    if (mandateLower === 'npa/ots') searchTerms.push('npa', 'ots', 'npa/ots');
+    if (mandateLower === 'debt+equity') searchTerms.push('debt', 'equity', 'debt+equity', 'debt + equity');
+    if (mandateLower === 'retail loan - lap') searchTerms.push('retail', 'lap', 'retail loan');
+    if (mandateLower === 'ipo advisory') searchTerms.push('ipo');
+    if (mandateLower === 'pre-ipo') searchTerms.push('pre-ipo', 'pre ipo', 'preipo');
+    if (mandateLower === 'bill discounting') searchTerms.push('bill', 'discounting');
+    if (mandateLower === 'acquisition finance') searchTerms.push('acquisition');
+    if (mandateLower === 'working capital') searchTerms.push('working capital', 'wc');
+    if (mandateLower === 'term loan') searchTerms.push('term loan', 'tl');
+    if (mandateLower === 'structured debt') searchTerms.push('structured');
+
+    // Search Bankers
+    if (searchType === 'banker' || searchType === 'both') {
+        bankersData.forEach(row => {
+            // Combine all expertise fields for text search
+            const expertiseText = [
+                row[COLS.BANKER_CORE_EXPERTISE] || '',
+                row[COLS.BANKER_SERVICES] || '',
+                row[COLS.BANKER_CORE_EXPERTISE2] || '',
+                row['Please Specify the details'] || ''
+            ].join(' ').toLowerCase();
+
+            const hasExpertise = searchTerms.some(term => expertiseText.includes(term));
+            
+            let matchState = true;
+            if (state) matchState = (row[COLS.BANKER_STATE] || '').trim().toLowerCase() === state.toLowerCase();
+            
+            let matchCity = true;
+            if (city) matchCity = (row[COLS.BANKER_CITY] || '').trim().toLowerCase() === city.toLowerCase();
+
+            if (hasExpertise && matchState && matchCity) {
+                results.push({
+                    name: row[COLS.BANKER_NAME] || 'N/A',
+                    city: row[COLS.BANKER_CITY] || '--',
+                    state: row[COLS.BANKER_STATE] || '--',
+                    experience: row[COLS.BANKER_EXPERIENCE] || '--',
+                    expertise: expertiseText.substring(0, 80),
+                    source: 'Banker'
+                });
+            }
         });
+    }
 
-        // Method 2: Check expertise text fields
-        const expertiseFields = ['Core_Expertise', 'Core Expertise', 'Services', 'Expertise', 'Product_Expertise', 'Product Expertise', 'Specialization'];
-        const hasInExpertise = expertiseFields.some(field => {
-            return (row[field] || '').toLowerCase().includes(mandateLower);
+    // Search Channel Partners
+    if (searchType === 'cp' || searchType === 'both') {
+        cpData.forEach(row => {
+            const expertiseText = (row[COLS.CP_EXPERTISE] || '').toLowerCase();
+            const hasExpertise = searchTerms.some(term => expertiseText.includes(term));
+            
+            let matchCity = true;
+            if (city) matchCity = (row[COLS.CP_CITY] || '').trim().toLowerCase() === city.toLowerCase();
+            
+            // CP doesn't have State - skip state filter for CP
+            if (hasExpertise && matchCity) {
+                results.push({
+                    name: row[COLS.CP_NAME] || 'N/A',
+                    city: row[COLS.CP_CITY] || '--',
+                    state: '--',
+                    experience: '--',
+                    expertise: expertiseText.substring(0, 80),
+                    source: 'Channel Partner'
+                });
+            }
         });
+    }
 
-        const matchExpertise = hasDirectExpertise || hasInExpertise;
-
-        // Location filter
-        let matchState = true;
-        if (state) {
-            const rowState = (row['State'] || row['state'] || row['STATE'] || '').toLowerCase().trim();
-            matchState = rowState === state.toLowerCase().trim();
-        }
-        
-        let matchCity = true;
-        if (city) {
-            const rowCity = (row['City'] || row['city'] || row['CITY'] || '').toLowerCase().trim();
-            matchCity = rowCity === city.toLowerCase().trim();
-        }
-
-        return matchExpertise && matchState && matchCity;
-    });
-
-    // Sort by experience (descending)
+    // Sort: Bankers by experience (desc), then CP
     results.sort((a, b) => {
-        const expA = parseNum(a['Experience'] || a['Exp'] || a['Years'] || '0');
-        const expB = parseNum(b['Experience'] || b['Exp'] || b['Years'] || '0');
+        const expA = parseFloat((a.experience || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+        const expB = parseFloat((b.experience || '0').toString().replace(/[^0-9.]/g, '')) || 0;
         return expB - expA;
     });
 
-    // Top 15 results
     results = results.slice(0, 15);
 
     const container = document.getElementById('bankerRecoResults');
     if (results.length === 0) {
         container.innerHTML = `<div class="no-data">
-            <p>No matching recommendations found for <strong>${mandateType}</strong>.</p>
-            <p style="margin-top:8px; font-size:0.8rem;">Try: removing State/City filter, or selecting a different Mandate Type.</p>
+            <p>❌ No matching recommendations found for "<strong>${mandateType}</strong>"</p>
+            <p style="margin-top:8px; font-size:0.8rem;">Tips: Remove State/City filters, or try "Both" search type, or check if expertise text contains this term in your sheet.</p>
         </div>`;
         return;
     }
 
     container.innerHTML = `<h4>✅ Top ${results.length} Recommendations for "${mandateType}"</h4>` +
         results.map((r, i) => {
-            const name = r['Name'] || r['Banker Name'] || r['CP Name'] || r['Partner Name'] || r['Full Name'] || 'N/A';
-            const loc = [r['City'] || r['city'], r['State'] || r['state']].filter(Boolean).join(', ') || '--';
-            const exp = r['Experience'] || r['Exp'] || r['Years'] || '--';
-            const source = r._source || (searchType === 'banker' ? 'Banker' : 'CP');
-            const score = i < 5 ? 'High Match' : 'Match';
             const scoreClass = i < 5 ? '' : 'medium';
+            const scoreText = i < 5 ? 'Strong Match' : 'Match';
             return `<div class="reco-card">
                 <div class="reco-rank">${i + 1}</div>
                 <div class="reco-info">
-                    <div class="name">${name}</div>
-                    <div class="details">📍 ${loc} | 🏢 Exp: ${exp} yrs | 🏷️ ${source}</div>
+                    <div class="name">${r.name}</div>
+                    <div class="details">📍 ${r.city}, ${r.state} | 🏢 Exp: ${r.experience} yrs | 🏷️ ${r.source}</div>
                 </div>
-                <div class="match-score ${scoreClass}">${score}</div>
+                <div class="match-score ${scoreClass}">${scoreText}</div>
             </div>`;
         }).join('');
 }
 
-// ============ RECOMMENDATION ENGINE: LENDER ============
+// ============================================================
+// RECOMMENDATION ENGINE: LENDER
+// Cross-references Lender Tagging with Master Data Mandate Types
+// ============================================================
 function runLenderRecommendation() {
     const mandateType = document.getElementById('lenderMandateType').value;
-    const state = document.getElementById('lenderState').value;
-    const city = document.getElementById('lenderCity').value;
+    const lenderType = document.getElementById('lenderTypeFilter').value;
+    const unitName = document.getElementById('lenderUnitFilter').value;
     const amount = parseFloat(document.getElementById('lenderAmount').value) || 0;
 
-    if (!mandateType) {
-        alert('Please select a Mandate Type to proceed.');
-        return;
-    }
+    if (!mandateType) { alert('Please select a Mandate Type.'); return; }
 
-    const mandateLower = mandateType.toLowerCase().trim();
-
-    let results = lenderData.filter(row => {
-        // Method 1: Check column headers for mandate type match with YES value
-        const hasDirectExpertise = Object.keys(row).some(key => {
-            const keyLower = key.toLowerCase().trim();
-            const val = (row[key] || '').toString().toUpperCase().trim();
-            return (keyLower.includes(mandateLower) || mandateLower.includes(keyLower)) && 
-                   (val === 'YES' || val === 'Y' || val === '✓' || val === 'TRUE');
-        });
-
-        // Method 2: Check text fields
-        const expertiseFields = ['Loan Type', 'Expertise', 'Product Type', 'Services', 'Lending Type', 'Product_Expertise'];
-        const hasInExpertise = expertiseFields.some(field => {
-            return (row[field] || '').toLowerCase().includes(mandateLower);
-        });
-
-        const matchExpertise = hasDirectExpertise || hasInExpertise;
-
-        // Location
-        let matchState = true;
-        if (state) {
-            const rowLoc = (row['State'] || row['state'] || row['Location'] || row['Coverage'] || '').toLowerCase();
-            matchState = rowLoc.includes(state.toLowerCase());
-        }
-        
-        let matchCity = true;
-        if (city) {
-            const rowLoc = (row['City'] || row['city'] || row['Location'] || row['Coverage'] || '').toLowerCase();
-            matchCity = rowLoc.includes(city.toLowerCase());
-        }
-
-        return matchExpertise && matchState && matchCity;
-    });
-
-    // Top 15
-    results = results.slice(0, 15);
-
-    const container = document.getElementById('lenderRecoResults');
-    if (results.length === 0) {
-        container.innerHTML = `<div class="no-data">
-            <p>No matching lenders found for <strong>${mandateType}</strong>.</p>
-            <p style="margin-top:8px; font-size:0.8rem;">Try: removing State/City filter, or selecting a different Mandate Type.</p>
-        </div>`;
-        return;
-    }
-
-    container.innerHTML = `<h4>✅ Top ${results.length} Recommended Lenders for "${mandateType}"${amount ? ' | Amount: ₹' + amount + ' Cr.' : ''}</h4>` +
-        results.map((r, i) => {
-            const name = r['Lender Name'] || r['Name'] || r['Bank Name'] || r['Institution'] || r['Lender'] || 'N/A';
-            const loc = r['Location'] || r['State'] || r['City'] || r['Coverage'] || '--';
-            const type = r['Lender Type'] || r['Type'] || r['Category'] || '--';
-            const score = i < 5 ? 'Highly Recommended' : (i < 10 ? 'Recommended' : 'Possible');
-            const scoreClass = i >= 5 ? 'medium' : '';
-            return `<div class="reco-card">
-                <div class="reco-rank">${i + 1}</div>
-                <div class="reco-info">
-                    <div class="name">${name}</div>
-                    <div class="details">📍 ${loc} | 🏦 Type: ${type}</div>
-                </div>
-                <div class="match-score ${scoreClass}">${score}</div>
-            </div>`;
-        }).join('');
-}
-
-// ============ INITIALIZE ============
-window.addEventListener('DOMContentLoaded', function() {
-    refreshData();
-});
-
-// Close modal on outside click
-document.getElementById('drillModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
-});
-</script>
-
-</body>
-</html>
+    // Strategy: Find leads in Master Data with this Mandate Type that have Lender Names assigned
+    // Then recommend those
