@@ -1,5 +1,3 @@
-```python
-```python
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +18,7 @@
         .btn-refresh{background:rgba(255,255,255,.2);color:#fff}
         .btn-refresh:hover{background:rgba(255,255,255,.3)}
         .last-sync{font-size:.72rem;opacity:.85}
+        .auto-refresh-badge{background:rgba(76,175,80,.3);color:#a5d6a7;padding:3px 10px;border-radius:12px;font-size:.68rem;font-weight:600}
         .nav-tabs{display:flex;background:#fff;border-bottom:2px solid #e0e0e0;padding:0 20px;overflow-x:auto}
         .nav-tab{padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;font-weight:600;color:#666;transition:.3s;white-space:nowrap}
         .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
@@ -47,7 +46,6 @@
         .kpi-card.cp-card{border-left-color:#6a1b9a}
         .kpi-card.referral-card{border-left-color:#e65100}
         .kpi-card.direct-card{border-left-color:#2e7d32}
-        .kpi-card.untagged-card{border-left-color:#78909c}
         .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px;margin-bottom:20px}
         .chart-card{background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)}
         .chart-card h3{font-size:.95rem;color:var(--dark);margin-bottom:15px}
@@ -97,7 +95,6 @@
         .alloc-summary h3{color:var(--primary);margin-bottom:15px;font-size:1rem}
         .alloc-bar{display:flex;height:30px;border-radius:8px;overflow:hidden;margin-bottom:10px}
         .alloc-bar-segment{display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:600;transition:.3s}
-        .alloc-bar-segment:hover{opacity:.85}
         .alloc-legend{display:flex;flex-wrap:wrap;gap:15px;margin-top:10px}
         .alloc-legend-item{display:flex;align-items:center;gap:5px;font-size:.78rem}
         .alloc-legend-dot{width:12px;height:12px;border-radius:3px}
@@ -109,6 +106,7 @@
 <div class="header">
     <h1>📊 BankerKlub - Management Dashboard</h1>
     <div class="header-actions">
+        <span class="auto-refresh-badge" id="refreshTimer">Auto-refresh: 5:00</span>
         <span class="last-sync" id="lastSync">Last synced: --</span>
         <button class="btn btn-refresh" onclick="refreshData()">⟳ Refresh Data</button>
     </div>
@@ -138,16 +136,16 @@
         </div>
     </div>
 
-    <!-- TAB 2: Lead Allocation (ENHANCED with Drill-Down) -->
+    <!-- TAB 2: Lead Allocation -->
     <div class="tab-content" id="tab-allocation">
         <div class="alloc-summary">
-            <h3>📊 Lead Allocation Overview</h3>
+            <h3>📊 Lead Allocation Overview (Based on "Current Tagging In")</h3>
             <div class="alloc-bar" id="allocBar"></div>
             <div class="alloc-legend" id="allocLegend"></div>
         </div>
         <div class="kpi-grid" id="allocationKPIs"></div>
         <div class="charts-grid">
-            <div class="chart-card"><h3>Lead Allocation Bifurcation</h3><canvas id="allocationChart"></canvas></div>
+            <div class="chart-card"><h3>Allocation Bifurcation</h3><canvas id="allocationChart"></canvas></div>
             <div class="chart-card"><h3>Region-wise Distribution</h3><canvas id="regionChart"></canvas></div>
         </div>
     </div>
@@ -211,9 +209,41 @@ var GID_BANKERS = '1311522759';
 var GID_CP = '949525485';
 var GID_LENDER = '695157663';
 
+var AUTO_REFRESH_INTERVAL = 300000; // 5 minutes in milliseconds
+var refreshCountdown = 300; // seconds
+var countdownTimer = null;
+var autoRefreshTimer = null;
+
 var masterData = [], bankersData = [], cpData = [], lenderData = [], filteredData = [];
 var debugLog = [];
 var leadDealCol = null;
+var currentTaggingCol = null;
+
+// ================================================================
+// AUTO-REFRESH TIMER (Every 5 Minutes)
+// ================================================================
+function startAutoRefresh() {
+    // Clear any existing timers
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    if (countdownTimer) clearInterval(countdownTimer);
+
+    refreshCountdown = 300;
+
+    // Countdown display every second
+    countdownTimer = setInterval(function() {
+        refreshCountdown--;
+        if (refreshCountdown <= 0) refreshCountdown = 300;
+        var min = Math.floor(refreshCountdown / 60);
+        var sec = refreshCountdown % 60;
+        document.getElementById('refreshTimer').textContent = 'Auto-refresh: ' + min + ':' + (sec < 10 ? '0' : '') + sec;
+    }, 1000);
+
+    // Actual refresh every 5 minutes
+    autoRefreshTimer = setInterval(function() {
+        refreshCountdown = 300;
+        refreshData();
+    }, AUTO_REFRESH_INTERVAL);
+}
 
 // ================================================================
 // FETCH WITH FALLBACK
@@ -246,7 +276,35 @@ function tryFetch(url, tabName, method) {
 }
 
 // ================================================================
-// REFRESH
+// CLEAN DATA - Remove header duplicates & empty rows
+// ================================================================
+function cleanData(data, identifierCol) {
+    if (!data || !data.length) return [];
+    var headers = Object.keys(data[0]);
+    return data.filter(function(row) {
+        // Remove completely empty rows
+        var hasValue = Object.values(row).some(function(v) { return v && v.toString().trim() !== ''; });
+        if (!hasValue) return false;
+
+        // Remove rows where the identifier column is empty
+        if (identifierCol) {
+            var idVal = (row[identifierCol] || '').toString().trim();
+            if (!idVal) return false;
+        }
+
+        // Remove rows where values match header names (duplicate header rows)
+        var matchCount = 0;
+        headers.forEach(function(h) {
+            if ((row[h] || '').toString().trim().toLowerCase() === h.toLowerCase()) matchCount++;
+        });
+        if (matchCount > 3) return false; // If 4+ fields match header names, it's a header row
+
+        return true;
+    });
+}
+
+// ================================================================
+// REFRESH DATA
 // ================================================================
 function refreshData() {
     document.getElementById('lastSync').textContent = '⏳ Syncing...';
@@ -258,19 +316,26 @@ function refreshData() {
         fetchSheetWithFallback(GID_CP, 'CP'),
         fetchSheetWithFallback(GID_LENDER, 'Lender')
     ]).then(function(results) {
-        masterData = results[0].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
-        bankersData = results[1].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
-        cpData = results[2].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
-        lenderData = results[3].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
+        // Clean data - remove empty rows and header duplicates
+        masterData = cleanData(results[0], 'Company Name');
+        bankersData = cleanData(results[1], 'Banker Name');
+        cpData = cleanData(results[2], 'Channel Partner Name');
+        lenderData = cleanData(results[3], 'Lender Name');
         filteredData = masterData.slice();
 
-        detectLeadDealColumn();
+        // Detect columns
+        detectColumns();
 
         var now = new Date();
         document.getElementById('lastSync').textContent = '✓ ' + now.toLocaleTimeString() + ' | M:' + masterData.length + ' B:' + bankersData.length + ' CP:' + cpData.length + ' L:' + lenderData.length;
 
         if (masterData.length === 0) { showDebug(); } else { hideDebug(); }
+
         console.log('=== BANKERKLUB DEBUG ===');
+        console.log('Master rows (cleaned):', masterData.length);
+        console.log('Bankers rows:', bankersData.length);
+        console.log('CP rows:', cpData.length);
+        console.log('Lender rows:', lenderData.length);
         if (masterData.length > 0) console.log('All columns:', Object.keys(masterData[0]));
 
         renderDashboard();
@@ -283,21 +348,40 @@ function refreshData() {
 }
 
 // ================================================================
-// DETECT LEAD/DEAL COLUMN
+// DETECT COLUMNS DYNAMICALLY
 // ================================================================
-function detectLeadDealColumn() {
+function detectColumns() {
     leadDealCol = null;
+    currentTaggingCol = null;
     if (masterData.length === 0) return;
+
     var keys = Object.keys(masterData[0]);
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i].toLowerCase().trim();
-        if (k.indexOf('lead') >= 0 && k.indexOf('deal') >= 0) { leadDealCol = keys[i]; break; }
+
+        // Find "Lead / Deal Status" column
+        if (!leadDealCol && k.indexOf('lead') >= 0 && k.indexOf('deal') >= 0) {
+            leadDealCol = keys[i];
+        }
+        // Find "Current Tagging In" column
+        if (!currentTaggingCol && k.indexOf('current') >= 0 && k.indexOf('tagging') >= 0) {
+            currentTaggingCol = keys[i];
+        }
     }
+
     console.log('📊 Lead/Deal column:', leadDealCol || 'NOT FOUND');
+    console.log('📊 Current Tagging In column:', currentTaggingCol || 'NOT FOUND');
+
+    // Log unique values for verification
     if (leadDealCol) {
-        var vals = {};
-        masterData.forEach(function(r) { var v = (r[leadDealCol] || '').toString().trim(); if (v) vals[v] = (vals[v] || 0) + 1; });
-        console.log('📊 Lead/Deal values:', JSON.stringify(vals));
+        var ldVals = {};
+        masterData.forEach(function(r) { var v = (r[leadDealCol] || '').toString().trim(); if (v) ldVals[v] = (ldVals[v] || 0) + 1; });
+        console.log('📊 Lead/Deal VALUES:', JSON.stringify(ldVals));
+    }
+    if (currentTaggingCol) {
+        var ctVals = {};
+        masterData.forEach(function(r) { var v = (r[currentTaggingCol] || '').toString().trim(); if (v) ctVals[v] = (ctVals[v] || 0) + 1; });
+        console.log('📊 Current Tagging In VALUES:', JSON.stringify(ctVals));
     }
 }
 
@@ -319,12 +403,22 @@ function populateFilters() {
     var container = document.getElementById('filtersContainer');
     container.innerHTML = '';
     FILTER_KEYS.forEach(function(f) {
+        // Try exact key first, then try dynamic detection
+        var actualKey = f.key;
+        if (masterData.length > 0 && masterData[0][f.key] === undefined) {
+            // Try to find column by partial match
+            var keys = Object.keys(masterData[0]);
+            for (var i = 0; i < keys.length; i++) {
+                if (keys[i].toLowerCase().trim() === f.key.toLowerCase().trim()) { actualKey = keys[i]; break; }
+            }
+        }
+
         var seen = {}, vals = [];
-        masterData.forEach(function(r) { var v = (r[f.key] || '').toString().trim(); if (v && !seen[v]) { seen[v] = true; vals.push(v); } });
+        masterData.forEach(function(r) { var v = (r[actualKey] || '').toString().trim(); if (v && !seen[v]) { seen[v] = true; vals.push(v); } });
         vals.sort();
         var div = document.createElement('div');
         div.className = 'filter-group';
-        div.innerHTML = '<label>' + f.label + '</label><select onchange="applyFilters()" data-filter="' + f.key + '"><option value="">All (' + vals.length + ')</option>' + vals.map(function(v) { return '<option value="' + v.replace(/"/g, '&quot;') + '">' + v + '</option>'; }).join('') + '</select>';
+        div.innerHTML = '<label>' + f.label + '</label><select onchange="applyFilters()" data-filter="' + actualKey + '"><option value="">All (' + vals.length + ')</option>' + vals.map(function(v) { return '<option value="' + v.replace(/"/g, '&quot;') + '">' + v + '</option>'; }).join('') + '</select>';
         container.appendChild(div);
     });
 }
@@ -356,50 +450,42 @@ function getTagBadge(v) { var s = (v || '').toString().toLowerCase().trim(); if 
 function getRowClass(v) { var s = (v || '').toString().toLowerCase().trim(); if (s === 'alert' || s === 'red') return 'row-alert'; if (s === 'on track' || s === 'green' || s === 'ontrack') return 'row-ontrack'; if (s === 'wip' || s === 'amber' || s === 'yellow') return 'row-wip'; return ''; }
 
 // ================================================================
-// CLASSIFY: LEAD vs DEAL (Binary - Leads + Deals = Total ALWAYS)
+// CLASSIFY: LEAD vs DEAL
+// READS DIRECTLY from "Lead / Deal Status" column - NO GUESSING
+// Leads + Deals = Total Count (GUARANTEED)
 // ================================================================
 function classifyRow(r) {
     if (leadDealCol) {
         var val = (r[leadDealCol] || '').toString().toLowerCase().trim();
-        if (val.indexOf('deal') >= 0 || val === 'converted' || val === 'won' || val === 'mandate signed' || val === 'closed won') return 'deal';
+        // Direct match: if column says "Deal" → Deal
+        if (val === 'deal' || val === 'deals') return 'deal';
     }
-    var dealStage = (r['Deal Stage'] || '').toString().trim();
-    var mandateSignoff = (r['Mandate Sigoff Date'] || r['Mandate Signoff Date'] || '').toString().trim();
-    var dealConvertedDate = (r['Deal Converted Date'] || '').toString().trim();
-    var mandateStatus = (r['Mandate Status'] || '').toString().trim().toLowerCase();
-    if (dealStage) return 'deal';
-    if (mandateSignoff) return 'deal';
-    if (dealConvertedDate) return 'deal';
-    if (mandateStatus && mandateStatus !== 'na' && mandateStatus !== 'n/a' && mandateStatus !== '-' && mandateStatus !== '--') return 'deal';
+    // EVERYTHING ELSE = Lead (guarantees Leads + Deals = Total)
     return 'lead';
 }
 
 // ================================================================
-// CLASSIFY ALLOCATION: Who sourced/handled the case
-// Uses "Current Tagging In" + "Lead Source" columns
-// Categories: Banker | Channel Partner | Referral | Direct (Inhouse)
+// CLASSIFY ALLOCATION: Reads DIRECTLY from "Current Tagging In"
+// No guessing - uses exact column value
 // ================================================================
 function classifyAllocation(r) {
-    var tagging = (r['Current Tagging In'] || '').toString().toLowerCase().trim();
-    var leadSource = (r['Lead Source'] || '').toString().toLowerCase().trim();
-    var sourceName = (r['Source Name'] || '').toString().toLowerCase().trim();
-    var combined = tagging + ' ' + leadSource + ' ' + sourceName;
+    var val = '';
+    if (currentTaggingCol) {
+        val = (r[currentTaggingCol] || '').toString().trim();
+    } else {
+        val = (r['Current Tagging In'] || '').toString().trim();
+    }
 
-    // Banker
-    if (combined.indexOf('banker') >= 0) return 'banker';
-    // Channel Partner
-    if (combined.indexOf('channel') >= 0 || combined.indexOf('cp') >= 0 || combined.indexOf('partner') >= 0) return 'cp';
-    // Referral
-    if (combined.indexOf('referral') >= 0 || combined.indexOf('refer') >= 0) return 'referral';
-    // Direct / Inhouse
-    if (combined.indexOf('direct') >= 0 || combined.indexOf('inhouse') >= 0 || combined.indexOf('in-house') >= 0 || combined.indexOf('in house') >= 0 || combined.indexOf('internal') >= 0 || combined.indexOf('team') >= 0 || combined.indexOf('self') >= 0 || combined.indexOf('website') >= 0 || combined.indexOf('online') >= 0 || combined.indexOf('walk-in') >= 0 || combined.indexOf('walkin') >= 0) return 'direct';
+    if (!val) return 'untagged';
 
-    // If "Current Tagging In" has a value but doesn't match above → use it as-is
-    // If Lead Source has a value → Direct (company's own lead)
-    if (tagging === '' && leadSource === '' && sourceName === '') return 'direct';
+    var lower = val.toLowerCase();
+    if (lower === 'banker' || lower === 'bankers') return 'banker';
+    if (lower === 'cp' || lower === 'channel partner' || lower === 'channel partners') return 'cp';
+    if (lower === 'referral' || lower === 'referrals' || lower === 'refer') return 'referral';
+    if (lower === 'inhouse' || lower === 'in-house' || lower === 'in house' || lower === 'direct' || lower === 'team' || lower === 'internal' || lower === 'self') return 'direct';
 
-    // Default: Direct (Inhouse) - all untagged cases are direct/inhouse
-    return 'direct';
+    // Return the actual value as category (for any other values in the column)
+    return val;
 }
 
 // ================================================================
@@ -411,7 +497,8 @@ function renderKPIs() {
     var d = filteredData, total = d.length;
     var leads = 0, deals = 0;
     d.forEach(function(r) { if (classifyRow(r) === 'deal') deals++; else leads++; });
-    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Match:', (leads + deals === total) ? '✅' : '❌');
+
+    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Sum:', (leads + deals), '| Match:', (leads + deals === total) ? '✅ CORRECT' : '❌ ERROR');
 
     var bCt = bankersData.length, cCt = cpData.length;
     var ln = {}; lenderData.forEach(function(r) { var n = (r['Lender Name'] || '').trim(); if (n) ln[n] = true; }); var lCt = Object.keys(ln).length;
@@ -469,7 +556,7 @@ function renderCharts() {
 // ================================================================
 // RAW DATA
 // ================================================================
-var RAW_COLS = ['Company Name', 'Tagging', 'Unit Name', 'Mandate Branch', 'Execution Owner', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Case Status', 'Ticket Size', 'Total Expected Revenue', 'Total Payment Received', 'Refund', 'Net Revenue', 'Comments'];
+var RAW_COLS = ['Company Name', 'Tagging', 'Current Tagging In', 'Unit Name', 'Mandate Branch', 'Execution Owner', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Case Status', 'Ticket Size', 'Total Expected Revenue', 'Total Payment Received', 'Refund', 'Net Revenue'];
 var ALLOC_COLS = ['Company Name', 'Current Tagging In', 'Lead Source', 'Source Name', 'Unit Name', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Execution Owner', 'Total Expected Revenue', 'Tagging'];
 
 function buildTable(data, cols, colorTag) {
@@ -504,20 +591,21 @@ function renderRawData() {
 // DRILL-DOWN MODAL
 // ================================================================
 function openDrill(title, flt) {
-    var dd;
+    var dd, useCols = RAW_COLS;
+
     if (flt === 'leads') { dd = filteredData.filter(function(r) { return classifyRow(r) === 'lead'; }); }
     else if (flt === 'deals') { dd = filteredData.filter(function(r) { return classifyRow(r) === 'deal'; }); }
     else if (flt === 'bankers') { document.getElementById('modalTitle').textContent = 'Banker Details'; document.getElementById('modalCount').textContent = bankersData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(bankersData, ['Banker Name', 'City', 'State', 'Banking Experience', 'Core_Expertise', 'Services.', 'Core Expertise'], false); document.getElementById('drillModal').classList.add('active'); return; }
     else if (flt === 'cp') { document.getElementById('modalTitle').textContent = 'Channel Partner Details'; document.getElementById('modalCount').textContent = cpData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(cpData, ['Channel Partner Name', 'City', 'Channel Partner Owner Name', 'EXPERTISE'], false); document.getElementById('drillModal').classList.add('active'); return; }
     else if (flt === 'lenders') { document.getElementById('modalTitle').textContent = 'Lender Details'; document.getElementById('modalCount').textContent = lenderData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(lenderData, ['Lender Name', 'Lender Type', 'Unit Name', 'Lender Status', 'Amount', 'Deals'], false); document.getElementById('drillModal').classList.add('active'); return; }
     else if (flt === 'rev') { dd = filteredData.filter(function(r) { return parseNum(r['Total Expected Revenue']) > 0 || parseNum(r['Total Payment Received']) > 0; }); }
-    else if (flt === 'alloc-banker') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'banker'; }); title = 'Cases Done by Banker'; }
-    else if (flt === 'alloc-cp') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'cp'; }); title = 'Cases Done by Channel Partner'; }
-    else if (flt === 'alloc-referral') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'referral'; }); title = 'Cases Done by Referral'; }
-    else if (flt === 'alloc-direct') { dd = filteredData.filter(function(r) { return classifyAllocation(r) === 'direct'; }); title = 'Cases Done Direct (Inhouse)'; }
+    else if (flt.startsWith('alloc:')) {
+        var allocCat = flt.replace('alloc:', '');
+        dd = filteredData.filter(function(r) { return classifyAllocation(r) === allocCat; });
+        useCols = ALLOC_COLS;
+    }
     else { dd = filteredData; }
 
-    var useCols = (flt && flt.startsWith('alloc-')) ? ALLOC_COLS : RAW_COLS;
     document.getElementById('modalTitle').textContent = 'Drill-Down: ' + title;
     document.getElementById('modalCount').textContent = (dd ? dd.length : 0) + ' records';
     document.getElementById('modalBody').innerHTML = buildTable(dd || [], useCols, true);
@@ -539,65 +627,88 @@ function switchTab(id, el) {
 }
 
 // ================================================================
-// LEAD ALLOCATION TAB (ENHANCED with Drill-Down)
+// LEAD ALLOCATION TAB (Reads "Current Tagging In" DIRECTLY)
 // ================================================================
 function renderAllocation() {
     var d = filteredData, total = d.length;
-    var groups = { banker: [], cp: [], referral: [], direct: [] };
 
-    // Classify each record
+    // Group by EXACT values from "Current Tagging In" column
+    var groups = {};
     d.forEach(function(r) {
         var cat = classifyAllocation(r);
+        if (!groups[cat]) groups[cat] = [];
         groups[cat].push(r);
     });
 
-    var ct = {
-        banker: groups.banker.length,
-        cp: groups.cp.length,
-        referral: groups.referral.length,
-        direct: groups.direct.length
+    // Define display config for known categories
+    var categoryConfig = {
+        'banker': { label: '🏦 Banker', color: '#1565c0', cardClass: 'banker-card' },
+        'cp': { label: '🤝 Channel Partner', color: '#6a1b9a', cardClass: 'cp-card' },
+        'referral': { label: '🔗 Referral', color: '#e65100', cardClass: 'referral-card' },
+        'direct': { label: '🏢 Direct (Inhouse)', color: '#2e7d32', cardClass: 'direct-card' },
+        'untagged': { label: '⚪ Not Tagged', color: '#78909c', cardClass: '' }
     };
 
-    console.log('📊 Allocation → Banker:', ct.banker, '| CP:', ct.cp, '| Referral:', ct.referral, '| Direct:', ct.direct, '| Sum:', (ct.banker + ct.cp + ct.referral + ct.direct));
+    // Build allocation categories in order
+    var allocCategories = [];
+    var knownKeys = ['banker', 'cp', 'referral', 'direct'];
+    knownKeys.forEach(function(k) {
+        if (groups[k] && groups[k].length > 0) {
+            allocCategories.push({ key: k, count: groups[k].length, config: categoryConfig[k] });
+        }
+    });
+    // Add any other custom values from the column
+    Object.keys(groups).forEach(function(k) {
+        if (knownKeys.indexOf(k) === -1 && k !== 'untagged') {
+            allocCategories.push({ key: k, count: groups[k].length, config: { label: '📌 ' + k, color: '#455a64', cardClass: '' } });
+        }
+    });
+    // Add untagged at the end
+    if (groups['untagged'] && groups['untagged'].length > 0) {
+        allocCategories.push({ key: 'untagged', count: groups['untagged'].length, config: categoryConfig['untagged'] });
+    }
 
-    // Percentage calculation
-    var pctB = total ? ((ct.banker / total) * 100).toFixed(1) : 0;
-    var pctC = total ? ((ct.cp / total) * 100).toFixed(1) : 0;
-    var pctR = total ? ((ct.referral / total) * 100).toFixed(1) : 0;
-    var pctD = total ? ((ct.direct / total) * 100).toFixed(1) : 0;
+    // Verify sum = total
+    var sumCheck = 0;
+    allocCategories.forEach(function(c) { sumCheck += c.count; });
+    console.log('📊 Allocation → Categories:', allocCategories.length, '| Sum:', sumCheck, '| Total:', total, '| Match:', sumCheck === total ? '✅' : '❌');
 
-    // Stacked progress bar
+    // Stacked bar
     var barHtml = '';
-    if (ct.banker > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctB + '%;background:#1565c0" title="Banker: ' + ct.banker + ' (' + pctB + '%)">' + (pctB > 8 ? ct.banker : '') + '</div>';
-    if (ct.cp > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctC + '%;background:#6a1b9a" title="CP: ' + ct.cp + ' (' + pctC + '%)">' + (pctC > 8 ? ct.cp : '') + '</div>';
-    if (ct.referral > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctR + '%;background:#e65100" title="Referral: ' + ct.referral + ' (' + pctR + '%)">' + (pctR > 8 ? ct.referral : '') + '</div>';
-    if (ct.direct > 0) barHtml += '<div class="alloc-bar-segment" style="width:' + pctD + '%;background:#2e7d32" title="Direct: ' + ct.direct + ' (' + pctD + '%)">' + (pctD > 8 ? ct.direct : '') + '</div>';
+    allocCategories.forEach(function(c) {
+        var pct = total ? ((c.count / total) * 100) : 0;
+        barHtml += '<div class="alloc-bar-segment" style="width:' + pct + '%;background:' + c.config.color + '" title="' + c.config.label + ': ' + c.count + ' (' + pct.toFixed(1) + '%)">' + (pct > 8 ? c.count : '') + '</div>';
+    });
     document.getElementById('allocBar').innerHTML = barHtml;
 
     // Legend
-    document.getElementById('allocLegend').innerHTML =
-        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#1565c0"></div>Banker: ' + ct.banker + ' (' + pctB + '%)</div>' +
-        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#6a1b9a"></div>Channel Partner: ' + ct.cp + ' (' + pctC + '%)</div>' +
-        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#e65100"></div>Referral: ' + ct.referral + ' (' + pctR + '%)</div>' +
-        '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:#2e7d32"></div>Direct (Inhouse): ' + ct.direct + ' (' + pctD + '%)</div>';
+    var legendHtml = '';
+    allocCategories.forEach(function(c) {
+        var pct = total ? ((c.count / total) * 100).toFixed(1) : '0.0';
+        legendHtml += '<div class="alloc-legend-item"><div class="alloc-legend-dot" style="background:' + c.config.color + '"></div>' + c.config.label + ': ' + c.count + ' (' + pct + '%)</div>';
+    });
+    document.getElementById('allocLegend').innerHTML = legendHtml;
 
     // KPI Cards with drill-down
-    document.getElementById('allocationKPIs').innerHTML =
-        '<div class="kpi-card banker-card" onclick="openDrill(\'Banker Cases\',\'alloc-banker\')"><div class="kpi-label">🏦 Banker</div><div class="kpi-value">' + ct.banker + '</div><div class="kpi-pct">' + pctB + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
-        '<div class="kpi-card cp-card" onclick="openDrill(\'Channel Partner Cases\',\'alloc-cp\')"><div class="kpi-label">🤝 Channel Partner</div><div class="kpi-value">' + ct.cp + '</div><div class="kpi-pct">' + pctC + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
-        '<div class="kpi-card referral-card" onclick="openDrill(\'Referral Cases\',\'alloc-referral\')"><div class="kpi-label">🔗 Referral</div><div class="kpi-value">' + ct.referral + '</div><div class="kpi-pct">' + pctR + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
-        '<div class="kpi-card direct-card" onclick="openDrill(\'Direct (Inhouse) Cases\',\'alloc-direct\')"><div class="kpi-label">🏢 Direct (Inhouse)</div><div class="kpi-value">' + ct.direct + '</div><div class="kpi-pct">' + pctD + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>' +
-        '<div class="kpi-card" onclick="openDrill(\'All Cases\',\'all\')"><div class="kpi-label">📋 Total</div><div class="kpi-value">' + total + '</div><div class="kpi-pct">100%</div><div class="kpi-sub">Click to drill-down →</div></div>';
+    var kpiHtml = '';
+    allocCategories.forEach(function(c) {
+        var pct = total ? ((c.count / total) * 100).toFixed(1) : '0.0';
+        kpiHtml += '<div class="kpi-card ' + c.config.cardClass + '" onclick="openDrill(\'' + c.config.label.replace(/'/g, '') + ' Cases\',\'alloc:' + c.key + '\')"><div class="kpi-label">' + c.config.label + '</div><div class="kpi-value">' + c.count + '</div><div class="kpi-pct">' + pct + '% of total</div><div class="kpi-sub">Click to drill-down →</div></div>';
+    });
+    kpiHtml += '<div class="kpi-card" onclick="openDrill(\'All Cases\',\'all\')"><div class="kpi-label">📋 Total</div><div class="kpi-value">' + total + '</div><div class="kpi-pct">100%</div><div class="kpi-sub">Click to drill-down →</div></div>';
+    document.getElementById('allocationKPIs').innerHTML = kpiHtml;
 
     // Pie Chart
+    var pieLabels = [], pieData = [], pieColors = [];
+    allocCategories.forEach(function(c) { pieLabels.push(c.config.label.replace(/[^\w\s()]/g, '').trim()); pieData.push(c.count); pieColors.push(c.config.color); });
     if (ch3) ch3.destroy();
     ch3 = new Chart(document.getElementById('allocationChart').getContext('2d'), {
         type: 'pie',
-        data: { labels: ['Banker', 'Channel Partner', 'Referral', 'Direct (Inhouse)'], datasets: [{ data: [ct.banker, ct.cp, ct.referral, ct.direct], backgroundColor: ['#1565c0', '#6a1b9a', '#e65100', '#2e7d32'] }] },
+        data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors }] },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 
-    // Region-wise bar chart
+    // Region chart
     var rg = {};
     d.forEach(function(r) { var u = (r['Unit Name'] || '').trim(); if (u) rg[u] = (rg[u] || 0) + 1; });
     if (ch4) ch4.destroy();
@@ -669,7 +780,7 @@ function runBankerReco() {
     results = results.slice(0, 15);
 
     var ctr = document.getElementById('bankerRecoResults');
-    if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No matches for "' + mt + '". Try "Both" or remove location filters.</div>'; return; }
+    if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No matches for "' + mt + '". Try "Both" or remove filters.</div>'; return; }
     var h = '<h4>✅ Top ' + results.length + ' for "' + mt + '"</h4>';
     results.forEach(function(r, i) { h += '<div class="reco-card"><div class="reco-rank">' + (i + 1) + '</div><div class="reco-info"><div class="name">' + r.name + '</div><div class="details">📍 ' + r.city + ', ' + r.state + ' | Exp: ' + r.exp + ' | ' + r.src + '</div></div><div class="match-score' + (i >= 5 ? ' medium' : '') + '">' + (i < 5 ? 'Strong' : 'Match') + '</div></div>'; });
     ctr.innerHTML = h;
@@ -719,16 +830,4 @@ function runLenderReco() {
     var ctr = document.getElementById('lenderRecoResults');
     if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No lenders for "' + mt + '". Try removing filters.</div>'; return; }
     var h = '<h4>✅ Top ' + results.length + ' Lenders for "' + mt + '"</h4>';
-    results.forEach(function(r, i) { h += '<div class="reco-card"><div class="reco-rank">' + (i + 1) + '</div><div class="reco-info"><div class="name">' + r.name + '</div><div class="details">🏦 ' + r.type + ' | Unit: ' + r.unit + ' | Tagged ' + r.count + 'x</div></div><div class="match-score' + (r.match ? '' : ' medium') + '">' + (r.match ? 'Recommended' : 'Possible') + '</div></div>'; });
-    ctr.innerHTML = h;
-}
-
-// ================================================================
-// INIT
-// ================================================================
-document.addEventListener('DOMContentLoaded', function() { refreshData(); });
-document.getElementById('drillModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
-</script>
-</body>
-</html>
+    results.forEach(function(r, i) { h += '
