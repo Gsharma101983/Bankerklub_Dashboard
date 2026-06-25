@@ -1,3 +1,4 @@
+```python
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -192,10 +193,10 @@ var GID_LENDER = '695157663';
 
 var masterData = [], bankersData = [], cpData = [], lenderData = [], filteredData = [];
 var debugLog = [];
-var leadDealCol = null; // Will be detected dynamically
+var leadDealCol = null;
 
 // ================================================================
-// FETCH WITH FALLBACK - Tries 3 Google Sheets endpoints
+// FETCH WITH FALLBACK
 // ================================================================
 function fetchSheetWithFallback(gid, tabName) {
     var url1 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&gid=' + gid;
@@ -205,20 +206,15 @@ function fetchSheetWithFallback(gid, tabName) {
     return tryFetch(url1, tabName, 'gviz')
         .then(function(data) {
             if (data && data.length > 0) return data;
-            debugLog.push('⚠️ ' + tabName + ': gviz returned 0 rows, trying /pub...');
             return tryFetch(url2, tabName, 'pub');
         })
         .then(function(data) {
             if (data && data.length > 0) return data;
-            debugLog.push('⚠️ ' + tabName + ': /pub returned 0 rows, trying /export...');
             return tryFetch(url3, tabName, 'export');
         })
         .then(function(data) {
-            if (data && data.length > 0) {
-                debugLog.push('✅ ' + tabName + ': ' + data.length + ' rows loaded');
-                return data;
-            }
-            debugLog.push('❌ ' + tabName + ': ALL endpoints failed. Sheet not shared/published.');
+            if (data && data.length > 0) { debugLog.push('✅ ' + tabName + ': ' + data.length + ' rows'); return data; }
+            debugLog.push('❌ ' + tabName + ': ALL endpoints failed');
             return [];
         });
 }
@@ -226,38 +222,25 @@ function fetchSheetWithFallback(gid, tabName) {
 function tryFetch(url, tabName, method) {
     return fetch(url)
         .then(function(response) {
-            if (!response.ok) {
-                debugLog.push('❌ ' + tabName + ' (' + method + '): HTTP ' + response.status);
-                return [];
-            }
+            if (!response.ok) { debugLog.push('❌ ' + tabName + ' (' + method + '): HTTP ' + response.status); return []; }
             return response.text();
         })
         .then(function(text) {
             if (!text || typeof text !== 'string') return [];
             var trimmed = text.trim();
-            if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) {
-                debugLog.push('⚠️ ' + tabName + ' (' + method + '): HTML response (not public)');
-                return [];
-            }
+            if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) { return []; }
             var parsed = Papa.parse(trimmed, { header: true, skipEmptyLines: true });
-            if (parsed.data && parsed.data.length > 0) {
-                debugLog.push('✅ ' + tabName + ' (' + method + '): ' + parsed.data.length + ' rows');
-            }
             return parsed.data || [];
         })
-        .catch(function(err) {
-            debugLog.push('❌ ' + tabName + ' (' + method + '): ' + err.message);
-            return [];
-        });
+        .catch(function(err) { debugLog.push('❌ ' + tabName + ' (' + method + '): ' + err.message); return []; });
 }
 
 // ================================================================
-// REFRESH DATA
+// REFRESH
 // ================================================================
 function refreshData() {
     document.getElementById('lastSync').textContent = '⏳ Syncing...';
     debugLog = [];
-    debugLog.push('🔄 Sync started: ' + new Date().toLocaleTimeString());
 
     Promise.all([
         fetchSheetWithFallback(GID_MASTER, 'Master'),
@@ -271,38 +254,28 @@ function refreshData() {
         lenderData = results[3].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
         filteredData = masterData.slice();
 
-        // Detect the Lead/Deal column dynamically
         detectLeadDealColumn();
 
         var now = new Date();
         document.getElementById('lastSync').textContent = '✓ ' + now.toLocaleTimeString() + ' | M:' + masterData.length + ' B:' + bankersData.length + ' CP:' + cpData.length + ' L:' + lenderData.length;
 
-        if (masterData.length === 0 && bankersData.length === 0) {
-            debugLog.push('');
-            debugLog.push('━━━ TROUBLESHOOTING ━━━');
-            debugLog.push('1. Share sheet: "Anyone with the link" → Viewer');
-            debugLog.push('2. File → Share → Publish to web → Publish');
-            showDebug();
-        } else {
-            hideDebug();
-        }
+        if (masterData.length === 0) { showDebug(); } else { hideDebug(); }
 
         console.log('=== BANKERKLUB DEBUG ===');
         debugLog.forEach(function(l) { console.log(l); });
-        if (masterData.length > 0) console.log('Master columns:', Object.keys(masterData[0]));
+        if (masterData.length > 0) console.log('All columns:', Object.keys(masterData[0]));
 
         renderDashboard();
         populateFilters();
         populateRecoDropdowns();
     }).catch(function(err) {
         document.getElementById('lastSync').textContent = '❌ Sync failed';
-        debugLog.push('❌ Fatal: ' + err.message);
-        showDebug();
+        debugLog.push('❌ ' + err.message); showDebug();
     });
 }
 
 // ================================================================
-// DETECT LEAD/DEAL COLUMN (handles CSV parsing variations)
+// DETECT LEAD/DEAL COLUMN
 // ================================================================
 function detectLeadDealColumn() {
     leadDealCol = null;
@@ -310,34 +283,17 @@ function detectLeadDealColumn() {
     var keys = Object.keys(masterData[0]);
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i].toLowerCase().trim();
-        // Match any variation: "Lead / Deal Status", "Lead/Deal Status", "lead / deal status"
-        if (k.indexOf('lead') >= 0 && k.indexOf('deal') >= 0 && k.indexOf('status') >= 0) {
-            leadDealCol = keys[i];
-            break;
-        }
+        if (k.indexOf('lead') >= 0 && k.indexOf('deal') >= 0) { leadDealCol = keys[i]; break; }
     }
-    // Fallback: check for column containing both "lead" and "deal" without "status"
-    if (!leadDealCol) {
-        for (var i = 0; i < keys.length; i++) {
-            var k = keys[i].toLowerCase().trim();
-            if (k.indexOf('lead') >= 0 && k.indexOf('deal') >= 0) {
-                leadDealCol = keys[i];
-                break;
-            }
-        }
-    }
-    console.log('📊 Lead/Deal column detected:', leadDealCol || 'NOT FOUND (will use fallback logic)');
+    console.log('📊 Lead/Deal column:', leadDealCol || 'NOT FOUND');
     if (leadDealCol) {
-        var sampleVals = {};
-        masterData.forEach(function(r) {
-            var v = (r[leadDealCol] || '').toString().trim();
-            if (v) sampleVals[v] = (sampleVals[v] || 0) + 1;
-        });
-        console.log('📊 Lead/Deal values:', JSON.stringify(sampleVals));
+        var vals = {};
+        masterData.forEach(function(r) { var v = (r[leadDealCol] || '').toString().trim(); if (v) vals[v] = (vals[v] || 0) + 1; });
+        console.log('📊 Lead/Deal unique values:', JSON.stringify(vals));
     }
 }
 
-function showDebug() { var el = document.getElementById('debugPanel'); el.innerHTML = '<strong>⚠️ Debug Log:</strong><br>' + debugLog.join('<br>'); el.classList.add('visible'); }
+function showDebug() { var el = document.getElementById('debugPanel'); el.innerHTML = '<strong>⚠️ Debug:</strong><br>' + debugLog.join('<br>'); el.classList.add('visible'); }
 function hideDebug() { document.getElementById('debugPanel').classList.remove('visible'); }
 
 // ================================================================
@@ -392,35 +348,44 @@ function getTagBadge(v) { var s = (v || '').toString().toLowerCase().trim(); if 
 function getRowClass(v) { var s = (v || '').toString().toLowerCase().trim(); if (s === 'alert' || s === 'red') return 'row-alert'; if (s === 'on track' || s === 'green' || s === 'ontrack') return 'row-ontrack'; if (s === 'wip' || s === 'amber' || s === 'yellow') return 'row-wip'; return ''; }
 
 // ================================================================
-// SMART LEAD/DEAL CLASSIFICATION
+// CLASSIFY ROW: LEAD vs DEAL (BINARY - No third category!)
+// Rule: Leads + Deals MUST ALWAYS = Total Count
+// A record is a DEAL if it has ANY deal indicator. Otherwise it's a LEAD.
 // ================================================================
 function classifyRow(r) {
-    // Method 1: Direct column check
+    // CHECK 1: Explicit "Lead / Deal Status" column
     if (leadDealCol) {
         var val = (r[leadDealCol] || '').toString().toLowerCase().trim();
         if (val) {
-            if (val.indexOf('deal') >= 0 || val === 'converted' || val === 'won' || val === 'mandate signed' || val === 'closed won') return 'deal';
-            if (val.indexOf('lead') >= 0 || val === 'new' || val === 'open' || val === 'fresh' || val === 'prospect') return 'lead';
-            // If value exists but doesn't match known patterns, check if it's deal-like
-            if (val === 'dead' || val === 'lost' || val === 'closed lost' || val === 'rejected' || val === 'dropped') return 'dead';
+            // If it explicitly says "deal" → DEAL
+            if (val.indexOf('deal') >= 0 || val === 'converted' || val === 'won' || val === 'mandate signed' || val === 'closed won') {
+                return 'deal';
+            }
+            // If it explicitly says "lead" → LEAD
+            if (val.indexOf('lead') >= 0 || val === 'new' || val === 'open' || val === 'fresh' || val === 'prospect') {
+                return 'lead';
+            }
+            // For any OTHER value (like "Dead", "Lost", "On Hold", "Pending", etc.)
+            // We still need to check deal indicators below
         }
     }
 
-    // Method 2: Fallback - use other columns as deal indicators
+    // CHECK 2: Deal indicators from other columns
     var dealStage = (r['Deal Stage'] || '').toString().trim();
-    var mandateStatus = (r['Mandate Status'] || '').toString().trim();
     var mandateSignoff = (r['Mandate Sigoff Date'] || r['Mandate Signoff Date'] || '').toString().trim();
     var dealConvertedDate = (r['Deal Converted Date'] || '').toString().trim();
-    var totalExpRev = parseNum(r['Total Expected Revenue']);
+    var mandateStatus = (r['Mandate Status'] || '').toString().trim().toLowerCase();
 
-    // If has deal stage or mandate signoff date or deal converted date → Deal
-    if (dealStage || mandateSignoff || dealConvertedDate) return 'deal';
-    // If has mandate status with meaningful value → Deal
-    if (mandateStatus && mandateStatus.toLowerCase() !== 'na' && mandateStatus.toLowerCase() !== 'n/a' && mandateStatus !== '-') return 'deal';
-    // If has expected revenue → likely a Deal
-    if (totalExpRev > 0) return 'deal';
+    // If has Deal Stage value → DEAL
+    if (dealStage) return 'deal';
+    // If has Mandate Signoff Date → DEAL
+    if (mandateSignoff) return 'deal';
+    // If has Deal Converted Date → DEAL
+    if (dealConvertedDate) return 'deal';
+    // If Mandate Status has a meaningful value → DEAL
+    if (mandateStatus && mandateStatus !== 'na' && mandateStatus !== 'n/a' && mandateStatus !== '-' && mandateStatus !== '--') return 'deal';
 
-    // Default → Lead
+    // EVERYTHING ELSE = LEAD (ensures Leads + Deals = Total)
     return 'lead';
 }
 
@@ -432,16 +397,15 @@ function renderDashboard() { renderKPIs(); renderCharts(); renderRawData(); }
 function renderKPIs() {
     var d = filteredData, total = d.length;
 
-    // Smart Lead/Deal count
+    // Count using BINARY classification (no records left behind)
     var leads = 0, deals = 0;
     d.forEach(function(r) {
-        var cls = classifyRow(r);
-        if (cls === 'deal') deals++;
-        else if (cls === 'lead') leads++;
-        // 'dead' doesn't count in either
+        if (classifyRow(r) === 'deal') deals++;
+        else leads++;
     });
 
-    console.log('📊 KPI Count → Total:', total, '| Leads:', leads, '| Deals:', deals);
+    // VALIDATION: Leads + Deals must = Total
+    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Sum:', (leads + deals), '| Match:', (leads + deals === total) ? '✅' : '❌');
 
     var bCt = bankersData.length, cCt = cpData.length;
     var ln = {}; lenderData.forEach(function(r) { var n = (r['Lender Name'] || '').trim(); if (n) ln[n] = true; }); var lCt = Object.keys(ln).length;
@@ -475,7 +439,6 @@ function renderKPIs() {
     });
     document.getElementById('kpiContainer').innerHTML = h;
 
-    // Avg TAT
     var tatV = d.map(function(r) { return parseNum(r['TAT (In Days) Leads to Mandate Signoff']); }).filter(function(v) { return v > 0; });
     document.getElementById('avgTAT').textContent = tatV.length ? (tatV.reduce(function(a, b) { return a + b; }, 0) / tatV.length).toFixed(1) : '--';
 }
@@ -486,7 +449,6 @@ function renderKPIs() {
 var ch1 = null, ch2 = null, ch3 = null, ch4 = null;
 
 function renderCharts() {
-    // Pipeline by Mandate Status
     var sc = {};
     filteredData.forEach(function(r) { var s = (r['Mandate Status'] || '').trim(); if (s) sc[s] = (sc[s] || 0) + 1; });
 
@@ -497,7 +459,6 @@ function renderCharts() {
         options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
 
-    // Revenue Doughnut
     var rD = 0, rE = 0, rF = 0, rC = 0, rA = 0;
     filteredData.forEach(function(r) { rD += parseNum(r['Total Debt Amt']); rE += parseNum(r['Total Equity Amt']); rF += parseNum(r['Total Fixed Fee Amt']); rC += parseNum(r['Total Payment Received']); rA += parseNum(r['Advance Amt']); });
 
@@ -510,7 +471,7 @@ function renderCharts() {
 }
 
 // ================================================================
-// RAW DATA TABLE
+// RAW DATA
 // ================================================================
 var RAW_COLS = ['Company Name', 'Tagging', 'Unit Name', 'Mandate Branch', 'Execution Owner', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Case Status', 'Ticket Size', 'Total Expected Revenue', 'Total Payment Received', 'Refund', 'Net Revenue', 'Comments'];
 
@@ -543,11 +504,10 @@ function renderRawData() {
 }
 
 // ================================================================
-// DRILL-DOWN MODAL
+// DRILL-DOWN
 // ================================================================
 function openDrill(title, flt) {
     var dd;
-
     if (flt === 'leads') {
         dd = filteredData.filter(function(r) { return classifyRow(r) === 'lead'; });
     } else if (flt === 'deals') {
@@ -572,7 +532,6 @@ function openDrill(title, flt) {
     } else {
         dd = filteredData;
     }
-
     document.getElementById('modalTitle').textContent = 'Drill-Down: ' + title;
     document.getElementById('modalCount').textContent = (dd ? dd.length : 0) + ' records';
     document.getElementById('modalBody').innerHTML = buildTable(dd || [], RAW_COLS, true);
@@ -582,7 +541,7 @@ function openDrill(title, flt) {
 function closeModal() { document.getElementById('drillModal').classList.remove('active'); }
 
 // ================================================================
-// TAB NAVIGATION
+// TABS
 // ================================================================
 function switchTab(id, el) {
     var t = document.querySelectorAll('.tab-content'), n = document.querySelectorAll('.nav-tab');
@@ -669,7 +628,6 @@ function runBankerReco() {
     if (ml === 'acquisition finance') { terms.push('acquisition'); }
 
     var results = [];
-
     if (type === 'banker' || type === 'both') {
         bankersData.forEach(function(r) {
             var exp = ((r['Core_Expertise'] || '') + ' ' + (r['Services.'] || '') + ' ' + (r['Core Expertise'] || '') + ' ' + (r['Please Specify the details'] || '')).toLowerCase();
@@ -680,7 +638,6 @@ function runBankerReco() {
             results.push({ name: r['Banker Name'] || 'N/A', city: r['City'] || '--', state: r['State'] || '--', exp: r['Banking Experience'] || '--', src: 'Banker' });
         });
     }
-
     if (type === 'cp' || type === 'both') {
         cpData.forEach(function(r) {
             var exp = (r['EXPERTISE'] || '').toLowerCase();
@@ -695,7 +652,7 @@ function runBankerReco() {
     results = results.slice(0, 15);
 
     var ctr = document.getElementById('bankerRecoResults');
-    if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No matches for "' + mt + '". Try removing filters or "Both".</div>'; return; }
+    if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No matches for "' + mt + '". Try "Both" or remove location filters.</div>'; return; }
     var h = '<h4>✅ Top ' + results.length + ' for "' + mt + '"</h4>';
     results.forEach(function(r, i) { h += '<div class="reco-card"><div class="reco-rank">' + (i + 1) + '</div><div class="reco-info"><div class="name">' + r.name + '</div><div class="details">📍 ' + r.city + ', ' + r.state + ' | Exp: ' + r.exp + ' | ' + r.src + '</div></div><div class="match-score' + (i >= 5 ? ' medium' : '') + '">' + (i < 5 ? 'Strong' : 'Match') + '</div></div>'; });
     ctr.innerHTML = h;
@@ -710,17 +667,13 @@ function runLenderReco() {
     var un = document.getElementById('lenderUnitFilter').value;
     if (!mt) { alert('Select Mandate Type'); return; }
 
-    // Cross-reference Master Data → find lender names associated with this Mandate Type
     var masterLenders = {};
     masterData.forEach(function(r) {
         if ((r['Mandate Type'] || '').toLowerCase().trim() === mt.toLowerCase().trim()) {
             var ln = (r['Lender Name'] || '').trim();
             if (ln) masterLenders[ln.toLowerCase()] = true;
-            // Also check Lender Shortlist
             var ls = (r['Lender Shortlist'] || '').trim();
-            if (ls) {
-                ls.split(',').forEach(function(l) { var name = l.trim(); if (name) masterLenders[name.toLowerCase()] = true; });
-            }
+            if (ls) { ls.split(',').forEach(function(l) { var name = l.trim(); if (name) masterLenders[name.toLowerCase()] = true; }); }
         }
     });
 
@@ -735,14 +688,10 @@ function runLenderReco() {
         if (masterLenders[lName.toLowerCase()]) scores[lName].match = true;
     });
 
-    // Also include lenders from master directly
     masterData.forEach(function(r) {
         if ((r['Mandate Type'] || '').toLowerCase().trim() === mt.toLowerCase().trim()) {
             var ln = (r['Lender Name'] || '').trim();
-            if (ln) {
-                if (!scores[ln]) scores[ln] = { name: ln, type: '--', unit: r['Unit Name'] || '--', count: 1, match: true };
-                else scores[ln].match = true;
-            }
+            if (ln) { if (!scores[ln]) scores[ln] = { name: ln, type: '--', unit: r['Unit Name'] || '--', count: 1, match: true }; else scores[ln].match = true; }
         }
     });
 
