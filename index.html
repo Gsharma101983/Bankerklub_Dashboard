@@ -1,1424 +1,1004 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>BankersKlub — Lead Management & Advisory Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-/* ─── DESIGN TOKENS ─────────────────────────────── */
-:root{
-  --bg:#0B0F1A;
-  --surface:#111827;
-  --surface2:#1A2236;
-  --surface3:#212E47;
-  --border:#1E2D47;
-  --border2:#263654;
-  --accent:#3B82F6;
-  --accent2:#1D4ED8;
-  --gold:#F59E0B;
-  --green:#10B981;
-  --red:#EF4444;
-  --yellow:#FBBF24;
-  --text:#F1F5F9;
-  --text2:#94A3B8;
-  --text3:#64748B;
-  --font:'Inter',sans-serif;
-  --mono:'JetBrains Mono',monospace;
-  --radius:10px;
-  --radius-lg:16px;
-  --shadow:0 4px 24px rgba(0,0,0,0.4);
-  --transition:all 0.2s ease;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:var(--surface)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-a{color:var(--accent);text-decoration:none}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BankerKlub - Management Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a237e;
+            --secondary: #283593;
+            --accent: #3f51b5;
+            --success: #2e7d32;
+            --warning: #f57c00;
+            --danger: #c62828;
+            --light: #f5f7fa;
+            --dark: #1a1a2e;
+            --card-bg: #ffffff;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); color: #333; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .header h1 { font-size: 1.5rem; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; }
+        .btn-refresh { background: rgba(255,255,255,0.2); color: white; }
+        .btn-refresh:hover { background: rgba(255,255,255,0.3); }
+        .last-sync { font-size: 0.75rem; opacity: 0.8; }
 
-/* ─── SETUP OVERLAY ─────────────────────────────── */
-#setup-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;
-  display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(6px);
-}
-.setup-card{
-  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);
-  padding:40px;max-width:600px;width:90%;box-shadow:var(--shadow);
-}
-.setup-card h2{font-size:22px;font-weight:700;margin-bottom:6px}
-.setup-card p{color:var(--text2);margin-bottom:24px;line-height:1.6}
-.setup-steps{counter-reset:step;display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
-.setup-step{display:flex;gap:14px;align-items:flex-start}
-.step-num{
-  width:28px;height:28px;border-radius:50%;background:var(--accent2);
-  color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;
-  justify-content:center;flex-shrink:0;margin-top:2px;
-}
-.step-body{flex:1}
-.step-body strong{display:block;margin-bottom:4px;font-weight:600}
-.step-body p{font-size:13px;color:var(--text2);line-height:1.5}
-.step-body code{
-  background:var(--surface2);border:1px solid var(--border);padding:2px 6px;
-  border-radius:4px;font-family:var(--mono);font-size:11px;color:var(--gold);
-}
-.gs-input-row{display:flex;gap:10px;margin-top:20px}
-.gs-input{
-  flex:1;background:var(--surface2);border:1px solid var(--border2);
-  color:var(--text);padding:10px 14px;border-radius:var(--radius);
-  font-family:var(--mono);font-size:12px;outline:none;
-}
-.gs-input:focus{border-color:var(--accent)}
-.btn{
-  padding:10px 20px;border-radius:var(--radius);border:none;cursor:pointer;
-  font-family:var(--font);font-weight:600;font-size:13px;transition:var(--transition);
-}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent2)}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-.setup-skip{display:block;text-align:center;margin-top:14px;font-size:12px;color:var(--text3);cursor:pointer}
-.setup-skip:hover{color:var(--text2)}
-#setup-status{font-size:12px;margin-top:10px;min-height:16px;color:var(--text2)}
+        /* Navigation Tabs */
+        .nav-tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; padding: 0 20px; overflow-x: auto; }
+        .nav-tab { padding: 12px 24px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #666; transition: all 0.3s; white-space: nowrap; }
+        .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .nav-tab:hover { color: var(--primary); background: #f0f2ff; }
 
-/* ─── TOP NAV ─────────────────────────────────── */
-.topnav{
-  position:sticky;top:0;z-index:100;
-  background:rgba(11,15,26,0.95);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:16px;padding:0 24px;height:60px;
-}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;white-space:nowrap}
-.brand-icon{
-  width:36px;height:36px;border-radius:8px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;font-size:18px;
-}
-.nav-tabs{display:flex;gap:4px;flex:1;overflow-x:auto;padding:10px 0}
-.nav-tab{
-  padding:7px 16px;border-radius:7px;cursor:pointer;font-size:13px;
-  font-weight:500;color:var(--text2);white-space:nowrap;transition:var(--transition);
-  border:none;background:transparent;
-}
-.nav-tab:hover{color:var(--text);background:var(--surface2)}
-.nav-tab.active{background:var(--accent);color:#fff}
-.nav-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
-.sync-badge{
-  display:flex;align-items:center;gap:6px;padding:6px 12px;
-  border-radius:20px;background:var(--surface2);border:1px solid var(--border);
-  font-size:11px;font-weight:500;color:var(--text2);font-family:var(--mono);
-}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.sync-dot.offline{background:var(--red);animation:none}
-.btn-sm{padding:6px 14px;font-size:12px}
-.btn-config{background:var(--surface2);border:1px solid var(--border2);color:var(--text2)}
-.btn-config:hover{border-color:var(--accent);color:var(--accent)}
+        /* Main Content */
+        .main-content { padding: 20px; max-width: 1600px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-/* ─── FILTER BAR ─────────────────────────────── */
-.filter-bar{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:12px 24px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
-}
-.filter-group{display:flex;align-items:center;gap:6px}
-.filter-label{font-size:11px;color:var(--text3);font-weight:500;white-space:nowrap}
-select.filter-select{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:5px 10px;border-radius:7px;font-family:var(--font);font-size:12px;
-  outline:none;cursor:pointer;
-}
-select.filter-select:focus{border-color:var(--accent)}
-.filter-tags{display:flex;gap:6px;flex-wrap:wrap}
-.tag{
-  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;
-  border:1px solid transparent;transition:var(--transition);
-}
-.tag.red{background:rgba(239,68,68,0.15);color:#FCA5A5;border-color:rgba(239,68,68,0.3)}
-.tag.red.active{background:rgba(239,68,68,0.35);border-color:var(--red)}
-.tag.green{background:rgba(16,185,129,0.15);color:#6EE7B7;border-color:rgba(16,185,129,0.3)}
-.tag.green.active{background:rgba(16,185,129,0.35);border-color:var(--green)}
-.tag.yellow{background:rgba(251,191,36,0.15);color:#FCD34D;border-color:rgba(251,191,36,0.3)}
-.tag.yellow.active{background:rgba(251,191,36,0.35);border-color:var(--yellow)}
-.filter-clear{
-  margin-left:auto;font-size:11px;color:var(--text3);cursor:pointer;
-  padding:4px 10px;border:1px solid var(--border);border-radius:5px;
-  background:none;font-family:var(--font);transition:var(--transition);
-}
-.filter-clear:hover{color:var(--red);border-color:var(--red)}
-.active-filter-pill{
-  display:flex;align-items:center;gap:4px;padding:3px 10px;
-  background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);
-  border-radius:20px;font-size:11px;color:#93C5FD;
-}
+        /* Filters */
+        .filters-panel { background: white; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .filters-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .filter-group label { font-size: 0.7rem; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 3px; }
+        .filter-group select { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.8rem; background: white; }
+        .filter-group select:focus { border-color: var(--accent); outline: none; }
+        .btn-clear-filters { background: #ef5350; color: white; padding: 6px 14px; border-radius: 5px; font-size: 0.75rem; margin-left: auto; }
+        .btn-clear-filters:hover { background: #c62828; }
 
-/* ─── MAIN CONTENT ─────────────────────────────── */
-.main{padding:24px;max-width:1600px;margin:0 auto}
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .kpi-card { background: white; border-radius: 10px; padding: 18px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid var(--accent); }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .kpi-card .kpi-label { font-size: 0.72rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-card .kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--dark); margin-top: 5px; }
+        .kpi-card .kpi-sub { font-size: 0.7rem; color: #aaa; margin-top: 3px; }
+        .kpi-card.revenue { border-left-color: var(--success); }
+        .kpi-card.alert { border-left-color: var(--danger); }
+        .kpi-card.info { border-left-color: var(--warning); }
 
-/* ─── KPI GRID ────────────────────────────────── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
-.kpi-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:18px 20px;position:relative;overflow:hidden;transition:var(--transition);
-}
-.kpi-card:hover{border-color:var(--accent);transform:translateY(-1px)}
-.kpi-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--accent),transparent);
-}
-.kpi-card.gold::before{background:linear-gradient(90deg,var(--gold),transparent)}
-.kpi-card.green::before{background:linear-gradient(90deg,var(--green),transparent)}
-.kpi-card.red::before{background:linear-gradient(90deg,var(--red),transparent)}
-.kpi-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
-.kpi-value{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1}
-.kpi-sub{font-size:11px;color:var(--text3);margin-top:5px}
-.kpi-trend{
-  position:absolute;top:16px;right:16px;font-size:11px;font-weight:600;
-  padding:2px 7px;border-radius:5px;
-}
-.trend-up{background:rgba(16,185,129,0.15);color:#6EE7B7}
-.trend-dn{background:rgba(239,68,68,0.15);color:#FCA5A5}
+        /* Charts Section */
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .chart-card { background: white; border-radius: 10px; padding: 20px; box-shadow: var(--shadow); }
+        .chart-card h3 { font-size: 0.95rem; color: var(--dark); margin-bottom: 15px; }
+        .chart-card .tat-highlight { color: var(--primary); font-weight: 700; }
 
-/* ─── SECTION HEADERS ─────────────────────────── */
-.section-header{
-  display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;
-  border-bottom:1px solid var(--border);
-}
-.section-header h2{font-size:16px;font-weight:700}
-.section-header .badge{
-  padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;
-  background:var(--surface2);color:var(--text2);border:1px solid var(--border);
-}
-.section-header .ml-auto{margin-left:auto}
+        /* Data Table */
+        .data-table-container { background: white; border-radius: 10px; padding: 20px; box-shadow: var(--shadow); overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .data-table th { background: var(--primary); color: white; padding: 10px 12px; text-align: left; font-weight: 600; white-space: nowrap; position: sticky; top: 0; }
+        .data-table td { padding: 8px 12px; border-bottom: 1px solid #eee; white-space: nowrap; }
+        .data-table tr:hover { background: #f8f9ff; }
+        .data-table tr.row-alert { background: #ffebee; }
+        .data-table tr.row-ontrack { background: #e8f5e9; }
+        .data-table tr.row-wip { background: #fff3e0; }
 
-/* ─── CHARTS ROW ─────────────────────────────── */
-.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
-.chart-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;
-}
-.chart-card h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:16px}
-.chart-wrap{position:relative;height:200px}
+        /* Tagging Badges */
+        .tag-alert { background: #ffebee; color: #c62828; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; display: inline-block; }
+        .tag-ontrack { background: #e8f5e9; color: #2e7d32; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; display: inline-block; }
+        .tag-wip { background: #fff3e0; color: #f57c00; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; display: inline-block; }
 
-/* ─── TWO-COL ────────────────────────────────── */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 12px; width: 92%; max-width: 1300px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1rem; }
+        .modal-close { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 5px 10px; }
+        .modal-close:hover { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .modal-body { padding: 20px; overflow: auto; flex: 1; }
+        .modal-count { font-size: 0.8rem; opacity: 0.8; }
 
-/* ─── REVENUE CARDS ──────────────────────────── */
-.rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
-.rev-card{
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px;text-align:center;
-}
-.rev-card .rev-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
-.rev-card .rev-val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--text)}
-.rev-card.highlight .rev-val{color:var(--green)}
-.rev-card.neg .rev-val{color:var(--red)}
+        /* Recommendation Engine */
+        .reco-section { background: white; border-radius: 10px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        .reco-section h3 { color: var(--primary); margin-bottom: 5px; font-size: 1.1rem; }
+        .reco-section .reco-desc { color: #666; margin-bottom: 15px; font-size: 0.85rem; }
+        .reco-inputs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .reco-inputs label { font-size: 0.8rem; font-weight: 600; color: #555; display: block; margin-bottom: 5px; }
+        .reco-inputs select, .reco-inputs input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+        .reco-inputs select:focus, .reco-inputs input:focus { border-color: var(--accent); outline: none; }
+        .btn-recommend { background: var(--primary); color: white; padding: 10px 24px; border-radius: 6px; font-size: 0.9rem; }
+        .btn-recommend:hover { background: var(--secondary); }
+        .reco-results { margin-top: 20px; }
+        .reco-results h4 { color: var(--dark); margin-bottom: 12px; }
+        .reco-card { background: #f8f9ff; border: 1px solid #e8eaff; border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .reco-card:hover { background: #eef0ff; transform: translateX(3px); }
+        .reco-card .reco-rank { background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; margin-right: 12px; flex-shrink: 0; }
+        .reco-card .reco-info { flex: 1; }
+        .reco-card .name { font-weight: 700; color: var(--dark); font-size: 0.9rem; }
+        .reco-card .details { font-size: 0.78rem; color: #666; margin-top: 3px; }
+        .reco-card .match-score { background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+        .reco-card .match-score.medium { background: var(--warning); }
 
-/* ─── TABLE ──────────────────────────────────── */
-.table-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;margin-bottom:24px;
-}
-.table-toolbar{
-  padding:14px 18px;display:flex;align-items:center;gap:10px;
-  border-bottom:1px solid var(--border);
-}
-.table-toolbar h3{font-size:14px;font-weight:600}
-.search-box{
-  margin-left:auto;background:var(--surface2);border:1px solid var(--border);
-  color:var(--text);padding:6px 12px;border-radius:7px;font-family:var(--font);
-  font-size:12px;outline:none;width:220px;
-}
-.search-box:focus{border-color:var(--accent)}
-.table-wrap{overflow-x:auto;max-height:420px;overflow-y:auto}
-table{width:100%;border-collapse:collapse}
-thead{position:sticky;top:0;background:var(--surface2)}
-th{
-  padding:10px 14px;text-align:left;font-size:11px;font-weight:600;
-  color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;
-  border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;
-}
-th:hover{color:var(--text2)}
-td{
-  padding:10px 14px;border-bottom:1px solid var(--border);
-  font-size:12px;color:var(--text2);vertical-align:middle;white-space:nowrap;
-}
-tr:hover td{background:var(--surface2)}
-tr:last-child td{border-bottom:none}
-.tag-chip{
-  display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
-  border-radius:10px;font-size:10px;font-weight:600;
-}
-.chip-red{background:rgba(239,68,68,0.15);color:#FCA5A5}
-.chip-green{background:rgba(16,185,129,0.15);color:#6EE7B7}
-.chip-yellow{background:rgba(251,191,36,0.15);color:#FCD34D}
-.chip-blue{background:rgba(59,130,246,0.15);color:#93C5FD}
-.chip-purple{background:rgba(139,92,246,0.15);color:#C4B5FD}
-.chip-gray{background:rgba(100,116,139,0.15);color:var(--text3)}
-.page-info{padding:10px 18px;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:10px;border-top:1px solid var(--border)}
-.page-btns{display:flex;gap:4px;margin-left:auto}
-.page-btn{
-  padding:4px 10px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);
-  color:var(--text2);font-size:11px;cursor:pointer;transition:var(--transition);
-}
-.page-btn:hover,
-.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* ─── ALLOCATION SECTION ─────────────────────── */
-.alloc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.alloc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
-.alloc-card h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:14px}
-.alloc-row{
-  display:flex;align-items:center;gap:10px;padding:8px 0;
-  border-bottom:1px solid var(--border);
-}
-.alloc-row:last-child{border-bottom:none}
-.alloc-name{flex:1;font-size:13px;font-weight:500}
-.alloc-bar-wrap{width:120px;height:6px;background:var(--surface2);border-radius:3px}
-.alloc-bar{height:100%;border-radius:3px;background:var(--accent);min-width:4px}
-.alloc-count{font-size:12px;color:var(--text3);font-family:var(--mono);width:30px;text-align:right}
-.alloc-pct{font-size:11px;color:var(--text3);width:35px;text-align:right}
+        /* No Data */
+        .no-data { text-align: center; padding: 30px; color: #999; font-size: 0.9rem; }
 
-/* ─── RECOMMENDATION ENGINE ──────────────────── */
-.reco-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.reco-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;
-}
-.reco-card h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:4px}
-.reco-sub{font-size:11px;color:var(--text3);margin-bottom:14px}
-.reco-item{
-  display:flex;align-items:center;gap:12px;padding:10px;
-  background:var(--surface2);border-radius:8px;margin-bottom:8px;
-  border:1px solid transparent;transition:var(--transition);
-}
-.reco-item:hover{border-color:var(--accent)}
-.reco-rank{
-  width:26px;height:26px;border-radius:50%;background:var(--accent2);
-  display:flex;align-items:center;justify-content:center;font-size:11px;
-  font-weight:700;flex-shrink:0;
-}
-.reco-info{flex:1}
-.reco-name{font-size:13px;font-weight:600}
-.reco-meta{font-size:11px;color:var(--text3);margin-top:2px}
-.reco-score{
-  font-family:var(--mono);font-size:12px;font-weight:700;
-  padding:3px 8px;border-radius:5px;background:rgba(16,185,129,0.15);color:#6EE7B7;
-}
-
-/* ─── LENDER SECTION ─────────────────────────── */
-.lender-table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
-
-/* ─── EMPTY / LOADING STATES ─────────────────── */
-.loading{text-align:center;padding:48px;color:var(--text3)}
-.loading-spinner{
-  width:32px;height:32px;border:3px solid var(--border);
-  border-top-color:var(--accent);border-radius:50%;
-  animation:spin 0.8s linear infinite;margin:0 auto 12px;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty-state{text-align:center;padding:48px;color:var(--text3);font-size:13px}
-.conn-banner{
-  background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);
-  border-radius:var(--radius);padding:12px 18px;margin-bottom:20px;
-  font-size:12px;color:#93C5FD;display:flex;align-items:center;gap:8px;
-}
-.error-banner{
-  background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);
-  border-radius:var(--radius);padding:12px 18px;margin-bottom:20px;
-  font-size:12px;color:#FCA5A5;display:flex;align-items:center;gap:8px;
-}
-
-/* ─── TABS VISIBILITY ────────────────────────── */
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* ─── DETAIL MODAL ───────────────────────────── */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;
-  display:none;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-}
-.modal-overlay.open{display:flex}
-.modal{
-  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);
-  width:90%;max-width:700px;max-height:85vh;overflow-y:auto;padding:28px;
-}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.modal-close{cursor:pointer;color:var(--text3);font-size:20px;line-height:1}
-.modal-close:hover{color:var(--text)}
-.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.modal-field label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:3px}
-.modal-field span{font-size:13px;font-weight:500}
-
-/* ─── RESPONSIVE ─────────────────────────────── */
-@media(max-width:1024px){
-  .charts-row,.two-col,.three-col,.reco-grid{grid-template-columns:1fr 1fr}
-  .alloc-grid{grid-template-columns:1fr}
-}
-@media(max-width:680px){
-  .charts-row,.two-col,.three-col,.reco-grid,.alloc-grid{grid-template-columns:1fr}
-  .kpi-grid{grid-template-columns:1fr 1fr}
-  .main{padding:14px}
-  .topnav{padding:0 14px}
-  .filter-bar{padding:10px 14px}
-}
-
-/* ─── MATRIX TABLE ───────────────────────────── */
-.matrix-table td,.matrix-table th{font-size:11px;padding:7px 10px}
-.matrix-cell{text-align:center;font-weight:600;font-family:var(--mono)}
-.matrix-heat-1{background:rgba(59,130,246,0.1)}
-.matrix-heat-2{background:rgba(59,130,246,0.2)}
-.matrix-heat-3{background:rgba(59,130,246,0.35)}
-.matrix-heat-4{background:rgba(59,130,246,0.55)}
-
-/* ─── PROGRESS BAR ───────────────────────────── */
-.progress-wrap{background:var(--surface2);border-radius:3px;height:6px;margin-top:4px}
-.progress-bar{height:100%;border-radius:3px;background:var(--accent)}
-</style>
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 10px; padding: 12px 15px; }
+            .header h1 { font-size: 1.2rem; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .filters-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav-tab { padding: 10px 16px; font-size: 0.8rem; }
+            .reco-inputs { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- ─── SETUP OVERLAY ─── -->
-<div id="setup-overlay">
-  <div class="setup-card">
-    <h2>🔗 Connect Your Google Sheet</h2>
-    <p>One-time setup to sync your Master Dashboard live data. Takes about 3 minutes.</p>
-    <div class="setup-steps">
-      <div class="setup-step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <strong>Open Apps Script in your Google Sheet</strong>
-          <p>Go to your Master Dashboard sheet → click <code>Extensions</code> → <code>Apps Script</code> → delete existing code and paste the <code>Code.gs</code> provided in the <a href="Code.gs" target="_blank">companion file</a>.</p>
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <strong>Deploy as Web App</strong>
-          <p>Click <code>Deploy → New Deployment</code> → Type: <code>Web app</code> → Execute as: <code>Me</code> → Who has access: <code>Anyone</code> → Click Deploy → copy the URL.</p>
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <strong>Paste the Web App URL below</strong>
-          <p>The URL looks like: <code>https://script.google.com/macros/s/AKfy.../exec</code></p>
-        </div>
-      </div>
+<!-- Header -->
+<div class="header">
+    <h1>📊 BankerKlub - Management Dashboard</h1>
+    <div class="header-actions">
+        <span class="last-sync" id="lastSync">Last synced: --</span>
+        <button class="btn btn-refresh" onclick="refreshData()">⟳ Refresh Data</button>
     </div>
-    <div class="gs-input-row">
-      <input id="webapp-url-input" class="gs-input" type="text" placeholder="https://script.google.com/macros/s/...../exec"/>
-      <button class="btn btn-primary" onclick="connectWebApp()">Test & Launch</button>
-    </div>
-    <div id="setup-status"></div>
-    <span class="setup-skip" onclick="skipSetup()">Skip — use demo data to explore the dashboard →</span>
-  </div>
 </div>
 
-<!-- ─── TOP NAV ─── -->
-<nav class="topnav">
-  <div class="brand">
-    <div class="brand-icon">🏦</div>
-    <span>BankersKlub</span>
-  </div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('overview',this)">📊 Pipeline Overview</button>
-    <button class="nav-tab" onclick="switchTab('allocation',this)">👥 Lead Allocation</button>
-    <button class="nav-tab" onclick="switchTab('recommender',this)">🤝 Banker & CP Recommender</button>
-    <button class="nav-tab" onclick="switchTab('lender',this)">🏛️ Lender Recommender</button>
-    <button class="nav-tab" onclick="switchTab('records',this)">📋 All Records</button>
-  </div>
-  <div class="nav-right">
-    <div class="sync-badge">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-label">Connecting…</span>
-    </div>
-    <button class="btn btn-sm btn-config" onclick="document.getElementById('setup-overlay').style.display='flex'">⚙ Config</button>
-    <button class="btn btn-sm btn-primary" onclick="refreshData()">⟳ Refresh</button>
-  </div>
-</nav>
-
-<!-- ─── FILTER BAR ─── -->
-<div class="filter-bar">
-  <div class="filter-group">
-    <span class="filter-label">Status</span>
-    <select class="filter-select" id="f-status" onchange="applyFilters()"><option value="">All</option></select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Unit</span>
-    <select class="filter-select" id="f-unit" onchange="applyFilters()"><option value="">All</option></select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Branch</span>
-    <select class="filter-select" id="f-branch" onchange="applyFilters()"><option value="">All</option></select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Mandate Type</span>
-    <select class="filter-select" id="f-mandate-type" onchange="applyFilters()"><option value="">All</option></select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Deal Stage</span>
-    <select class="filter-select" id="f-stage" onchange="applyFilters()"><option value="">All</option></select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Ageing</span>
-    <select class="filter-select" id="f-ageing" onchange="applyFilters()"><option value="">All</option></select>
-  </div>
-  <div class="filter-tags">
-    <span class="tag red" id="tag-red" onclick="toggleTag('red')">🔴 Alert</span>
-    <span class="tag green" id="tag-green" onclick="toggleTag('green')">🟢 On Track</span>
-    <span class="tag yellow" id="tag-yellow" onclick="toggleTag('yellow')">🟡 WIP</span>
-  </div>
-  <button class="filter-clear" onclick="clearFilters()">✕ Clear All</button>
+<!-- Navigation -->
+<div class="nav-tabs">
+    <div class="nav-tab active" data-tab="overview" onclick="switchTab('overview', this)">📋 Stage 1: Overview</div>
+    <div class="nav-tab" data-tab="allocation" onclick="switchTab('allocation', this)">📊 Lead Allocation</div>
+    <div class="nav-tab" data-tab="reco-banker" onclick="switchTab('reco-banker', this)">🏦 Recommend: Banker/CP</div>
+    <div class="nav-tab" data-tab="reco-lender" onclick="switchTab('reco-lender', this)">🏛️ Recommend: Lender</div>
+    <div class="nav-tab" data-tab="rawdata" onclick="switchTab('rawdata', this)">📄 All Records</div>
 </div>
 
-<!-- ─── MAIN ─── -->
-<div class="main">
+<!-- Main Content -->
+<div class="main-content">
 
-  <!-- STATUS BANNER -->
-  <div id="conn-banner" class="conn-banner" style="display:none">
-    <span>⚡</span><span id="conn-msg">Loading data from Google Sheet…</span>
-  </div>
-  <div id="err-banner" class="error-banner" style="display:none">
-    <span>⚠</span><span id="err-msg">Connection error. Check your Web App URL in Config.</span>
-  </div>
+    <!-- TAB 1: Overview -->
+    <div class="tab-content active" id="tab-overview">
+        <!-- Filters -->
+        <div class="filters-panel">
+            <div class="filters-title">
+                🔍 Live Filters
+                <button class="btn btn-clear-filters" onclick="clearAllFilters()">✕ Clear All</button>
+            </div>
+            <div class="filters-grid" id="filtersContainer"></div>
+        </div>
 
-  <!-- ═══ TAB: OVERVIEW ═══ -->
-  <div id="tab-overview" class="tab-panel active">
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpiContainer"></div>
 
-    <!-- KPI GRID -->
-    <div class="kpi-grid" id="kpi-grid">
-      <div class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub">All pipeline cases</div></div>
-      <div class="kpi-card"><div class="kpi-label">Leads Count</div><div class="kpi-value" id="kpi-leads">—</div><div class="kpi-sub" id="kpi-leads-pct">% of total</div></div>
-      <div class="kpi-card green"><div class="kpi-label">Deals Count</div><div class="kpi-value" id="kpi-deals">—</div><div class="kpi-sub" id="kpi-deals-pct">% converted</div></div>
-      <div class="kpi-card"><div class="kpi-label">Unique Bankers</div><div class="kpi-value" id="kpi-bankers">—</div><div class="kpi-sub">Active bankers</div></div>
-      <div class="kpi-card"><div class="kpi-label">Channel Partners</div><div class="kpi-value" id="kpi-cps">—</div><div class="kpi-sub">Active CPs</div></div>
-      <div class="kpi-card gold"><div class="kpi-label">Debt Pipeline</div><div class="kpi-value" id="kpi-debt">—</div><div class="kpi-sub">Total debt amount</div></div>
-      <div class="kpi-card gold"><div class="kpi-label">Equity Pipeline</div><div class="kpi-value" id="kpi-equity">—</div><div class="kpi-sub">Total equity amount</div></div>
-      <div class="kpi-card"><div class="kpi-label">Avg TAT (Days)</div><div class="kpi-value" id="kpi-tat">—</div><div class="kpi-sub">Leads → Mandate</div></div>
+        <!-- Pipeline & Revenue Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Pipeline Overview | Avg TAT: <span class="tat-highlight" id="avgTAT">--</span> Days</h3>
+                <canvas id="pipelineChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Revenue Summary (₹ in Cr.)</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <!-- CHARTS ROW -->
-    <div class="charts-row">
-      <div class="chart-card">
-        <h3>Mandate Status Distribution</h3>
-        <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <h3>Mandate Type Breakdown</h3>
-        <div class="chart-wrap"><canvas id="chart-mandate"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <h3>Deal Stage Pipeline</h3>
-        <div class="chart-wrap"><canvas id="chart-stage"></canvas></div>
-      </div>
+    <!-- TAB 2: Lead Allocation -->
+    <div class="tab-content" id="tab-allocation">
+        <div class="kpi-grid" id="allocationKPIs"></div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Lead Allocation Bifurcation</h3>
+                <canvas id="allocationChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Region-wise Lead Distribution</h3>
+                <canvas id="regionChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <!-- REVENUE SUMMARY -->
-    <div class="section-header">
-      <h2>💰 Revenue Summary</h2>
-    </div>
-    <div class="rev-grid" id="rev-grid">
-      <div class="rev-card"><div class="rev-lbl">Revenue in Pipeline</div><div class="rev-val" id="rev-pipeline">—</div></div>
-      <div class="rev-card"><div class="rev-lbl">Revenue Expected</div><div class="rev-val" id="rev-expected">—</div></div>
-      <div class="rev-card"><div class="rev-lbl">Advance Amt</div><div class="rev-val" id="rev-advance">—</div></div>
-      <div class="rev-card highlight"><div class="rev-lbl">Revenue Collected</div><div class="rev-val" id="rev-collected">—</div></div>
-      <div class="rev-card neg"><div class="rev-lbl">Refund Amount</div><div class="rev-val" id="rev-refund">—</div></div>
-      <div class="rev-card highlight"><div class="rev-lbl">Net Revenue</div><div class="rev-val" id="rev-net">—</div></div>
-    </div>
-
-    <!-- ACTIVE LENDER TABLE -->
-    <div class="section-header"><h2>🏦 Active Lender Details</h2></div>
-    <div class="table-card">
-      <div class="table-wrap">
-        <table id="lender-table">
-          <thead><tr><th>Lender</th><th>Type</th><th>Company</th><th>Status</th><th>Region</th></tr></thead>
-          <tbody id="lender-tbody"><tr><td colspan="5" class="empty-state">No lender data yet.</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ═══ TAB: ALLOCATION ═══ -->
-  <div id="tab-allocation" class="tab-panel">
-    <div class="section-header"><h2>👥 Lead Allocation Bifurcation</h2></div>
-
-    <div class="two-col" style="margin-bottom:24px">
-      <div class="chart-card">
-        <h3>By Lead Source</h3>
-        <div class="chart-wrap"><canvas id="chart-source"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <h3>Ageing Slab Distribution</h3>
-        <div class="chart-wrap"><canvas id="chart-ageing"></canvas></div>
-      </div>
-    </div>
-
-    <div class="alloc-grid">
-      <div class="alloc-card">
-        <h3>🏦 Lead Allocated to Banker</h3>
-        <div id="banker-alloc-list"><div class="loading"><div class="loading-spinner"></div>Loading…</div></div>
-      </div>
-      <div class="alloc-card">
-        <h3>🤝 Lead Allocated to Channel Partner</h3>
-        <div id="cp-alloc-list"><div class="loading"><div class="loading-spinner"></div>Loading…</div></div>
-      </div>
+    <!-- TAB 3: Banker/CP Recommendation -->
+    <div class="tab-content" id="tab-reco-banker">
+        <div class="reco-section">
+            <h3>🏦 Banker & Channel Partner Recommendation Engine</h3>
+            <p class="reco-desc">Select criteria below to find the best-matched Bankers or Channel Partners based on expertise, location & experience. Results show top 10-15 matches.</p>
+            <div class="reco-inputs">
+                <div>
+                    <label>Mandate Type *</label>
+                    <select id="recoMandateType">
+                        <option value="">-- Select Mandate Type --</option>
+                        <option>Debt</option>
+                        <option>Debt+Equity</option>
+                        <option>Equity</option>
+                        <option>Structured Debt</option>
+                        <option>IPO Advisory</option>
+                        <option>Pre-IPO</option>
+                        <option>NPA/OTS</option>
+                        <option>Bill Discounting</option>
+                        <option>Acquisition Finance</option>
+                        <option>Working Capital</option>
+                        <option>Term Loan</option>
+                        <option>Other</option>
+                        <option>Retail Loan - LAP</option>
+                    </select>
+                </div>
+                <div>
+                    <label>State</label>
+                    <select id="recoState"><option value="">-- All States --</option></select>
+                </div>
+                <div>
+                    <label>City</label>
+                    <select id="recoCity"><option value="">-- All Cities --</option></select>
+                </div>
+                <div>
+                    <label>Search Type</label>
+                    <select id="recoSearchType">
+                        <option value="banker">Banker</option>
+                        <option value="cp">Channel Partner</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-recommend" onclick="runBankerRecommendation()">🔍 Get Recommendations</button>
+            <div class="reco-results" id="bankerRecoResults"></div>
+        </div>
     </div>
 
-    <!-- Region × Source Matrix -->
-    <div class="section-header"><h2>🗺️ Region × Source Matrix</h2></div>
-    <div class="table-card">
-      <div class="table-wrap" id="matrix-wrap">
-        <div class="loading"><div class="loading-spinner"></div>Building matrix…</div>
-      </div>
+    <!-- TAB 4: Lender Recommendation -->
+    <div class="tab-content" id="tab-reco-lender">
+        <div class="reco-section">
+            <h3>🏛️ Lender Shortlisting Recommendation Engine</h3>
+            <p class="reco-desc">Find 10-15 possible lenders based on mandate type, location & required amount. Algorithm matches lender expertise against your deal requirements.</p>
+            <div class="reco-inputs">
+                <div>
+                    <label>Mandate Type *</label>
+                    <select id="lenderMandateType">
+                        <option value="">-- Select Mandate Type --</option>
+                        <option>Debt</option>
+                        <option>Debt+Equity</option>
+                        <option>Equity</option>
+                        <option>Structured Debt</option>
+                        <option>IPO Advisory</option>
+                        <option>Pre-IPO</option>
+                        <option>NPA/OTS</option>
+                        <option>Bill Discounting</option>
+                        <option>Acquisition Finance</option>
+                        <option>Working Capital</option>
+                        <option>Term Loan</option>
+                        <option>Other</option>
+                        <option>Retail Loan - LAP</option>
+                    </select>
+                </div>
+                <div>
+                    <label>State</label>
+                    <select id="lenderState"><option value="">-- All States --</option></select>
+                </div>
+                <div>
+                    <label>City</label>
+                    <select id="lenderCity"><option value="">-- All Cities --</option></select>
+                </div>
+                <div>
+                    <label>Required Amount (₹ Cr.)</label>
+                    <input type="number" id="lenderAmount" placeholder="e.g. 50" min="0">
+                </div>
+            </div>
+            <button class="btn btn-recommend" onclick="runLenderRecommendation()">🔍 Get Lender Recommendations</button>
+            <div class="reco-results" id="lenderRecoResults"></div>
+        </div>
     </div>
-  </div>
 
-  <!-- ═══ TAB: RECOMMENDER ═══ -->
-  <div id="tab-recommender" class="tab-panel">
-    <div class="section-header">
-      <h2>🤝 Recommendation Engine — Banker & Channel Partner</h2>
-      <span class="badge" style="margin-left:8px">Live Matching</span>
-      <div class="ml-auto" style="display:flex;gap:8px">
-        <select class="filter-select" id="reco-mandate-type" onchange="renderRecommender()">
-          <option value="Debt">Debt Mandate</option>
-          <option value="Equity">Equity Mandate</option>
-          <option value="Both">Both</option>
-        </select>
-        <select class="filter-select" id="reco-region" onchange="renderRecommender()">
-          <option value="">All Regions</option>
-        </select>
-      </div>
+    <!-- TAB 5: Raw Data -->
+    <div class="tab-content" id="tab-rawdata">
+        <div class="data-table-container">
+            <h3 style="margin-bottom:15px; color:var(--primary);">📄 All Records - Raw Data View</h3>
+            <p style="font-size:0.8rem; color:#888; margin-bottom:15px;">Showing filtered data. Color coding: <span class="tag-ontrack">On Track</span> <span class="tag-wip">WIP</span> <span class="tag-alert">Alert</span></p>
+            <div id="rawDataTable"><div class="loading"><div class="spinner"></div>Loading data...</div></div>
+        </div>
     </div>
-    <p style="font-size:12px;color:var(--text3);margin-bottom:20px">Algorithm: Mandate Type + Branch/Region + Nature of Deal → Matched with Expertise, City, State & Experience</p>
+</div>
 
-    <div class="reco-grid">
-      <div class="reco-card">
-        <h3>👔 Top Recommended Bankers</h3>
-        <p class="reco-sub">Ranked by: Region Match · Expertise · Track Record · Experience</p>
-        <div id="banker-reco-list"><div class="loading"><div class="loading-spinner"></div></div></div>
-      </div>
-      <div class="reco-card">
-        <h3>🤝 Top Recommended Channel Partners</h3>
-        <p class="reco-sub">Ranked by: Location · Mandate Type · Deal Volume</p>
-        <div id="cp-reco-list"><div class="loading"><div class="loading-spinner"></div></div></div>
-      </div>
+<!-- Drill-Down Modal -->
+<div class="modal-overlay" id="drillModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <h3 id="modalTitle">Data Drill-Down</h3>
+                <span class="modal-count" id="modalCount"></span>
+            </div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
     </div>
-  </div>
-
-  <!-- ═══ TAB: LENDER ═══ -->
-  <div id="tab-lender" class="tab-panel">
-    <div class="section-header">
-      <h2>🏛️ Lender Recommendation Engine</h2>
-      <div class="ml-auto" style="display:flex;gap:8px">
-        <select class="filter-select" id="lend-type" onchange="renderLenderReco()">
-          <option value="">All Types</option>
-          <option>Term Loan</option><option>Working Capital</option>
-          <option>OD / CC</option><option>LAP</option>
-          <option>Project Finance</option><option>Equity</option>
-        </select>
-        <select class="filter-select" id="lend-region" onchange="renderLenderReco()">
-          <option value="">Pan India</option>
-        </select>
-      </div>
-    </div>
-    <p style="font-size:12px;color:var(--text3);margin-bottom:20px">Algorithm: Mandate Type + Location + Required Amount → Matched against Lender Raw Dump</p>
-
-    <div class="table-card lender-table-card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th><th>Lender Name</th><th>Type</th><th>Loan Products</th>
-              <th>Min Ticket</th><th>Max Ticket</th><th>Location Coverage</th>
-              <th>Processing</th><th>Score</th>
-            </tr>
-          </thead>
-          <tbody id="lender-reco-tbody">
-            <tr><td colspan="9" class="empty-state">No lender data yet.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ TAB: ALL RECORDS ═══ -->
-  <div id="tab-records" class="tab-panel">
-    <div class="table-card">
-      <div class="table-toolbar">
-        <h3>📋 All Records</h3>
-        <span id="records-count" style="font-size:11px;color:var(--text3)">0 records</span>
-        <input class="search-box" id="records-search" placeholder="Search by company, banker, status…" oninput="searchRecords()"/>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th onclick="sortTable('srNo')">Sr No</th>
-              <th onclick="sortTable('companyName')">Company</th>
-              <th onclick="sortTable('unitName')">Unit</th>
-              <th onclick="sortTable('mandateBranch')">Branch</th>
-              <th onclick="sortTable('caseStatus')">Status</th>
-              <th onclick="sortTable('tagging')">Tag</th>
-              <th onclick="sortTable('mandateType')">Mandate Type</th>
-              <th onclick="sortTable('dealStage')">Deal Stage</th>
-              <th onclick="sortTable('ticketSize')">Ticket Size</th>
-              <th onclick="sortTable('ageingSlab')">Ageing</th>
-              <th onclick="sortTable('mandateOwner')">Owner</th>
-              <th onclick="sortTable('leadSource')">Lead Source</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="records-tbody">
-            <tr><td colspan="13" class="loading"><div class="loading-spinner"></div><br/>Loading records…</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="page-info">
-        <span id="page-info-label">Page 1 of 1</span>
-        <div class="page-btns" id="page-btns"></div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /main -->
-
-<!-- ─── DETAIL MODAL ─── -->
-<div class="modal-overlay" id="detail-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="modal-title">Record Detail</h2>
-      <span class="modal-close" onclick="closeModal()">✕</span>
-    </div>
-    <div id="modal-body"></div>
-  </div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════ */
+// ============ CONFIGURATION ============
 const SHEET_ID = '1zo85_oRIDLQsR--kCmwWSYBDgm-ZElHIkoC9PNaUB2k';
-let webAppUrl = localStorage.getItem('bk_webapp_url') || '';
-let allData = { records: [], bankers: [], cps: [], lenders: [] };
-let filteredRecords = [];
-let activeFilters = { status:'', unit:'', branch:'', mandateType:'', stage:'', ageing:'', tags:new Set() };
-let sortState = { col:'', dir:1 };
-let currentPage = 1;
-const PAGE_SIZE = 50;
-let syncTimer = null;
-let charts = {};
+const TABS = {
+    master: { gid: '397920580', name: 'Master Data' },
+    bankers: { gid: '1311522759', name: 'Bankers Onboarding' },
+    channelPartners: { gid: '949525485', name: 'Channel Partner Onboarding' },
+    lenderTagging: { gid: '695157663', name: 'Lender Tagging' }
+};
 
-/* ═══════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', () => {
-  if (webAppUrl) {
-    document.getElementById('webapp-url-input').value = webAppUrl;
-    document.getElementById('setup-overlay').style.display = 'none';
-    loadData();
-  }
-  startSyncTimer();
-});
+// Global Data Store
+let masterData = [];
+let bankersData = [];
+let cpData = [];
+let lenderData = [];
+let filteredData = [];
 
-function startSyncTimer() {
-  if (syncTimer) clearInterval(syncTimer);
-  syncTimer = setInterval(() => { if (webAppUrl) loadData(); }, 5 * 60 * 1000);
+// ============ DATA FETCHING ============
+function getSheetURL(gid) {
+    return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 }
 
-/* ═══════════════════════════════════════════════════
-   SETUP & CONNECTION
-═══════════════════════════════════════════════════ */
-function connectWebApp() {
-  const url = document.getElementById('webapp-url-input').value.trim();
-  const status = document.getElementById('setup-status');
-  if (!url || !url.startsWith('https://script.google.com')) {
-    status.textContent = '⚠ Please enter a valid Google Apps Script Web App URL.';
-    status.style.color = '#FCA5A5';
-    return;
-  }
-  status.textContent = '⏳ Testing connection…';
-  status.style.color = '#93C5FD';
-  webAppUrl = url;
-  localStorage.setItem('bk_webapp_url', url);
-  loadData().then(() => {
-    document.getElementById('setup-overlay').style.display = 'none';
-  }).catch(() => {
-    status.textContent = '❌ Could not connect. Check the URL and make sure "Who has access: Anyone" is set.';
-    status.style.color = '#FCA5A5';
-  });
+async function fetchSheetData(gid) {
+    try {
+        const url = getSheetURL(gid);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const csvText = await response.text();
+        const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: false });
+        return parsed.data;
+    } catch (error) {
+        console.error('Error fetching GID ' + gid + ':', error);
+        return [];
+    }
 }
 
-function skipSetup() {
-  document.getElementById('setup-overlay').style.display = 'none';
-  loadDemoData();
+async function refreshData() {
+    document.getElementById('lastSync').textContent = '⏳ Syncing...';
+    
+    try {
+        const [master, bankers, cp, lender] = await Promise.all([
+            fetchSheetData(TABS.master.gid),
+            fetchSheetData(TABS.bankers.gid),
+            fetchSheetData(TABS.channelPartners.gid),
+            fetchSheetData(TABS.lenderTagging.gid)
+        ]);
+
+        masterData = master.filter(r => Object.values(r).some(v => v && v.toString().trim()));
+        bankersData = bankers.filter(r => Object.values(r).some(v => v && v.toString().trim()));
+        cpData = cp.filter(r => Object.values(r).some(v => v && v.toString().trim()));
+        lenderData = lender.filter(r => Object.values(r).some(v => v && v.toString().trim()));
+        filteredData = [...masterData];
+
+        console.log(`Loaded: Master(${masterData.length}), Bankers(${bankersData.length}), CP(${cpData.length}), Lenders(${lenderData.length})`);
+
+        renderDashboard();
+        populateFilters();
+        populateRecoDropdowns();
+        
+        const now = new Date();
+        document.getElementById('lastSync').textContent = `✓ Last synced: ${now.toLocaleTimeString()}`;
+    } catch (error) {
+        document.getElementById('lastSync').textContent = '❌ Sync failed - check sheet permissions';
+        console.error('Refresh error:', error);
+    }
 }
 
-/* ═══════════════════════════════════════════════════
-   DATA LOADING
-═══════════════════════════════════════════════════ */
-async function loadData() {
-  showBanner('conn', `Connected: Loading Master Data from Google Sheet… (ID: ${SHEET_ID})`);
-  setSyncDot('loading');
-  try {
-    const res = await fetch(`${webAppUrl}?action=getAllData&ts=${Date.now()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (json.error) throw new Error(json.error);
-    allData.records = json.records || [];
-    allData.bankers = json.bankers || [];
-    allData.cps = json.cps || [];
-    allData.lenders = json.lenders || [];
-    hideBanners();
-    setSyncDot('online');
-    updateSyncLabel();
-    processAndRender();
-  } catch (e) {
-    showBanner('err', `Connection error: ${e.message}. Showing last cached data.`);
-    setSyncDot('offline');
-    if (!allData.records.length) loadDemoData();
-    else processAndRender();
-  }
-}
-
-function refreshData() {
-  if (webAppUrl) loadData();
-  else loadDemoData();
-}
-
-/* ═══════════════════════════════════════════════════
-   DEMO DATA
-═══════════════════════════════════════════════════ */
-function loadDemoData() {
-  showBanner('conn', 'Running in demo mode — connect your Google Sheet via ⚙ Config for live data.');
-  setSyncDot('online');
-  updateSyncLabel('Demo');
-  allData.records = generateDemoRecords(120);
-  allData.bankers = generateDemoBankers(18);
-  allData.cps = generateDemoCPs(12);
-  allData.lenders = generateDemoLenders(20);
-  processAndRender();
-}
-
-function generateDemoRecords(n) {
-  const statuses = ['Active','Inactive','Closed','In Progress','On Hold'];
-  const units = ['Mumbai North','Mumbai South','Delhi NCR','Bangalore','Pune','Hyderabad'];
-  const branches = ['Andheri','Bandra','Nariman Point','Connaught Place','Koramangala','Banjara Hills'];
-  const mandateTypes = ['Debt','Equity','Hybrid','Structured Finance'];
-  const dealStages = ['Lead Generation','Qualification','Proposal','Due Diligence','Term Sheet','Disbursement'];
-  const tags = ['🔴 Alert','🟢 On Track','🟡 WIP'];
-  const sources = ['Inhouse','CP Referral','Banker Referral','Direct','Online'];
-  const ages = ['0-30 Days','31-60 Days','61-90 Days','91-180 Days','180+ Days'];
-  const companies = ['TechCorp Ltd','Sunrise Infra','Green Energy Co','Metro Builders','Alpha Finance','Sigma Retail','Prime Hospitality','Ocean Logistics','Sky Ventures','Apex Healthcare'];
-  const owners = ['Rahul Sharma','Priya Singh','Amit Kumar','Neha Gupta','Vikas Jain'];
-  const tickets = ['< 1 Cr','1-5 Cr','5-10 Cr','10-25 Cr','25-50 Cr','50 Cr+'];
-  return Array.from({length:n},(_,i)=>({
-    srNo: i+1,
-    companyName: companies[i%companies.length] + (i>=10?' '+(Math.ceil(i/10)):''),
-    unitName: units[i%units.length],
-    mandateBranch: branches[i%branches.length],
-    caseStatus: statuses[i%statuses.length],
-    tagging: tags[i%tags.length],
-    mandateType: mandateTypes[i%mandateTypes.length],
-    dealStage: dealStages[i%dealStages.length],
-    ticketSize: tickets[i%tickets.length],
-    ageingSlab: ages[i%ages.length],
-    mandateOwner: owners[i%owners.length],
-    leadSource: sources[i%sources.length],
-    bankerName: allData.bankers.length? allData.bankers[i%allData.bankers.length]?.name : 'Demo Banker',
-    cpName: allData.cps.length? allData.cps[i%allData.cps.length]?.name : 'Demo CP',
-    lenderShortlist: i%3===0?'HDFC Bank':i%3===1?'SBI':' ICICI Bank',
-    doability: i%3===0?'High':i%3===1?'Medium':'Low',
-    debtAmount: Math.round(Math.random()*50)*1e6,
-    equityAmount: Math.round(Math.random()*20)*1e6,
-    revenuePipeline: Math.round(Math.random()*5)*1e5,
-    revenueExpected: Math.round(Math.random()*4)*1e5,
-    advanceAmt: Math.round(Math.random()*2)*1e5,
-    revenueCollected: Math.round(Math.random()*3)*1e5,
-    refundAmt: Math.round(Math.random()*0.5)*1e5,
-    tatDays: Math.round(Math.random()*90)+10,
-    region: branches[i%branches.length].includes('Nari')||branches[i%branches.length].includes('Andheri')||branches[i%branches.length].includes('Bandra')?'West':branches[i%branches.length].includes('Connaught')?'North':'South',
-  }));
-}
-function generateDemoBankers(n){
-  const names=['Rajesh Mehta','Sunita Verma','Arun Nair','Divya Sharma','Kunal Seth','Prachi Joshi','Neeraj Agarwal','Meera Pillai','Sanjay Tiwari','Kavya Reddy','Rohan Gupta','Deepa Naidu','Vikram Malhotra','Ananya Iyer','Suresh Patil','Nisha Kapoor','Amit Trivedi','Pooja Rao'];
-  const expertises=['Debt','Equity','Both','Structured Finance'];
-  const cities=['Mumbai','Delhi','Bangalore','Pune','Hyderabad','Chennai'];
-  return Array.from({length:n},(_,i)=>({name:names[i]||`Banker ${i+1}`,expertise:expertises[i%4],city:cities[i%6],experience:Math.round(5+Math.random()*20),mandateCount:Math.round(3+Math.random()*20),region:i%2===0?'West':i%3===1?'North':'South'}));
-}
-function generateDemoCPs(n){
-  const names=['RK Associates','Sunrise Capital','Alpha Brokers','Prime Partners','Metro Advisors','Vertex Finance','Apex Consultants','Delta Brokers','Sigma Partners','Omega Capital','Zeta Advisors','Theta Finance'];
-  const cities=['Mumbai','Delhi','Bangalore','Pune','Hyderabad','Chennai'];
-  return Array.from({length:n},(_,i)=>({name:names[i]||`CP ${i+1}`,mandateType:i%2===0?'Debt':'Equity',city:cities[i%6],experience:Math.round(3+Math.random()*15),caseCount:Math.round(2+Math.random()*25),region:i%2===0?'West':i%3===1?'North':'South'}));
-}
-function generateDemoLenders(n){
-  const banks=['HDFC Bank','SBI','ICICI Bank','Axis Bank','Kotak Mahindra','Yes Bank','IndusInd Bank','Bank of Baroda','PNB','Canara Bank','IDFC First','RBL Bank','Federal Bank','South Indian Bank','DCB Bank','Shriram Finance','Bajaj Finance','Tata Capital','Aditya Birla Finance','L&T Finance'];
-  const types=['PSU Bank','Private Bank','NBFC','HFC','MFI'];
-  const products=['Term Loan','Working Capital','Project Finance','OD / CC','LAP','Equipment Finance'];
-  return Array.from({length:n},(_,i)=>({
-    name:banks[i]||`Lender ${i+1}`,
-    type:types[i%5],
-    products:products.slice(0,Math.ceil(Math.random()*4)).join(', '),
-    minTicket:`${Math.round(0.5+Math.random()*4.5)} Cr`,
-    maxTicket:`${Math.round(50+Math.random()*450)} Cr`,
-    location:'Pan India',
-    processing:i%3===0?'Fast':i%3===1?'Standard':'Selective',
-    score:Math.round(65+Math.random()*35),
-    region:'Pan India',
-    mandateType:i%3===0?'Debt':i%3===1?'Both':'Equity',
-  }));
-}
-
-/* ═══════════════════════════════════════════════════
-   PROCESS + RENDER
-═══════════════════════════════════════════════════ */
-function processAndRender() {
-  populateFilters();
-  applyFilters();
-}
+// ============ FILTERS ============
+const FILTER_CONFIG = [
+    { key: 'Case Status', label: 'Case Status' },
+    { key: 'Unit Name', label: 'Unit Name' },
+    { key: 'Mandate Branch', label: 'Mandate Branch' },
+    { key: 'Tagging', label: 'Tagging' },
+    { key: 'Lead Source', label: 'Lead Source' },
+    { key: 'Current Tagging In', label: 'Current Tagging In' },
+    { key: 'Mandate Status', label: 'Mandate Status' },
+    { key: 'Mandate Owner', label: 'Mandate Owner' },
+    { key: 'Mandate Type', label: 'Mandate Type' },
+    { key: 'Deal Stage', label: 'Deal Stage' },
+    { key: 'Ageing Slab', label: 'Ageing Slab' },
+    { key: 'Ticket Size', label: 'Ticket Size' },
+    { key: 'Company Name', label: 'Company Name' },
+    { key: 'Lender Shortlist', label: 'Lender Shortlist' },
+    { key: 'Doability Branch', label: 'Doability Branch' }
+];
 
 function populateFilters() {
-  const fill = (id, key) => {
-    const el = document.getElementById(id);
-    const vals = [...new Set(allData.records.map(r=>r[key]).filter(Boolean))].sort();
-    const cur = el.value;
-    el.innerHTML = '<option value="">All</option>' + vals.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('');
-  };
-  fill('f-status','caseStatus');
-  fill('f-unit','unitName');
-  fill('f-branch','mandateBranch');
-  fill('f-mandate-type','mandateType');
-  fill('f-stage','dealStage');
-  fill('f-ageing','ageingSlab');
-
-  const regions = [...new Set(allData.records.map(r=>r.region).filter(Boolean))];
-  ['reco-region','lend-region'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.innerHTML='<option value="">All Regions</option>'+regions.map(r=>`<option>${r}</option>`).join('');}
-  });
+    const container = document.getElementById('filtersContainer');
+    container.innerHTML = '';
+    
+    FILTER_CONFIG.forEach(filter => {
+        const values = [...new Set(masterData.map(r => (r[filter.key] || '').toString().trim()).filter(Boolean))].sort();
+        if (values.length === 0) return; // Skip if no data for this filter
+        
+        const div = document.createElement('div');
+        div.className = 'filter-group';
+        div.innerHTML = `
+            <label>${filter.label}</label>
+            <select onchange="applyFilters()" data-filter="${filter.key}">
+                <option value="">All (${values.length})</option>
+                ${values.map(v => `<option value="${v}">${v}</option>`).join('')}
+            </select>
+        `;
+        container.appendChild(div);
+    });
 }
 
 function applyFilters() {
-  activeFilters.status = document.getElementById('f-status').value;
-  activeFilters.unit = document.getElementById('f-unit').value;
-  activeFilters.branch = document.getElementById('f-branch').value;
-  activeFilters.mandateType = document.getElementById('f-mandate-type').value;
-  activeFilters.stage = document.getElementById('f-stage').value;
-  activeFilters.ageing = document.getElementById('f-ageing').value;
-
-  filteredRecords = allData.records.filter(r=>{
-    if(activeFilters.status && r.caseStatus !== activeFilters.status) return false;
-    if(activeFilters.unit && r.unitName !== activeFilters.unit) return false;
-    if(activeFilters.branch && r.mandateBranch !== activeFilters.branch) return false;
-    if(activeFilters.mandateType && r.mandateType !== activeFilters.mandateType) return false;
-    if(activeFilters.stage && r.dealStage !== activeFilters.stage) return false;
-    if(activeFilters.ageing && r.ageingSlab !== activeFilters.ageing) return false;
-    if(activeFilters.tags.size > 0) {
-      const t = r.tagging||'';
-      let tagMatch = false;
-      if(activeFilters.tags.has('red') && t.includes('🔴')) tagMatch=true;
-      if(activeFilters.tags.has('green') && t.includes('🟢')) tagMatch=true;
-      if(activeFilters.tags.has('yellow') && t.includes('🟡')) tagMatch=true;
-      if(!tagMatch) return false;
-    }
-    return true;
-  });
-
-  currentPage = 1;
-  renderAll();
+    const selects = document.querySelectorAll('#filtersContainer select');
+    filteredData = masterData.filter(row => {
+        return Array.from(selects).every(select => {
+            if (!select.value) return true;
+            const rowVal = (row[select.dataset.filter] || '').toString().trim();
+            return rowVal === select.value;
+        });
+    });
+    renderDashboard();
 }
 
-function renderAll() {
-  renderKPIs();
-  renderCharts();
-  renderRevenue();
-  renderLenderTable();
-  renderAllocation();
-  renderRecommender();
-  renderLenderReco();
-  renderRecordsTable();
+function clearAllFilters() {
+    document.querySelectorAll('#filtersContainer select').forEach(s => s.value = '');
+    filteredData = [...masterData];
+    renderDashboard();
 }
 
-/* ═══════════════════════════════════════════════════
-   KPIs
-═══════════════════════════════════════════════════ */
+// ============ UTILITY FUNCTIONS ============
+function parseNum(val) {
+    if (!val) return 0;
+    return parseFloat(val.toString().replace(/[^0-9.-]/g, '')) || 0;
+}
+
+function formatCurrency(num) {
+    return '₹' + num.toFixed(2) + ' Cr';
+}
+
+function getTagBadge(value) {
+    const v = (value || '').toString().toLowerCase().trim();
+    if (v === 'alert' || v === 'red') return '<span class="tag-alert">● Alert</span>';
+    if (v === 'on track' || v === 'green' || v === 'ontrack') return '<span class="tag-ontrack">● On Track</span>';
+    if (v === 'wip' || v === 'amber' || v === 'yellow') return '<span class="tag-wip">● WIP</span>';
+    return value || '--';
+}
+
+function getRowClass(tagging) {
+    const v = (tagging || '').toString().toLowerCase().trim();
+    if (v === 'alert' || v === 'red') return 'row-alert';
+    if (v === 'on track' || v === 'green' || v === 'ontrack') return 'row-ontrack';
+    if (v === 'wip' || v === 'amber' || v === 'yellow') return 'row-wip';
+    return '';
+}
+
+// ============ DASHBOARD RENDERING ============
+function renderDashboard() {
+    renderKPIs();
+    renderCharts();
+    renderRawData();
+}
+
 function renderKPIs() {
-  const r = filteredRecords;
-  const total = r.length;
-  const leads = r.filter(x=>x.leadSource).length;
-  const deals = r.filter(x=>x.dealStage==='Disbursement').length;
-  const bankers = new Set(r.map(x=>x.bankerName).filter(Boolean)).size;
-  const cps = new Set(r.map(x=>x.cpName).filter(Boolean)).size;
-  const debt = r.reduce((s,x)=>s+(parseFloat(x.debtAmount)||0),0);
-  const equity = r.reduce((s,x)=>s+(parseFloat(x.equityAmount)||0),0);
-  const tatArr = r.map(x=>parseFloat(x.tatDays)).filter(v=>v>0);
-  const avgTat = tatArr.length ? Math.round(tatArr.reduce((a,b)=>a+b,0)/tatArr.length) : 0;
+    const data = filteredData;
+    const totalCount = data.length;
+    const leadsCount = data.filter(r => {
+        const status = (r['Case Status'] || '').toLowerCase();
+        return status.includes('lead') || status === 'new' || status === 'open';
+    }).length;
+    const dealsCount = data.filter(r => {
+        const status = (r['Case Status'] || '').toLowerCase();
+        return status.includes('deal') || status.includes('mandate') || status.includes('convert');
+    }).length;
+    const bankerCount = bankersData.length;
+    const cpCount = cpData.length;
+    const lenderCount = lenderData.length;
 
-  set('kpi-total', total.toLocaleString());
-  set('kpi-leads', leads.toLocaleString());
-  set('kpi-leads-pct', total ? `${pct(leads,total)}% of total` : '—');
-  set('kpi-deals', deals.toLocaleString());
-  set('kpi-deals-pct', total ? `${pct(deals,total)}% converted` : '—');
-  set('kpi-bankers', bankers.toLocaleString());
-  set('kpi-cps', cps.toLocaleString());
-  set('kpi-debt', fmt(debt));
-  set('kpi-equity', fmt(equity));
-  set('kpi-tat', avgTat || '—');
+    const revPipeline = data.reduce((s, r) => s + parseNum(r['Total Expected Revenue (In Cr.)']), 0);
+    const revExpected = data.reduce((s, r) => s + parseNum(r['Total Expected Revenue (In Cr.)']), 0);
+    const revCollected = data.reduce((s, r) => s + parseNum(r['Total Payment Received']), 0);
+    const advanceAmt = data.reduce((s, r) => s + parseNum(r['Advance Amt']), 0);
+    const refund = data.reduce((s, r) => s + parseNum(r['Refund']), 0);
+    const netRevenue = data.reduce((s, r) => s + parseNum(r['Net Revenue']), 0);
+
+    const kpis = [
+        { label: 'Total Count', value: totalCount, display: totalCount, type: '', filter: 'all' },
+        { label: 'Leads Count', value: leadsCount, display: leadsCount, type: '', filter: 'leads' },
+        { label: 'Deals Count', value: dealsCount, display: dealsCount, type: '', filter: 'deals' },
+        { label: 'Banker Count', value: bankerCount, display: bankerCount, type: 'info', filter: 'bankers' },
+        { label: 'CP Count', value: cpCount, display: cpCount, type: 'info', filter: 'cp' },
+        { label: 'Lender Details', value: lenderCount, display: lenderCount, type: 'info', filter: 'lenders' },
+        { label: 'Revenue Pipeline', value: revPipeline, display: formatCurrency(revPipeline), type: 'revenue', filter: 'rev_pipeline' },
+        { label: 'Revenue Expected', value: revExpected, display: formatCurrency(revExpected), type: 'revenue', filter: 'rev_expected' },
+        { label: 'Revenue Collected', value: revCollected, display: formatCurrency(revCollected), type: 'revenue', filter: 'rev_collected' },
+        { label: 'Advance Amt', value: advanceAmt, display: formatCurrency(advanceAmt), type: 'revenue', filter: 'advance' },
+        { label: 'Refund Amount', value: refund, display: formatCurrency(refund), type: 'alert', filter: 'refund' },
+        { label: 'Net Revenue', value: netRevenue, display: formatCurrency(netRevenue), type: 'revenue', filter: 'net_rev' }
+    ];
+
+    const container = document.getElementById('kpiContainer');
+    container.innerHTML = kpis.map(kpi => `
+        <div class="kpi-card ${kpi.type}" onclick="openDrillDown('${kpi.label}', '${kpi.filter}')">
+            <div class="kpi-label">${kpi.label}</div>
+            <div class="kpi-value">${kpi.display}</div>
+            <div class="kpi-sub">Click to view details →</div>
+        </div>
+    `).join('');
+
+    // Average TAT
+    const tatValues = data.map(r => parseNum(r['TAT (In Days) Leads to Mandate Signoff'])).filter(v => v > 0);
+    const avgTAT = tatValues.length > 0 ? (tatValues.reduce((a, b) => a + b, 0) / tatValues.length).toFixed(1) : '--';
+    document.getElementById('avgTAT').textContent = avgTAT;
 }
 
-/* ═══════════════════════════════════════════════════
-   CHARTS
-═══════════════════════════════════════════════════ */
-const PALETTE = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316','#6366F1'];
+// ============ CHARTS ============
+let pipelineChartInstance = null;
+let revenueChartInstance = null;
+let allocationChartInstance = null;
+let regionChartInstance = null;
 
 function renderCharts() {
-  makeDoughnut('chart-status', groupBy(filteredRecords,'caseStatus'));
-  makeDoughnut('chart-mandate', groupBy(filteredRecords,'mandateType'));
-  makeBar('chart-stage', groupBy(filteredRecords,'dealStage'));
-  makeBar('chart-source', groupBy(filteredRecords,'leadSource'));
-  makeBar('chart-ageing', groupBy(filteredRecords,'ageingSlab'));
-}
-
-function makeDoughnut(id, data) {
-  const ctx = document.getElementById(id);
-  if(!ctx) return;
-  if(charts[id]) charts[id].destroy();
-  const labels = Object.keys(data);
-  const values = Object.values(data);
-  charts[id] = new Chart(ctx, {
-    type:'doughnut',
-    data:{ labels, datasets:[{ data:values, backgroundColor:PALETTE, borderWidth:0, hoverOffset:4 }] },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{ position:'bottom', labels:{ color:'#94A3B8', font:{size:10}, boxWidth:10, padding:8 } },
-        tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed, values.reduce((a,b)=>a+b,0))}%)` } }
-      },
-      cutout:'65%'
-    }
-  });
-}
-
-function makeBar(id, data) {
-  const ctx = document.getElementById(id);
-  if(!ctx) return;
-  if(charts[id]) charts[id].destroy();
-  const labels = Object.keys(data);
-  const values = Object.values(data);
-  charts[id] = new Chart(ctx, {
-    type:'bar',
-    data:{ labels, datasets:[{ data:values, backgroundColor:PALETTE[0]+'99', borderColor:PALETTE[0], borderWidth:1, borderRadius:4 }] },
-    options:{
-      responsive:true, maintainAspectRatio:false, indexAxis:'y',
-      plugins:{ legend:{display:false} },
-      scales:{
-        x:{ ticks:{color:'#64748B',font:{size:10}}, grid:{color:'#1E2D47'} },
-        y:{ ticks:{color:'#94A3B8',font:{size:10}}, grid:{display:false} }
-      }
-    }
-  });
-}
-
-/* ═══════════════════════════════════════════════════
-   REVENUE
-═══════════════════════════════════════════════════ */
-function renderRevenue() {
-  const r = filteredRecords;
-  const sum = k => r.reduce((s,x)=>s+(parseFloat(x[k])||0),0);
-  const rp=sum('revenuePipeline'), re=sum('revenueExpected'), ra=sum('advanceAmt'),
-        rc=sum('revenueCollected'), rf=sum('refundAmt'), rn=rc-rf;
-  set('rev-pipeline', fmt(rp));
-  set('rev-expected', fmt(re));
-  set('rev-advance', fmt(ra));
-  set('rev-collected', fmt(rc));
-  set('rev-refund', fmt(rf));
-  set('rev-net', fmt(rn));
-}
-
-/* ═══════════════════════════════════════════════════
-   LENDER TABLE (OVERVIEW)
-═══════════════════════════════════════════════════ */
-function renderLenderTable() {
-  const tbody = document.getElementById('lender-tbody');
-  const lenders = allData.lenders.slice(0,10);
-  if(!lenders.length){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">No lender data.</td></tr>'; return; }
-  tbody.innerHTML = lenders.map(l=>`
-    <tr>
-      <td><strong>${l.name||'—'}</strong></td>
-      <td>${chipFor(l.type,'blue')}</td>
-      <td>${l.company||l.type||'—'}</td>
-      <td>${chipFor(l.processing,'green')}</td>
-      <td>${l.location||l.region||'Pan India'}</td>
-    </tr>
-  `).join('');
-}
-
-/* ═══════════════════════════════════════════════════
-   ALLOCATION
-═══════════════════════════════════════════════════ */
-function renderAllocation() {
-  // Banker allocation
-  const bankerMap = groupBy(filteredRecords,'bankerName');
-  const bankerEl = document.getElementById('banker-alloc-list');
-  bankerEl.innerHTML = renderAllocList(bankerMap);
-
-  // CP allocation
-  const cpMap = groupBy(filteredRecords,'cpName');
-  const cpEl = document.getElementById('cp-alloc-list');
-  cpEl.innerHTML = renderAllocList(cpMap);
-
-  // Region × Source matrix
-  renderMatrix();
-}
-
-function renderAllocList(map) {
-  const entries = Object.entries(map).filter(([k])=>k&&k!=='undefined').sort((a,b)=>b[1]-a[1]).slice(0,15);
-  if(!entries.length) return '<div class="empty-state">No data.</div>';
-  const max = entries[0][1];
-  return entries.map(([name,cnt])=>`
-    <div class="alloc-row">
-      <div class="alloc-name">${name}</div>
-      <div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${Math.round(cnt/max*100)}%"></div></div>
-      <div class="alloc-count">${cnt}</div>
-      <div class="alloc-pct">${pct(cnt,filteredRecords.length)}%</div>
-    </div>
-  `).join('');
-}
-
-function renderMatrix() {
-  const regions = [...new Set(filteredRecords.map(r=>r.region).filter(Boolean))];
-  const sources = [...new Set(filteredRecords.map(r=>r.leadSource).filter(Boolean))];
-  if(!regions.length || !sources.length){
-    document.getElementById('matrix-wrap').innerHTML='<div class="empty-state">Not enough data for matrix.</div>';
-    return;
-  }
-  const matrix = {};
-  filteredRecords.forEach(r=>{
-    const key = `${r.region}|${r.leadSource}`;
-    matrix[key] = (matrix[key]||0)+1;
-  });
-  const maxVal = Math.max(...Object.values(matrix));
-  const heatClass = v => v===0?'':v<maxVal*0.25?'matrix-heat-1':v<maxVal*0.5?'matrix-heat-2':v<maxVal*0.75?'matrix-heat-3':'matrix-heat-4';
-
-  document.getElementById('matrix-wrap').innerHTML = `
-    <table class="matrix-table">
-      <thead><tr><th>Region ↓ / Source →</th>${sources.map(s=>`<th>${s}</th>`).join('')}<th>Total</th></tr></thead>
-      <tbody>
-        ${regions.map(reg=>{
-          const total = sources.reduce((s,src)=>s+(matrix[`${reg}|${src}`]||0),0);
-          return `<tr>
-            <td style="font-weight:600">${reg}</td>
-            ${sources.map(src=>{const v=matrix[`${reg}|${src}`]||0;return `<td class="matrix-cell ${heatClass(v)}">${v||''}</td>`}).join('')}
-            <td class="matrix-cell" style="color:var(--text)">${total}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-/* ═══════════════════════════════════════════════════
-   RECOMMENDER
-═══════════════════════════════════════════════════ */
-function renderRecommender() {
-  const mandateFilter = document.getElementById('reco-mandate-type')?.value || 'Debt';
-  const regionFilter = document.getElementById('reco-region')?.value || '';
-
-  const scoreBanker = b => {
-    let s = 0;
-    if(!mandateFilter || mandateFilter==='Both' || b.expertise===mandateFilter || b.expertise==='Both') s+=40;
-    if(!regionFilter || b.region===regionFilter || b.city===regionFilter) s+=30;
-    s += Math.min(b.experience||0, 20);
-    s += Math.min((b.mandateCount||0)/2, 10);
-    return Math.min(s,100);
-  };
-  const scoreCP = c => {
-    let s = 0;
-    if(!mandateFilter || mandateFilter==='Both' || c.mandateType===mandateFilter || c.mandateType==='Both') s+=40;
-    if(!regionFilter || c.region===regionFilter || c.city===regionFilter) s+=30;
-    s += Math.min(c.experience||0, 20);
-    s += Math.min((c.caseCount||0)/3, 10);
-    return Math.min(s,100);
-  };
-
-  const topBankers = [...allData.bankers].map(b=>({...b,score:scoreBanker(b)})).sort((a,b)=>b.score-a.score).slice(0,8);
-  const topCPs = [...allData.cps].map(c=>({...c,score:scoreCP(c)})).sort((a,b)=>b.score-a.score).slice(0,8);
-
-  document.getElementById('banker-reco-list').innerHTML = topBankers.length ? topBankers.map((b,i)=>`
-    <div class="reco-item">
-      <div class="reco-rank">${i+1}</div>
-      <div class="reco-info">
-        <div class="reco-name">${b.name}</div>
-        <div class="reco-meta">${b.city} · ${b.expertise} · ${b.experience}y exp · ${b.mandateCount} cases</div>
-      </div>
-      <div class="reco-score">${b.score}%</div>
-    </div>
-  `).join('') : '<div class="empty-state">No bankers loaded. Add via Google Sheet.</div>';
-
-  document.getElementById('cp-reco-list').innerHTML = topCPs.length ? topCPs.map((c,i)=>`
-    <div class="reco-item">
-      <div class="reco-rank">${i+1}</div>
-      <div class="reco-info">
-        <div class="reco-name">${c.name}</div>
-        <div class="reco-meta">${c.city} · ${c.mandateType} · ${c.experience}y exp · ${c.caseCount} cases</div>
-      </div>
-      <div class="reco-score">${c.score}%</div>
-    </div>
-  `).join('') : '<div class="empty-state">No CPs loaded. Add via Google Sheet.</div>';
-}
-
-/* ═══════════════════════════════════════════════════
-   LENDER RECOMMENDER
-═══════════════════════════════════════════════════ */
-function renderLenderReco() {
-  const typeFilter = document.getElementById('lend-type')?.value || '';
-  const regionFilter = document.getElementById('lend-region')?.value || '';
-
-  const scoreLender = l => {
-    let s = parseInt(l.score)||70;
-    if(typeFilter && l.products && l.products.toLowerCase().includes(typeFilter.toLowerCase())) s+=15;
-    if(!regionFilter || l.location==='Pan India' || l.region===regionFilter) s+=10;
-    if(l.processing==='Fast') s+=5;
-    return Math.min(s,100);
-  };
-
-  const ranked = [...allData.lenders].map(l=>({...l,matchScore:scoreLender(l)})).sort((a,b)=>b.matchScore-a.matchScore);
-  const tbody = document.getElementById('lender-reco-tbody');
-  if(!ranked.length){ tbody.innerHTML='<tr><td colspan="9" class="empty-state">No lender data. Add Lender Tagging tab data via Google Sheet.</td></tr>'; return; }
-  tbody.innerHTML = ranked.map((l,i)=>`
-    <tr>
-      <td style="color:var(--text3);font-family:var(--mono)">${i+1}</td>
-      <td><strong>${l.name}</strong></td>
-      <td>${chipFor(l.type,'purple')}</td>
-      <td style="max-width:180px;white-space:normal;font-size:11px">${l.products||'—'}</td>
-      <td style="font-family:var(--mono)">${l.minTicket||'—'}</td>
-      <td style="font-family:var(--mono)">${l.maxTicket||'—'}</td>
-      <td>${l.location||'Pan India'}</td>
-      <td>${chipFor(l.processing, l.processing==='Fast'?'green':l.processing==='Standard'?'blue':'yellow')}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:6px">
-          <div class="progress-wrap" style="width:50px"><div class="progress-bar" style="width:${l.matchScore}%"></div></div>
-          <span style="font-family:var(--mono);font-size:11px">${l.matchScore}%</span>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-}
-
-/* ═══════════════════════════════════════════════════
-   ALL RECORDS TABLE
-═══════════════════════════════════════════════════ */
-let searchQuery = '';
-
-function searchRecords() {
-  searchQuery = document.getElementById('records-search').value.toLowerCase();
-  currentPage = 1;
-  renderRecordsTable();
-}
-
-function sortTable(col) {
-  if(sortState.col===col) sortState.dir*=-1;
-  else { sortState.col=col; sortState.dir=1; }
-  renderRecordsTable();
-}
-
-function renderRecordsTable() {
-  let rows = [...filteredRecords];
-  if(searchQuery) {
-    rows = rows.filter(r =>
-      (r.companyName||'').toLowerCase().includes(searchQuery) ||
-      (r.bankerName||'').toLowerCase().includes(searchQuery) ||
-      (r.caseStatus||'').toLowerCase().includes(searchQuery) ||
-      (r.mandateOwner||'').toLowerCase().includes(searchQuery)
-    );
-  }
-  if(sortState.col) {
-    rows.sort((a,b)=>{
-      const av=a[sortState.col]||'', bv=b[sortState.col]||'';
-      return (av<bv?-1:av>bv?1:0)*sortState.dir;
+    // Pipeline Chart - by Mandate Status
+    const statusCounts = {};
+    filteredData.forEach(r => {
+        const status = (r['Mandate Status'] || 'Unknown').toString().trim();
+        if (status) statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-  }
 
-  const total = rows.length;
-  const pages = Math.ceil(total/PAGE_SIZE)||1;
-  currentPage = Math.min(currentPage,pages);
-  const slice = rows.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+    if (pipelineChartInstance) pipelineChartInstance.destroy();
+    const ctx1 = document.getElementById('pipelineChart').getContext('2d');
+    pipelineChartInstance = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(statusCounts).slice(0, 12),
+            datasets: [{
+                label: 'Count by Status',
+                data: Object.values(statusCounts).slice(0, 12),
+                backgroundColor: '#3f51b5',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
 
-  set('records-count', `${total.toLocaleString()} records`);
-  set('page-info-label', `Page ${currentPage} of ${pages} (${total.toLocaleString()} total)`);
+    // Revenue Doughnut Chart
+    const revData = {
+        'Debt Amt': filteredData.reduce((s, r) => s + parseNum(r['Total Debt Amt (In Cr.)']), 0),
+        'Equity Amt': filteredData.reduce((s, r) => s + parseNum(r['Total Equity Amt (In Cr.)']), 0),
+        'Fixed Fee': filteredData.reduce((s, r) => s + parseNum(r['Total Fixed  Fee Amt (In Cr.)']), 0),
+        'Collected': filteredData.reduce((s, r) => s + parseNum(r['Total Payment Received']), 0),
+        'Advance': filteredData.reduce((s, r) => s + parseNum(r['Advance Amt']), 0),
+        'Refund': filteredData.reduce((s, r) => s + parseNum(r['Refund']), 0)
+    };
 
-  const tbody = document.getElementById('records-tbody');
-  if(!slice.length){ tbody.innerHTML=`<tr><td colspan="13" class="empty-state">No records match current filters.</td></tr>`; return; }
-
-  tbody.innerHTML = slice.map(r=>`
-    <tr>
-      <td style="color:var(--text3);font-family:var(--mono)">${r.srNo||''}</td>
-      <td><strong style="color:var(--text)">${r.companyName||'—'}</strong></td>
-      <td>${r.unitName||'—'}</td>
-      <td>${r.mandateBranch||'—'}</td>
-      <td>${chipFor(r.caseStatus, statusColor(r.caseStatus))}</td>
-      <td>${chipFor(r.tagging, tagColor(r.tagging))}</td>
-      <td>${chipFor(r.mandateType,'blue')}</td>
-      <td>${r.dealStage||'—'}</td>
-      <td style="font-family:var(--mono)">${r.ticketSize||'—'}</td>
-      <td>${r.ageingSlab||'—'}</td>
-      <td>${r.mandateOwner||'—'}</td>
-      <td>${r.leadSource||'—'}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>View</button></td>
-    </tr>
-  `).join('');
-
-  // Pagination
-  const pagerEl = document.getElementById('page-btns');
-  const btns = [];
-  btns.push(`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`);
-  const range = pageRange(currentPage, pages);
-  range.forEach(p => {
-    if(p==='…') btns.push(`<span style="color:var(--text3);padding:0 4px">…</span>`);
-    else btns.push(`<button class="page-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`);
-  });
-  btns.push(`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`);
-  pagerEl.innerHTML = btns.join('');
+    if (revenueChartInstance) revenueChartInstance.destroy();
+    const ctx2 = document.getElementById('revenueChart').getContext('2d');
+    revenueChartInstance = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(revData),
+            datasets: [{
+                data: Object.values(revData),
+                backgroundColor: ['#1a237e', '#3f51b5', '#7986cb', '#2e7d32', '#f57c00', '#c62828']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
 }
 
-function goPage(p) {
-  const rows = filteredRecords;
-  const pages = Math.ceil(rows.length/PAGE_SIZE)||1;
-  currentPage = Math.max(1, Math.min(p, pages));
-  renderRecordsTable();
-}
+// ============ DRILL-DOWN MODAL ============
+const RAW_COLUMNS = [
+    'Company Name', 'Tagging', 'Unit Name', 'Mandate Branch', 'Execution Owner',
+    'Mandate Type', 'Mandate Status', 'TAT (In Days) Leads to Mandate Signoff',
+    'Current Status', 'Comments', 'Total Debt Amt (In Cr.)', 'Total Equity Amt (In Cr.)',
+    'Total Fixed  Fee Amt (In Cr.)', '% Fee on Debt Amt', '% Fee on Equity Amt',
+    '% Fee on Fixed Amt', 'Total Expected Revenue (In Cr.)', 'Total Payment Received',
+    'Refund', 'Net Revenue'
+];
 
-function pageRange(cur, total) {
-  if(total<=7) return Array.from({length:total},(_,i)=>i+1);
-  if(cur<=4) return [1,2,3,4,5,'…',total];
-  if(cur>=total-3) return [1,'…',total-4,total-3,total-2,total-1,total];
-  return [1,'…',cur-1,cur,cur+1,'…',total];
-}
-
-/* ═══════════════════════════════════════════════════
-   DETAIL MODAL
-═══════════════════════════════════════════════════ */
-function showDetail(r) {
-  document.getElementById('modal-title').textContent = r.companyName || 'Record Detail';
-  const fields = [
-    ['Company',r.companyName],['Unit',r.unitName],['Branch',r.mandateBranch],
-    ['Status',r.caseStatus],['Tagging',r.tagging],['Mandate Type',r.mandateType],
-    ['Deal Stage',r.dealStage],['Ticket Size',r.ticketSize],['Ageing',r.ageingSlab],
-    ['Owner',r.mandateOwner],['Lead Source',r.leadSource],['Banker',r.bankerName],
-    ['CP Name',r.cpName],['Lender',r.lenderShortlist],['Doability',r.doability],
-    ['Debt Amt',fmt(r.debtAmount)],['Equity Amt',fmt(r.equityAmount)],
-    ['Revenue Pipeline',fmt(r.revenuePipeline)],['Revenue Expected',fmt(r.revenueExpected)],
-    ['Advance Amt',fmt(r.advanceAmt)],['Rev Collected',fmt(r.revenueCollected)],
-    ['Refund',fmt(r.refundAmt)],['TAT Days',r.tatDays],['Region',r.region],
-  ];
-  const pairs = [];
-  for(let i=0;i<fields.length;i+=2){
-    pairs.push(`
-      <div class="modal-row">
-        <div class="modal-field"><label>${fields[i][0]}</label><span>${fields[i][1]||'—'}</span></div>
-        ${fields[i+1]?`<div class="modal-field"><label>${fields[i+1][0]}</label><span>${fields[i+1][1]||'—'}</span></div>`:'<div></div>'}
-      </div>
-    `);
-  }
-  document.getElementById('modal-body').innerHTML = pairs.join('');
-  document.getElementById('detail-modal').classList.add('open');
+function openDrillDown(title, filter) {
+    let drillData = [];
+    
+    switch(filter) {
+        case 'all':
+            drillData = filteredData;
+            break;
+        case 'leads':
+            drillData = filteredData.filter(r => {
+                const s = (r['Case Status'] || '').toLowerCase();
+                return s.includes('lead') || s === 'new' || s === 'open';
+            });
+            break;
+        case 'deals':
+            drillData = filteredData.filter(r => {
+                const s = (r['Case Status'] || '').toLowerCase();
+                return s.includes('deal') || s.includes('mandate') || s.includes('convert');
+            });
+            break;
+        case 'bankers':
+            // Show bankers data
+            document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+            document.getElementById('modalCount').textContent = `${bankersData.length} records`;
+            const bankerCols = Object.keys(bankersData[0] || {}).slice(0, 10);
+            document.getElementById('modalBody').innerHTML = buildTable(bankersData, bankerCols, false);
+            document.getElementById('drillModal').classList.add('active');
+            return;
+        case 'cp':
+            document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+            document.getElementById('modalCount').textContent = `${cpData.length} records`;
+            const cpCols = Object.keys(cpData[0] || {}).slice(0, 10);
+            document.getElementById('modalBody').innerHTML = buildTable(cpData, cpCols, false);
+            document.getElementById('drillModal').classList.add('active');
+            return;
+        case 'lenders':
+            document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+            document.getElementById('modalCount').textContent = `${lenderData.length} records`;
+            const lenderCols = Object.keys(lenderData[0] || {}).slice(0, 10);
+            document.getElementById('modalBody').innerHTML = buildTable(lenderData, lenderCols, false);
+            document.getElementById('drillModal').classList.add('active');
+            return;
+        default:
+            drillData = filteredData;
+    }
+    
+    document.getElementById('modalTitle').textContent = `Drill-Down: ${title}`;
+    document.getElementById('modalCount').textContent = `${drillData.length} records`;
+    document.getElementById('modalBody').innerHTML = buildTable(drillData, RAW_COLUMNS, true);
+    document.getElementById('drillModal').classList.add('active');
 }
 
 function closeModal() {
-  document.getElementById('detail-modal').classList.remove('open');
+    document.getElementById('drillModal').classList.remove('active');
 }
 
-/* ═══════════════════════════════════════════════════
-   FILTER HELPERS
-═══════════════════════════════════════════════════ */
-function toggleTag(color) {
-  const el = document.getElementById('tag-'+color);
-  if(activeFilters.tags.has(color)){ activeFilters.tags.delete(color); el.classList.remove('active'); }
-  else { activeFilters.tags.add(color); el.classList.add('active'); }
-  applyFilters();
+function buildTable(data, columns, useTagging) {
+    if (!data || !data.length) return '<div class="no-data">No data available for this selection.</div>';
+    
+    // Filter columns that exist in data
+    const availableCols = columns.filter(col => data.some(row => row[col] !== undefined));
+    if (availableCols.length === 0) {
+        // Fallback: use first 10 keys from data
+        const allKeys = Object.keys(data[0]);
+        availableCols.push(...allKeys.slice(0, 10));
+    }
+
+    let html = '<table class="data-table"><thead><tr>';
+    availableCols.forEach(col => { html += `<th>${col}</th>`; });
+    html += '</tr></thead><tbody>';
+    
+    data.forEach(row => {
+        const rowClass = useTagging ? getRowClass(row['Tagging']) : '';
+        html += `<tr class="${rowClass}">`;
+        availableCols.forEach(col => {
+            if (col === 'Tagging') {
+                html += `<td>${getTagBadge(row[col])}</td>`;
+            } else {
+                html += `<td>${(row[col] || '--').toString().substring(0, 50)}</td>`;
+            }
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    return html;
 }
 
-function clearFilters() {
-  ['f-status','f-unit','f-branch','f-mandate-type','f-stage','f-ageing'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  activeFilters.tags.clear();
-  ['red','green','yellow'].forEach(c=>document.getElementById('tag-'+c)?.classList.remove('active'));
-  applyFilters();
+// ============ RAW DATA TAB ============
+function renderRawData() {
+    const container = document.getElementById('rawDataTable');
+    if (filteredData.length === 0) {
+        container.innerHTML = '<div class="no-data">No data loaded. Click Refresh to sync with Google Sheet.</div>';
+        return;
+    }
+    container.innerHTML = buildTable(filteredData, RAW_COLUMNS, true);
 }
 
-/* ═══════════════════════════════════════════════════
-   TAB SWITCHING
-═══════════════════════════════════════════════════ */
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+name)?.classList.add('active');
-  btn?.classList.add('active');
+// ============ TAB NAVIGATION ============
+function switchTab(tabId, element) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    element.classList.add('active');
+
+    if (tabId === 'allocation') renderAllocationTab();
 }
 
-/* ═══════════════════════════════════════════════════
-   SYNC UI
-═══════════════════════════════════════════════════ */
-function setSyncDot(state) {
-  const dot = document.getElementById('sync-dot');
-  dot.className = 'sync-dot' + (state==='offline'?' offline':'');
-}
-function updateSyncLabel(prefix='') {
-  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-  set('sync-label', (prefix||'Synced') + ' ' + now);
-}
-function showBanner(type, msg) {
-  if(type==='conn'){ document.getElementById('conn-banner').style.display='flex'; set('conn-msg',msg); document.getElementById('err-banner').style.display='none'; }
-  else { document.getElementById('err-banner').style.display='flex'; set('err-msg',msg); document.getElementById('conn-banner').style.display='none'; }
-}
-function hideBanners() {
-  document.getElementById('conn-banner').style.display='none';
-  document.getElementById('err-banner').style.display='none';
+// ============ ALLOCATION TAB ============
+function renderAllocationTab() {
+    const data = filteredData;
+    
+    // Count allocations
+    const getCount = (keywords) => {
+        return data.filter(r => {
+            const val = (r['Current Tagging In'] || '').toLowerCase();
+            return keywords.some(k => val.includes(k));
+        }).length;
+    };
+
+    const inhouse = getCount(['inhouse', 'in-house', 'in house', 'internal']);
+    const banker = getCount(['banker']);
+    const cp = getCount(['channel', 'cp', 'partner']);
+    const referral = getCount(['referral', 'refer']);
+    const other = data.length - inhouse - banker - cp - referral;
+
+    document.getElementById('allocationKPIs').innerHTML = `
+        <div class="kpi-card" onclick="openDrillDown('Inhouse Team','all')">
+            <div class="kpi-label">Inhouse Team</div>
+            <div class="kpi-value">${inhouse}</div>
+            <div class="kpi-sub">Click for details →</div>
+        </div>
+        <div class="kpi-card" onclick="openDrillDown('Banker Allocated','all')">
+            <div class="kpi-label">Banker Allocated</div>
+            <div class="kpi-value">${banker}</div>
+            <div class="kpi-sub">Click for details →</div>
+        </div>
+        <div class="kpi-card" onclick="openDrillDown('Channel Partner','all')">
+            <div class="kpi-label">Channel Partner</div>
+            <div class="kpi-value">${cp}</div>
+            <div class="kpi-sub">Click for details →</div>
+        </div>
+        <div class="kpi-card" onclick="openDrillDown('Referral','all')">
+            <div class="kpi-label">Referral</div>
+            <div class="kpi-value">${referral}</div>
+            <div class="kpi-sub">Click for details →</div>
+        </div>
+        <div class="kpi-card info" onclick="openDrillDown('Others/Untagged','all')">
+            <div class="kpi-label">Others / Untagged</div>
+            <div class="kpi-value">${other}</div>
+            <div class="kpi-sub">Click for details →</div>
+        </div>
+    `;
+
+    // Allocation Pie Chart
+    if (allocationChartInstance) allocationChartInstance.destroy();
+    const ctx = document.getElementById('allocationChart').getContext('2d');
+    allocationChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Inhouse', 'Banker', 'Channel Partner', 'Referral', 'Others'],
+            datasets: [{
+                data: [inhouse, banker, cp, referral, other],
+                backgroundColor: ['#1a237e', '#3f51b5', '#7986cb', '#f57c00', '#90a4ae']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Region Chart
+    const regions = {};
+    data.forEach(r => {
+        const region = (r['Unit Name'] || 'Unknown').toString().trim();
+        if (region) regions[region] = (regions[region] || 0) + 1;
+    });
+    
+    if (regionChartInstance) regionChartInstance.destroy();
+    const ctx2 = document.getElementById('regionChart').getContext('2d');
+    regionChartInstance = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(regions),
+            datasets: [{
+                label: 'Leads by Region',
+                data: Object.values(regions),
+                backgroundColor: '#2e7d32',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } }
+        }
+    });
 }
 
-/* ═══════════════════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════════════════ */
-function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
-function pct(a,b) { return b?Math.round(a/b*100):0; }
-function fmt(n) {
-  const v = parseFloat(n)||0;
-  if(v>=1e7) return '₹'+Math.round(v/1e7*10)/10+' Cr';
-  if(v>=1e5) return '₹'+Math.round(v/1e5*10)/10+' L';
-  if(v>0) return '₹'+v.toLocaleString('en-IN');
-  return '—';
-}
-function groupBy(arr, key) {
-  const m={};
-  arr.forEach(r=>{ const v=r[key]; if(v){ m[v]=(m[v]||0)+1; } });
-  return m;
-}
-function chipFor(val, color) {
-  if(!val||val==='—') return '<span style="color:var(--text3)">—</span>';
-  return `<span class="tag-chip chip-${color}">${val}</span>`;
-}
-function statusColor(s) {
-  if(!s) return 'gray';
-  s=s.toLowerCase();
-  if(s.includes('active')) return 'green';
-  if(s.includes('closed')) return 'gray';
-  if(s.includes('hold')) return 'yellow';
-  if(s.includes('progress')) return 'blue';
-  return 'gray';
-}
-function tagColor(t) {
-  if(!t) return 'gray';
-  if(t.includes('🔴')) return 'red';
-  if(t.includes('🟢')) return 'green';
-  if(t.includes('🟡')) return 'yellow';
-  return 'gray';
+// ============ RECOMMENDATION ENGINE: BANKER/CP ============
+function populateRecoDropdowns() {
+    // Collect states and cities from all data sources
+    const allPeople = [...bankersData, ...cpData, ...lenderData];
+    
+    const getField = (row, fields) => {
+        for (const f of fields) {
+            if (row[f] && row[f].toString().trim()) return row[f].toString().trim();
+        }
+        return '';
+    };
+
+    const states = [...new Set(allPeople.map(r => getField(r, ['State', 'state', 'STATE'])).filter(Boolean))].sort();
+    const cities = [...new Set(allPeople.map(r => getField(r, ['City', 'city', 'CITY'])).filter(Boolean))].sort();
+
+    ['recoState', 'lenderState'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<option value="">-- All States --</option>' + states.map(s => `<option value="${s}">${s}</option>`).join('');
+    });
+    ['recoCity', 'lenderCity'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<option value="">-- All Cities --</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
+    });
 }
 
-// Close modal on overlay click
-document.getElementById('detail-modal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
+function runBankerRecommendation() {
+    const mandateType = document.getElementById('recoMandateType').value;
+    const state = document.getElementById('recoState').value;
+    const city = document.getElementById('recoCity').value;
+    const searchType = document.getElementById('recoSearchType').value;
+
+    if (!mandateType) {
+        alert('Please select a Mandate Type to proceed.');
+        return;
+    }
+
+    let sourceData = [];
+    if (searchType === 'banker') sourceData = bankersData;
+    else if (searchType === 'cp') sourceData = cpData;
+    else sourceData = [...bankersData.map(r => ({...r, _source: 'Banker'})), ...cpData.map(r => ({...r, _source: 'CP'}))];
+
+    const mandateLower = mandateType.toLowerCase().trim();
+    
+    // Find matching experts
+    let results = sourceData.filter(row => {
+        // Method 1: Check if any column header matches mandate type and value is "YES"
+        const hasDirectExpertise = Object.keys(row).some(key => {
+            const keyLower = key.toLowerCase().trim();
+            const val = (row[key] || '').toString().toUpperCase().trim();
+            // Check for exact or partial match in column name
+            return (keyLower.includes(mandateLower) || mandateLower.includes(keyLower)) && 
+                   (val === 'YES' || val === 'Y' || val === '✓' || val === 'TRUE');
+        });
+
+        // Method 2: Check expertise text fields
+        const expertiseFields = ['Core_Expertise', 'Core Expertise', 'Services', 'Expertise', 'Product_Expertise', 'Product Expertise', 'Specialization'];
+        const hasInExpertise = expertiseFields.some(field => {
+            return (row[field] || '').toLowerCase().includes(mandateLower);
+        });
+
+        const matchExpertise = hasDirectExpertise || hasInExpertise;
+
+        // Location filter
+        let matchState = true;
+        if (state) {
+            const rowState = (row['State'] || row['state'] || row['STATE'] || '').toLowerCase().trim();
+            matchState = rowState === state.toLowerCase().trim();
+        }
+        
+        let matchCity = true;
+        if (city) {
+            const rowCity = (row['City'] || row['city'] || row['CITY'] || '').toLowerCase().trim();
+            matchCity = rowCity === city.toLowerCase().trim();
+        }
+
+        return matchExpertise && matchState && matchCity;
+    });
+
+    // Sort by experience (descending)
+    results.sort((a, b) => {
+        const expA = parseNum(a['Experience'] || a['Exp'] || a['Years'] || '0');
+        const expB = parseNum(b['Experience'] || b['Exp'] || b['Years'] || '0');
+        return expB - expA;
+    });
+
+    // Top 15 results
+    results = results.slice(0, 15);
+
+    const container = document.getElementById('bankerRecoResults');
+    if (results.length === 0) {
+        container.innerHTML = `<div class="no-data">
+            <p>No matching recommendations found for <strong>${mandateType}</strong>.</p>
+            <p style="margin-top:8px; font-size:0.8rem;">Try: removing State/City filter, or selecting a different Mandate Type.</p>
+        </div>`;
+        return;
+    }
+
+    container.innerHTML = `<h4>✅ Top ${results.length} Recommendations for "${mandateType}"</h4>` +
+        results.map((r, i) => {
+            const name = r['Name'] || r['Banker Name'] || r['CP Name'] || r['Partner Name'] || r['Full Name'] || 'N/A';
+            const loc = [r['City'] || r['city'], r['State'] || r['state']].filter(Boolean).join(', ') || '--';
+            const exp = r['Experience'] || r['Exp'] || r['Years'] || '--';
+            const source = r._source || (searchType === 'banker' ? 'Banker' : 'CP');
+            const score = i < 5 ? 'High Match' : 'Match';
+            const scoreClass = i < 5 ? '' : 'medium';
+            return `<div class="reco-card">
+                <div class="reco-rank">${i + 1}</div>
+                <div class="reco-info">
+                    <div class="name">${name}</div>
+                    <div class="details">📍 ${loc} | 🏢 Exp: ${exp} yrs | 🏷️ ${source}</div>
+                </div>
+                <div class="match-score ${scoreClass}">${score}</div>
+            </div>`;
+        }).join('');
+}
+
+// ============ RECOMMENDATION ENGINE: LENDER ============
+function runLenderRecommendation() {
+    const mandateType = document.getElementById('lenderMandateType').value;
+    const state = document.getElementById('lenderState').value;
+    const city = document.getElementById('lenderCity').value;
+    const amount = parseFloat(document.getElementById('lenderAmount').value) || 0;
+
+    if (!mandateType) {
+        alert('Please select a Mandate Type to proceed.');
+        return;
+    }
+
+    const mandateLower = mandateType.toLowerCase().trim();
+
+    let results = lenderData.filter(row => {
+        // Method 1: Check column headers for mandate type match with YES value
+        const hasDirectExpertise = Object.keys(row).some(key => {
+            const keyLower = key.toLowerCase().trim();
+            const val = (row[key] || '').toString().toUpperCase().trim();
+            return (keyLower.includes(mandateLower) || mandateLower.includes(keyLower)) && 
+                   (val === 'YES' || val === 'Y' || val === '✓' || val === 'TRUE');
+        });
+
+        // Method 2: Check text fields
+        const expertiseFields = ['Loan Type', 'Expertise', 'Product Type', 'Services', 'Lending Type', 'Product_Expertise'];
+        const hasInExpertise = expertiseFields.some(field => {
+            return (row[field] || '').toLowerCase().includes(mandateLower);
+        });
+
+        const matchExpertise = hasDirectExpertise || hasInExpertise;
+
+        // Location
+        let matchState = true;
+        if (state) {
+            const rowLoc = (row['State'] || row['state'] || row['Location'] || row['Coverage'] || '').toLowerCase();
+            matchState = rowLoc.includes(state.toLowerCase());
+        }
+        
+        let matchCity = true;
+        if (city) {
+            const rowLoc = (row['City'] || row['city'] || row['Location'] || row['Coverage'] || '').toLowerCase();
+            matchCity = rowLoc.includes(city.toLowerCase());
+        }
+
+        return matchExpertise && matchState && matchCity;
+    });
+
+    // Top 15
+    results = results.slice(0, 15);
+
+    const container = document.getElementById('lenderRecoResults');
+    if (results.length === 0) {
+        container.innerHTML = `<div class="no-data">
+            <p>No matching lenders found for <strong>${mandateType}</strong>.</p>
+            <p style="margin-top:8px; font-size:0.8rem;">Try: removing State/City filter, or selecting a different Mandate Type.</p>
+        </div>`;
+        return;
+    }
+
+    container.innerHTML = `<h4>✅ Top ${results.length} Recommended Lenders for "${mandateType}"${amount ? ' | Amount: ₹' + amount + ' Cr.' : ''}</h4>` +
+        results.map((r, i) => {
+            const name = r['Lender Name'] || r['Name'] || r['Bank Name'] || r['Institution'] || r['Lender'] || 'N/A';
+            const loc = r['Location'] || r['State'] || r['City'] || r['Coverage'] || '--';
+            const type = r['Lender Type'] || r['Type'] || r['Category'] || '--';
+            const score = i < 5 ? 'Highly Recommended' : (i < 10 ? 'Recommended' : 'Possible');
+            const scoreClass = i >= 5 ? 'medium' : '';
+            return `<div class="reco-card">
+                <div class="reco-rank">${i + 1}</div>
+                <div class="reco-info">
+                    <div class="name">${name}</div>
+                    <div class="details">📍 ${loc} | 🏦 Type: ${type}</div>
+                </div>
+                <div class="match-score ${scoreClass}">${score}</div>
+            </div>`;
+        }).join('');
+}
+
+// ============ INITIALIZE ============
+window.addEventListener('DOMContentLoaded', function() {
+    refreshData();
+});
+
+// Close modal on outside click
+document.getElementById('drillModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
 </script>
+
 </body>
 </html>
