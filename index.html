@@ -139,7 +139,7 @@
     <!-- TAB 2: Lead Allocation -->
     <div class="tab-content" id="tab-allocation">
         <div class="alloc-summary">
-            <h3>📊 Lead Allocation Overview (Based on "Current Tagging In")</h3>
+            <h3>📊 Lead Allocation Overview (Based on "Lead Source")</h3>
             <div class="alloc-bar" id="allocBar"></div>
             <div class="alloc-legend" id="allocLegend"></div>
         </div>
@@ -209,27 +209,26 @@ var GID_BANKERS = '1311522759';
 var GID_CP = '949525485';
 var GID_LENDER = '695157663';
 
-var AUTO_REFRESH_INTERVAL = 300000; // 5 minutes in milliseconds
-var refreshCountdown = 300; // seconds
+// HARDCODED COLUMN NAMES (exactly as in your Google Sheet)
+var COL_CURRENT_TAGGING_IN = 'Current Tagging In';  // Values: "Lead" or "Deal"
+var COL_LEAD_SOURCE = 'Lead Source';                 // Values: "Direct", "Banker", "Referral", "Channel Partner"
+var COL_TAGGING = 'Tagging';                         // Values: "ON Track", "Alert", "WIP"
+
+var AUTO_REFRESH_INTERVAL = 300000; // 5 minutes
+var refreshCountdown = 300;
 var countdownTimer = null;
 var autoRefreshTimer = null;
 
 var masterData = [], bankersData = [], cpData = [], lenderData = [], filteredData = [];
 var debugLog = [];
-var leadDealCol = null;
-var currentTaggingCol = null;
 
 // ================================================================
 // AUTO-REFRESH TIMER (Every 5 Minutes)
 // ================================================================
 function startAutoRefresh() {
-    // Clear any existing timers
     if (autoRefreshTimer) clearInterval(autoRefreshTimer);
     if (countdownTimer) clearInterval(countdownTimer);
-
     refreshCountdown = 300;
-
-    // Countdown display every second
     countdownTimer = setInterval(function() {
         refreshCountdown--;
         if (refreshCountdown <= 0) refreshCountdown = 300;
@@ -237,8 +236,6 @@ function startAutoRefresh() {
         var sec = refreshCountdown % 60;
         document.getElementById('refreshTimer').textContent = 'Auto-refresh: ' + min + ':' + (sec < 10 ? '0' : '') + sec;
     }, 1000);
-
-    // Actual refresh every 5 minutes
     autoRefreshTimer = setInterval(function() {
         refreshCountdown = 300;
         refreshData();
@@ -252,7 +249,6 @@ function fetchSheetWithFallback(gid, tabName) {
     var url1 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&gid=' + gid;
     var url2 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/pub?gid=' + gid + '&single=true&output=csv';
     var url3 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + gid;
-
     return tryFetch(url1, tabName, 'gviz')
         .then(function(data) { if (data && data.length > 0) return data; return tryFetch(url2, tabName, 'pub'); })
         .then(function(data) { if (data && data.length > 0) return data; return tryFetch(url3, tabName, 'export'); })
@@ -282,25 +278,39 @@ function cleanData(data, identifierCol) {
     if (!data || !data.length) return [];
     var headers = Object.keys(data[0]);
     return data.filter(function(row) {
-        // Remove completely empty rows
         var hasValue = Object.values(row).some(function(v) { return v && v.toString().trim() !== ''; });
         if (!hasValue) return false;
-
-        // Remove rows where the identifier column is empty
         if (identifierCol) {
             var idVal = (row[identifierCol] || '').toString().trim();
             if (!idVal) return false;
         }
-
-        // Remove rows where values match header names (duplicate header rows)
         var matchCount = 0;
         headers.forEach(function(h) {
             if ((row[h] || '').toString().trim().toLowerCase() === h.toLowerCase()) matchCount++;
         });
-        if (matchCount > 3) return false; // If 4+ fields match header names, it's a header row
-
+        if (matchCount > 3) return false;
         return true;
     });
+}
+
+// ================================================================
+// FIND COLUMN (handles slight name variations in CSV export)
+// ================================================================
+function findColumn(row, targetName) {
+    if (row[targetName] !== undefined) return targetName;
+    var keys = Object.keys(row);
+    var target = targetName.toLowerCase().trim();
+    for (var i = 0; i < keys.length; i++) {
+        if (keys[i].toLowerCase().trim() === target) return keys[i];
+    }
+    // Partial match fallback
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i].toLowerCase().trim();
+        if (target === 'current tagging in' && k.indexOf('current') >= 0 && k.indexOf('tagging') >= 0) return keys[i];
+        if (target === 'lead source' && k.indexOf('lead') >= 0 && k.indexOf('source') >= 0) return keys[i];
+        if (target === 'tagging' && k === 'tagging') return keys[i];
+    }
+    return targetName;
 }
 
 // ================================================================
@@ -309,35 +319,55 @@ function cleanData(data, identifierCol) {
 function refreshData() {
     document.getElementById('lastSync').textContent = '⏳ Syncing...';
     debugLog = [];
-
     Promise.all([
         fetchSheetWithFallback(GID_MASTER, 'Master'),
         fetchSheetWithFallback(GID_BANKERS, 'Bankers'),
         fetchSheetWithFallback(GID_CP, 'CP'),
         fetchSheetWithFallback(GID_LENDER, 'Lender')
     ]).then(function(results) {
-        // Clean data - remove empty rows and header duplicates
         masterData = cleanData(results[0], 'Company Name');
         bankersData = cleanData(results[1], 'Banker Name');
         cpData = cleanData(results[2], 'Channel Partner Name');
         lenderData = cleanData(results[3], 'Lender Name');
         filteredData = masterData.slice();
 
-        // Detect columns
-        detectColumns();
+        // Resolve actual column names from the sheet
+        if (masterData.length > 0) {
+            COL_CURRENT_TAGGING_IN = findColumn(masterData[0], 'Current Tagging In');
+            COL_LEAD_SOURCE = findColumn(masterData[0], 'Lead Source');
+            COL_TAGGING = findColumn(masterData[0], 'Tagging');
+        }
+
+        // Debug: Log column values for verification
+        console.log('=== BANKERKLUB DASHBOARD v6 ===');
+        console.log('Master rows (cleaned):', masterData.length);
+        console.log('Bankers rows:', bankersData.length);
+        console.log('CP rows:', cpData.length);
+        console.log('Lender rows:', lenderData.length);
+        if (masterData.length > 0) {
+            console.log('All columns:', Object.keys(masterData[0]));
+            console.log('Using column for Lead/Deal:', COL_CURRENT_TAGGING_IN);
+            console.log('Using column for Allocation:', COL_LEAD_SOURCE);
+            // Count unique values in Current Tagging In
+            var tagVals = {};
+            masterData.forEach(function(r) {
+                var v = (r[COL_CURRENT_TAGGING_IN] || '').toString().trim();
+                if (v) tagVals[v] = (tagVals[v] || 0) + 1;
+            });
+            console.log('📊 "Current Tagging In" values:', JSON.stringify(tagVals));
+            // Count unique values in Lead Source
+            var srcVals = {};
+            masterData.forEach(function(r) {
+                var v = (r[COL_LEAD_SOURCE] || '').toString().trim();
+                if (v) srcVals[v] = (srcVals[v] || 0) + 1;
+            });
+            console.log('📊 "Lead Source" values:', JSON.stringify(srcVals));
+        }
 
         var now = new Date();
         document.getElementById('lastSync').textContent = '✓ ' + now.toLocaleTimeString() + ' | M:' + masterData.length + ' B:' + bankersData.length + ' CP:' + cpData.length + ' L:' + lenderData.length;
 
         if (masterData.length === 0) { showDebug(); } else { hideDebug(); }
-
-        console.log('=== BANKERKLUB DEBUG ===');
-        console.log('Master rows (cleaned):', masterData.length);
-        console.log('Bankers rows:', bankersData.length);
-        console.log('CP rows:', cpData.length);
-        console.log('Lender rows:', lenderData.length);
-        if (masterData.length > 0) console.log('All columns:', Object.keys(masterData[0]));
-
         renderDashboard();
         populateFilters();
         populateRecoDropdowns();
@@ -345,44 +375,6 @@ function refreshData() {
         document.getElementById('lastSync').textContent = '❌ Sync failed';
         showDebug();
     });
-}
-
-// ================================================================
-// DETECT COLUMNS DYNAMICALLY
-// ================================================================
-function detectColumns() {
-    leadDealCol = null;
-    currentTaggingCol = null;
-    if (masterData.length === 0) return;
-
-    var keys = Object.keys(masterData[0]);
-    for (var i = 0; i < keys.length; i++) {
-        var k = keys[i].toLowerCase().trim();
-
-        // Find "Lead / Deal Status" column
-        if (!leadDealCol && k.indexOf('lead') >= 0 && k.indexOf('deal') >= 0) {
-            leadDealCol = keys[i];
-        }
-        // Find "Current Tagging In" column
-        if (!currentTaggingCol && k.indexOf('current') >= 0 && k.indexOf('tagging') >= 0) {
-            currentTaggingCol = keys[i];
-        }
-    }
-
-    console.log('📊 Lead/Deal column:', leadDealCol || 'NOT FOUND');
-    console.log('📊 Current Tagging In column:', currentTaggingCol || 'NOT FOUND');
-
-    // Log unique values for verification
-    if (leadDealCol) {
-        var ldVals = {};
-        masterData.forEach(function(r) { var v = (r[leadDealCol] || '').toString().trim(); if (v) ldVals[v] = (ldVals[v] || 0) + 1; });
-        console.log('📊 Lead/Deal VALUES:', JSON.stringify(ldVals));
-    }
-    if (currentTaggingCol) {
-        var ctVals = {};
-        masterData.forEach(function(r) { var v = (r[currentTaggingCol] || '').toString().trim(); if (v) ctVals[v] = (ctVals[v] || 0) + 1; });
-        console.log('📊 Current Tagging In VALUES:', JSON.stringify(ctVals));
-    }
 }
 
 function showDebug() { var el = document.getElementById('debugPanel'); el.innerHTML = '<strong>⚠️ Debug:</strong><br>' + debugLog.join('<br>'); el.classList.add('visible'); }
@@ -403,16 +395,8 @@ function populateFilters() {
     var container = document.getElementById('filtersContainer');
     container.innerHTML = '';
     FILTER_KEYS.forEach(function(f) {
-        // Try exact key first, then try dynamic detection
         var actualKey = f.key;
-        if (masterData.length > 0 && masterData[0][f.key] === undefined) {
-            // Try to find column by partial match
-            var keys = Object.keys(masterData[0]);
-            for (var i = 0; i < keys.length; i++) {
-                if (keys[i].toLowerCase().trim() === f.key.toLowerCase().trim()) { actualKey = keys[i]; break; }
-            }
-        }
-
+        if (masterData.length > 0) actualKey = findColumn(masterData[0], f.key);
         var seen = {}, vals = [];
         masterData.forEach(function(r) { var v = (r[actualKey] || '').toString().trim(); if (v && !seen[v]) { seen[v] = true; vals.push(v); } });
         vals.sort();
@@ -451,41 +435,30 @@ function getRowClass(v) { var s = (v || '').toString().toLowerCase().trim(); if 
 
 // ================================================================
 // CLASSIFY: LEAD vs DEAL
-// READS DIRECTLY from "Lead / Deal Status" column - NO GUESSING
+// Uses ONLY "Current Tagging In" column (hardcoded)
+// Values: "Lead" → Lead | "Deal" → Deal
 // Leads + Deals = Total Count (GUARANTEED)
 // ================================================================
 function classifyRow(r) {
-    if (leadDealCol) {
-        var val = (r[leadDealCol] || '').toString().toLowerCase().trim();
-        // Direct match: if column says "Deal" → Deal
-        if (val === 'deal' || val === 'deals') return 'deal';
-    }
-    // EVERYTHING ELSE = Lead (guarantees Leads + Deals = Total)
+    var val = (r[COL_CURRENT_TAGGING_IN] || '').toString().trim().toLowerCase();
+    if (val === 'deal' || val === 'deals') return 'deal';
+    if (val === 'lead' || val === 'leads') return 'lead';
+    // If empty or unknown, default to 'lead' to ensure sum = total
     return 'lead';
 }
 
 // ================================================================
-// CLASSIFY ALLOCATION: Reads DIRECTLY from "Current Tagging In"
-// No guessing - uses exact column value
+// CLASSIFY ALLOCATION: Uses "Lead Source" column
+// Values: "Direct" → Inhouse | "Banker" → Banker | "Referral" → Referral | "Channel Partner" → CP
 // ================================================================
 function classifyAllocation(r) {
-    var val = '';
-    if (currentTaggingCol) {
-        val = (r[currentTaggingCol] || '').toString().trim();
-    } else {
-        val = (r['Current Tagging In'] || '').toString().trim();
-    }
-
-    if (!val) return 'untagged';
-
-    var lower = val.toLowerCase();
-    if (lower === 'banker' || lower === 'bankers') return 'banker';
-    if (lower === 'cp' || lower === 'channel partner' || lower === 'channel partners') return 'cp';
-    if (lower === 'referral' || lower === 'referrals' || lower === 'refer') return 'referral';
-    if (lower === 'inhouse' || lower === 'in-house' || lower === 'in house' || lower === 'direct' || lower === 'team' || lower === 'internal' || lower === 'self') return 'direct';
-
-    // Return the actual value as category (for any other values in the column)
-    return val;
+    var val = (r[COL_LEAD_SOURCE] || '').toString().trim().toLowerCase();
+    if (!val) return 'direct'; // If no lead source, treat as Inhouse/Direct
+    if (val === 'banker' || val === 'bankers') return 'banker';
+    if (val === 'channel partner' || val === 'channel partners' || val === 'cp') return 'cp';
+    if (val === 'referral' || val === 'referrals' || val === 'refer') return 'referral';
+    if (val === 'direct' || val === 'inhouse' || val === 'in-house' || val === 'in house' || val === 'internal' || val === 'team' || val === 'self' || val === 'website') return 'direct';
+    return val; // Return actual value for any other category
 }
 
 // ================================================================
@@ -498,7 +471,7 @@ function renderKPIs() {
     var leads = 0, deals = 0;
     d.forEach(function(r) { if (classifyRow(r) === 'deal') deals++; else leads++; });
 
-    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Sum:', (leads + deals), '| Match:', (leads + deals === total) ? '✅ CORRECT' : '❌ ERROR');
+    console.log('📊 KPIs → Total:', total, '| Leads:', leads, '| Deals:', deals, '| Sum:', (leads + deals), '| Match:', (leads + deals === total) ? '✅ CORRECT' : '❌ MISMATCH');
 
     var bCt = bankersData.length, cCt = cpData.length;
     var ln = {}; lenderData.forEach(function(r) { var n = (r['Lender Name'] || '').trim(); if (n) ln[n] = true; }); var lCt = Object.keys(ln).length;
@@ -556,7 +529,7 @@ function renderCharts() {
 // ================================================================
 // RAW DATA
 // ================================================================
-var RAW_COLS = ['Company Name', 'Tagging', 'Current Tagging In', 'Unit Name', 'Mandate Branch', 'Execution Owner', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Case Status', 'Ticket Size', 'Total Expected Revenue', 'Total Payment Received', 'Refund', 'Net Revenue'];
+var RAW_COLS = ['Company Name', 'Tagging', 'Current Tagging In', 'Lead Source', 'Unit Name', 'Mandate Branch', 'Execution Owner', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Case Status', 'Ticket Size', 'Total Expected Revenue', 'Total Payment Received', 'Refund', 'Net Revenue'];
 var ALLOC_COLS = ['Company Name', 'Current Tagging In', 'Lead Source', 'Source Name', 'Unit Name', 'Mandate Type', 'Mandate Status', 'Deal Stage', 'Execution Owner', 'Total Expected Revenue', 'Tagging'];
 
 function buildTable(data, cols, colorTag) {
@@ -568,10 +541,10 @@ function buildTable(data, cols, colorTag) {
     h += '</tr></thead><tbody>';
     var max = Math.min(data.length, 500);
     for (var i = 0; i < max; i++) {
-        var rc = colorTag ? getRowClass(data[i]['Tagging']) : '';
+        var rc = colorTag ? getRowClass(data[i][COL_TAGGING]) : '';
         h += '<tr class="' + rc + '">';
         useCols.forEach(function(c) {
-            if (c === 'Tagging') h += '<td>' + getTagBadge(data[i][c]) + '</td>';
+            if (c === 'Tagging' || c === COL_TAGGING) h += '<td>' + getTagBadge(data[i][c]) + '</td>';
             else h += '<td>' + ((data[i][c] || '--').toString().substring(0, 60)) + '</td>';
         });
         h += '</tr>';
@@ -599,7 +572,7 @@ function openDrill(title, flt) {
     else if (flt === 'cp') { document.getElementById('modalTitle').textContent = 'Channel Partner Details'; document.getElementById('modalCount').textContent = cpData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(cpData, ['Channel Partner Name', 'City', 'Channel Partner Owner Name', 'EXPERTISE'], false); document.getElementById('drillModal').classList.add('active'); return; }
     else if (flt === 'lenders') { document.getElementById('modalTitle').textContent = 'Lender Details'; document.getElementById('modalCount').textContent = lenderData.length + ' records'; document.getElementById('modalBody').innerHTML = buildTable(lenderData, ['Lender Name', 'Lender Type', 'Unit Name', 'Lender Status', 'Amount', 'Deals'], false); document.getElementById('drillModal').classList.add('active'); return; }
     else if (flt === 'rev') { dd = filteredData.filter(function(r) { return parseNum(r['Total Expected Revenue']) > 0 || parseNum(r['Total Payment Received']) > 0; }); }
-    else if (flt.startsWith('alloc:')) {
+    else if (flt.indexOf('alloc:') === 0) {
         var allocCat = flt.replace('alloc:', '');
         dd = filteredData.filter(function(r) { return classifyAllocation(r) === allocCat; });
         useCols = ALLOC_COLS;
@@ -627,12 +600,11 @@ function switchTab(id, el) {
 }
 
 // ================================================================
-// LEAD ALLOCATION TAB (Reads "Current Tagging In" DIRECTLY)
+// LEAD ALLOCATION TAB
+// Uses "Lead Source" column: Direct | Banker | Referral | Channel Partner
 // ================================================================
 function renderAllocation() {
     var d = filteredData, total = d.length;
-
-    // Group by EXACT values from "Current Tagging In" column
     var groups = {};
     d.forEach(function(r) {
         var cat = classifyAllocation(r);
@@ -640,16 +612,13 @@ function renderAllocation() {
         groups[cat].push(r);
     });
 
-    // Define display config for known categories
     var categoryConfig = {
         'banker': { label: '🏦 Banker', color: '#1565c0', cardClass: 'banker-card' },
         'cp': { label: '🤝 Channel Partner', color: '#6a1b9a', cardClass: 'cp-card' },
         'referral': { label: '🔗 Referral', color: '#e65100', cardClass: 'referral-card' },
-        'direct': { label: '🏢 Direct (Inhouse)', color: '#2e7d32', cardClass: 'direct-card' },
-        'untagged': { label: '⚪ Not Tagged', color: '#78909c', cardClass: '' }
+        'direct': { label: '🏢 Direct (Inhouse)', color: '#2e7d32', cardClass: 'direct-card' }
     };
 
-    // Build allocation categories in order
     var allocCategories = [];
     var knownKeys = ['banker', 'cp', 'referral', 'direct'];
     knownKeys.forEach(function(k) {
@@ -657,21 +626,15 @@ function renderAllocation() {
             allocCategories.push({ key: k, count: groups[k].length, config: categoryConfig[k] });
         }
     });
-    // Add any other custom values from the column
     Object.keys(groups).forEach(function(k) {
-        if (knownKeys.indexOf(k) === -1 && k !== 'untagged') {
+        if (knownKeys.indexOf(k) === -1) {
             allocCategories.push({ key: k, count: groups[k].length, config: { label: '📌 ' + k, color: '#455a64', cardClass: '' } });
         }
     });
-    // Add untagged at the end
-    if (groups['untagged'] && groups['untagged'].length > 0) {
-        allocCategories.push({ key: 'untagged', count: groups['untagged'].length, config: categoryConfig['untagged'] });
-    }
 
-    // Verify sum = total
     var sumCheck = 0;
     allocCategories.forEach(function(c) { sumCheck += c.count; });
-    console.log('📊 Allocation → Categories:', allocCategories.length, '| Sum:', sumCheck, '| Total:', total, '| Match:', sumCheck === total ? '✅' : '❌');
+    console.log('📊 Allocation → Sum:', sumCheck, '| Total:', total, '| Match:', sumCheck === total ? '✅' : '❌');
 
     // Stacked bar
     var barHtml = '';
@@ -689,7 +652,7 @@ function renderAllocation() {
     });
     document.getElementById('allocLegend').innerHTML = legendHtml;
 
-    // KPI Cards with drill-down
+    // KPI Cards
     var kpiHtml = '';
     allocCategories.forEach(function(c) {
         var pct = total ? ((c.count / total) * 100).toFixed(1) : '0.0';
@@ -728,7 +691,6 @@ function populateRecoDropdowns() {
     cpData.forEach(function(r) { var c = (r['City'] || '').trim(); if (c) cities[c] = true; });
     document.getElementById('recoState').innerHTML = '<option value="">-- All --</option>' + Object.keys(states).sort().map(function(s) { return '<option>' + s + '</option>'; }).join('');
     document.getElementById('recoCity').innerHTML = '<option value="">-- All --</option>' + Object.keys(cities).sort().map(function(c) { return '<option>' + c + '</option>'; }).join('');
-
     var lT = {}, lU = {};
     lenderData.forEach(function(r) { var t = (r['Lender Type'] || '').trim(), u = (r['Unit Name'] || '').trim(); if (t) lT[t] = true; if (u) lU[u] = true; });
     document.getElementById('lenderTypeFilter').innerHTML = '<option value="">-- All --</option>' + Object.keys(lT).sort().map(function(t) { return '<option>' + t + '</option>'; }).join('');
@@ -741,7 +703,6 @@ function runBankerReco() {
     var city = document.getElementById('recoCity').value;
     var type = document.getElementById('recoSearchType').value;
     if (!mt) { alert('Select Mandate Type'); return; }
-
     var terms = [mt.toLowerCase()];
     var ml = mt.toLowerCase();
     if (ml === 'npa/ots') terms.push('npa', 'ots');
@@ -754,7 +715,6 @@ function runBankerReco() {
     if (ml === 'structured debt') terms.push('structured');
     if (ml === 'bill discounting') terms.push('bill discounting', 'bill');
     if (ml === 'acquisition finance') terms.push('acquisition');
-
     var results = [];
     if (type === 'banker' || type === 'both') {
         bankersData.forEach(function(r) {
@@ -775,10 +735,8 @@ function runBankerReco() {
             results.push({ name: r['Channel Partner Name'] || 'N/A', city: r['City'] || '--', state: '--', exp: '--', src: 'CP' });
         });
     }
-
     results.sort(function(a, b) { return parseNum(b.exp) - parseNum(a.exp); });
     results = results.slice(0, 15);
-
     var ctr = document.getElementById('bankerRecoResults');
     if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No matches for "' + mt + '". Try "Both" or remove filters.</div>'; return; }
     var h = '<h4>✅ Top ' + results.length + ' for "' + mt + '"</h4>';
@@ -794,7 +752,6 @@ function runLenderReco() {
     var lt = document.getElementById('lenderTypeFilter').value;
     var un = document.getElementById('lenderUnitFilter').value;
     if (!mt) { alert('Select Mandate Type'); return; }
-
     var masterLenders = {};
     masterData.forEach(function(r) {
         if ((r['Mandate Type'] || '').toLowerCase().trim() === mt.toLowerCase().trim()) {
@@ -804,7 +761,6 @@ function runLenderReco() {
             if (ls) { ls.split(',').forEach(function(l) { var name = l.trim(); if (name) masterLenders[name.toLowerCase()] = true; }); }
         }
     });
-
     var scores = {};
     lenderData.forEach(function(r) {
         var lName = (r['Lender Name'] || '').trim();
@@ -815,19 +771,16 @@ function runLenderReco() {
         scores[lName].count++;
         if (masterLenders[lName.toLowerCase()]) scores[lName].match = true;
     });
-
     masterData.forEach(function(r) {
         if ((r['Mandate Type'] || '').toLowerCase().trim() === mt.toLowerCase().trim()) {
             var ln = (r['Lender Name'] || '').trim();
             if (ln) { if (!scores[ln]) scores[ln] = { name: ln, type: '--', unit: r['Unit Name'] || '--', count: 1, match: true }; else scores[ln].match = true; }
         }
     });
-
     var results = Object.values(scores);
     results.sort(function(a, b) { if (a.match && !b.match) return -1; if (!a.match && b.match) return 1; return b.count - a.count; });
     results = results.slice(0, 15);
-
     var ctr = document.getElementById('lenderRecoResults');
     if (!results.length) { ctr.innerHTML = '<div class="no-data">❌ No lenders for "' + mt + '". Try removing filters.</div>'; return; }
     var h = '<h4>✅ Top ' + results.length + ' Lenders for "' + mt + '"</h4>';
-    results.forEach(function(r, i) { h += '
+    results.forEach(function(r, i) { h += '<div class="reco-card"><div class="reco-rank">' + (i + 1) + '</div><div class="reco-info"><div class="
