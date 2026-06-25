@@ -1,3 +1,4 @@
+```python
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -12,32 +13,31 @@
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--light);color:#333}
         .header{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:15px 30px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1000}
-        .header h1{font-size:1.5rem}
+        .header h1{font-size:1.4rem}
         .header-actions{display:flex;gap:10px;align-items:center}
         .btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.3s}
         .btn-refresh{background:rgba(255,255,255,.2);color:#fff}
         .btn-refresh:hover{background:rgba(255,255,255,.3)}
-        .last-sync{font-size:.75rem;opacity:.8}
+        .last-sync{font-size:.72rem;opacity:.85}
         .nav-tabs{display:flex;background:#fff;border-bottom:2px solid #e0e0e0;padding:0 20px;overflow-x:auto}
         .nav-tab{padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;font-weight:600;color:#666;transition:.3s;white-space:nowrap}
         .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
         .nav-tab:hover{color:var(--primary);background:#f0f2ff}
         .main-content{padding:20px;max-width:1600px;margin:0 auto}
-        .tab-content{display:none}
-        .tab-content.active{display:block}
+        .tab-content{display:none}.tab-content.active{display:block}
         .filters-panel{background:#fff;border-radius:10px;padding:15px 20px;margin-bottom:20px;box-shadow:var(--shadow)}
         .filters-title{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:8px}
         .filters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-        .filter-group label{font-size:.7rem;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:3px}
-        .filter-group select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:.8rem;background:#fff}
+        .filter-group label{font-size:.68rem;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:3px}
+        .filter-group select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:.78rem;background:#fff}
         .btn-clear{background:#ef5350;color:#fff;padding:6px 14px;border-radius:5px;font-size:.75rem;margin-left:auto;cursor:pointer;border:none}
         .btn-clear:hover{background:#c62828}
-        .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:15px;margin-bottom:20px}
+        .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:15px;margin-bottom:20px}
         .kpi-card{background:#fff;border-radius:10px;padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:.2s;border-left:4px solid var(--accent)}
         .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.12)}
-        .kpi-card .kpi-label{font-size:.7rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px}
-        .kpi-card .kpi-value{font-size:1.5rem;font-weight:700;color:var(--dark);margin-top:4px}
-        .kpi-card .kpi-sub{font-size:.68rem;color:#aaa;margin-top:2px}
+        .kpi-label{font-size:.7rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px}
+        .kpi-value{font-size:1.5rem;font-weight:700;color:var(--dark);margin-top:4px}
+        .kpi-sub{font-size:.66rem;color:#aaa;margin-top:2px}
         .kpi-card.revenue{border-left-color:var(--success)}
         .kpi-card.alert{border-left-color:var(--danger)}
         .kpi-card.info{border-left-color:var(--warning)}
@@ -46,7 +46,7 @@
         .chart-card h3{font-size:.95rem;color:var(--dark);margin-bottom:15px}
         .tat-highlight{color:var(--primary);font-weight:700}
         .data-table-container{background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow);overflow-x:auto}
-        .data-table{width:100%;border-collapse:collapse;font-size:.78rem}
+        .data-table{width:100%;border-collapse:collapse;font-size:.76rem}
         .data-table th{background:var(--primary);color:#fff;padding:9px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0}
         .data-table td{padding:7px 10px;border-bottom:1px solid #eee;white-space:nowrap}
         .data-table tr:hover{background:#f8f9ff}
@@ -83,8 +83,9 @@
         .no-data{text-align:center;padding:30px;color:#999;font-size:.9rem}
         .loading{text-align:center;padding:40px;color:#888}
         .spinner{border:3px solid #f3f3f3;border-top:3px solid var(--primary);border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:0 auto 10px}
-        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        .error-msg{background:#ffebee;border:1px solid #ef9a9a;border-radius:8px;padding:15px;color:#c62828;margin:10px 0;font-size:.85rem}
+        @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+        .debug-panel{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:.8rem;font-family:monospace;display:none}
+        .debug-panel.visible{display:block}
         @media(max-width:768px){.header{flex-direction:column;gap:10px;padding:12px 15px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.filters-grid{grid-template-columns:repeat(2,1fr)}.reco-inputs{grid-template-columns:1fr}}
     </style>
 </head>
@@ -107,7 +108,10 @@
 </div>
 
 <div class="main-content">
-    <!-- TAB 1: Overview -->
+    <!-- DEBUG PANEL - Shows connection status -->
+    <div class="debug-panel" id="debugPanel"></div>
+
+    <!-- TAB 1 -->
     <div class="tab-content active" id="tab-overview">
         <div class="filters-panel">
             <div class="filters-title">🔍 Live Filters <button class="btn-clear" onclick="clearAllFilters()">✕ Clear All</button></div>
@@ -120,7 +124,7 @@
         </div>
     </div>
 
-    <!-- TAB 2: Lead Allocation -->
+    <!-- TAB 2 -->
     <div class="tab-content" id="tab-allocation">
         <div class="kpi-grid" id="allocationKPIs"></div>
         <div class="charts-grid">
@@ -129,11 +133,11 @@
         </div>
     </div>
 
-    <!-- TAB 3: Banker/CP Recommendation -->
+    <!-- TAB 3 -->
     <div class="tab-content" id="tab-reco-banker">
         <div class="reco-section">
             <h3>🏦 Banker & Channel Partner Recommendation Engine</h3>
-            <p class="reco-desc">Searches expertise text fields (Core_Expertise, Services, EXPERTISE) for matching keywords, filters by location.</p>
+            <p class="reco-desc">Searches expertise fields for matching keywords, filtered by location.</p>
             <div class="reco-inputs">
                 <div><label>Mandate Type *</label><select id="recoMandateType"><option value="">-- Select --</option><option>Debt</option><option>Debt+Equity</option><option>Equity</option><option>Structured Debt</option><option>IPO Advisory</option><option>Pre-IPO</option><option>NPA/OTS</option><option>Bill Discounting</option><option>Acquisition Finance</option><option>Working Capital</option><option>Term Loan</option><option>Other</option><option>Retail Loan - LAP</option></select></div>
                 <div><label>State</label><select id="recoState"><option value="">-- All --</option></select></div>
@@ -145,11 +149,11 @@
         </div>
     </div>
 
-    <!-- TAB 4: Lender Recommendation -->
+    <!-- TAB 4 -->
     <div class="tab-content" id="tab-reco-lender">
         <div class="reco-section">
             <h3>🏛️ Lender Shortlisting Recommendation Engine</h3>
-            <p class="reco-desc">Identifies unique lenders from historical tagging data matched to similar Mandate Types.</p>
+            <p class="reco-desc">Identifies lenders from historical tagging data matched to similar Mandate Types.</p>
             <div class="reco-inputs">
                 <div><label>Mandate Type *</label><select id="lenderMandateType"><option value="">-- Select --</option><option>Debt</option><option>Debt+Equity</option><option>Equity</option><option>Structured Debt</option><option>IPO Advisory</option><option>Pre-IPO</option><option>NPA/OTS</option><option>Bill Discounting</option><option>Acquisition Finance</option><option>Working Capital</option><option>Term Loan</option><option>Other</option><option>Retail Loan - LAP</option></select></div>
                 <div><label>Lender Type</label><select id="lenderTypeFilter"><option value="">-- All --</option></select></div>
@@ -161,12 +165,11 @@
         </div>
     </div>
 
-    <!-- TAB 5: Raw Data -->
+    <!-- TAB 5 -->
     <div class="tab-content" id="tab-rawdata">
         <div class="data-table-container">
-            <h3 style="margin-bottom:15px;color:var(--primary)">📄 All Records - Raw Data View</h3>
-            <p style="font-size:.8rem;color:#888;margin-bottom:15px">Color: <span class="tag-ontrack">On Track</span> <span class="tag-wip">WIP</span> <span class="tag-alert">Alert</span></p>
-            <div id="rawDataTable"><div class="loading"><div class="spinner"></div>Loading data...</div></div>
+            <h3 style="margin-bottom:15px;color:var(--primary)">📄 All Records</h3>
+            <div id="rawDataTable"><div class="loading"><div class="spinner"></div>Loading...</div></div>
         </div>
     </div>
 </div>
@@ -181,7 +184,7 @@
 
 <script>
 // ================================================================
-// CONFIGURATION
+// CONFIG
 // ================================================================
 var SHEET_ID = '1zo85_oRIDLQsR--kCmwWSYBDgm-ZElHIkoC9PNaUB2k';
 var GID_MASTER = '397920580';
@@ -189,45 +192,84 @@ var GID_BANKERS = '1311522759';
 var GID_CP = '949525485';
 var GID_LENDER = '695157663';
 
-// DATA STORES
-var masterData = [];
-var bankersData = [];
-var cpData = [];
-var lenderData = [];
-var filteredData = [];
+var masterData = [], bankersData = [], cpData = [], lenderData = [], filteredData = [];
+var debugLog = [];
 
 // ================================================================
-// DATA FETCHING - Using pub endpoint (CORS-safe)
+// FETCH WITH FALLBACK - Tries 3 endpoints
 // ================================================================
-function getSheetCSVUrl(gid) {
-    return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/pub?gid=' + gid + '&single=true&output=csv';
-}
+function fetchSheetWithFallback(gid, tabName) {
+    // Endpoint 1: Google Visualization API (most reliable, no publish needed)
+    var url1 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&gid=' + gid;
+    // Endpoint 2: Pub CSV (needs Publish to Web)
+    var url2 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/pub?gid=' + gid + '&single=true&output=csv';
+    // Endpoint 3: Export (needs specific permissions)
+    var url3 = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + gid;
 
-function fetchSheet(gid) {
-    var url = getSheetCSVUrl(gid);
-    return fetch(url)
-        .then(function(response) {
-            if (!response.ok) throw new Error('HTTP ' + response.status + ' for gid=' + gid);
-            return response.text();
+    return tryFetch(url1, tabName, 'gviz/tq')
+        .then(function(data) {
+            if (data && data.length > 0) return data;
+            debugLog.push('⚠️ ' + tabName + ': gviz/tq returned 0 rows, trying /pub...');
+            return tryFetch(url2, tabName, '/pub');
         })
-        .then(function(csvText) {
-            var parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-            return parsed.data;
+        .then(function(data) {
+            if (data && data.length > 0) return data;
+            debugLog.push('⚠️ ' + tabName + ': /pub returned 0 rows, trying /export...');
+            return tryFetch(url3, tabName, '/export');
         })
-        .catch(function(err) {
-            console.error('Fetch error gid=' + gid, err);
+        .then(function(data) {
+            if (data && data.length > 0) {
+                debugLog.push('✅ ' + tabName + ': Loaded ' + data.length + ' rows');
+                return data;
+            }
+            debugLog.push('❌ ' + tabName + ': ALL endpoints returned 0 rows. Sheet may not be shared/published.');
             return [];
         });
 }
 
+function tryFetch(url, tabName, method) {
+    return fetch(url)
+        .then(function(response) {
+            if (!response.ok) {
+                debugLog.push('❌ ' + tabName + ' (' + method + '): HTTP ' + response.status);
+                return [];
+            }
+            return response.text();
+        })
+        .then(function(text) {
+            if (!text || typeof text !== 'string') return [];
+            // Check if response is HTML (login/error page) instead of CSV
+            var trimmed = text.trim();
+            if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) {
+                debugLog.push('⚠️ ' + tabName + ' (' + method + '): Got HTML response (login page). Sheet not public.');
+                return [];
+            }
+            var parsed = Papa.parse(trimmed, { header: true, skipEmptyLines: true });
+            if (parsed.data && parsed.data.length > 0) {
+                debugLog.push('✅ ' + tabName + ' (' + method + '): ' + parsed.data.length + ' rows, cols: ' + Object.keys(parsed.data[0]).slice(0,5).join(', ') + '...');
+            }
+            return parsed.data || [];
+        })
+        .catch(function(err) {
+            debugLog.push('❌ ' + tabName + ' (' + method + '): ' + err.message);
+            return [];
+        });
+}
+
+// ================================================================
+// REFRESH DATA
+// ================================================================
 function refreshData() {
     document.getElementById('lastSync').textContent = '⏳ Syncing...';
+    debugLog = [];
+    debugLog.push('🔄 Starting sync at ' + new Date().toLocaleTimeString());
+    debugLog.push('Sheet ID: ' + SHEET_ID);
 
     Promise.all([
-        fetchSheet(GID_MASTER),
-        fetchSheet(GID_BANKERS),
-        fetchSheet(GID_CP),
-        fetchSheet(GID_LENDER)
+        fetchSheetWithFallback(GID_MASTER, 'Master'),
+        fetchSheetWithFallback(GID_BANKERS, 'Bankers'),
+        fetchSheetWithFallback(GID_CP, 'CP'),
+        fetchSheetWithFallback(GID_LENDER, 'Lender')
     ]).then(function(results) {
         masterData = results[0].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
         bankersData = results[1].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
@@ -235,53 +277,61 @@ function refreshData() {
         lenderData = results[3].filter(function(r) { return Object.values(r).some(function(v) { return v && v.toString().trim(); }); });
         filteredData = masterData.slice();
 
-        console.log('Loaded - Master:', masterData.length, 'Bankers:', bankersData.length, 'CP:', cpData.length, 'Lenders:', lenderData.length);
-        if (masterData.length > 0) console.log('Master cols:', Object.keys(masterData[0]));
-        if (bankersData.length > 0) console.log('Banker cols:', Object.keys(bankersData[0]));
+        var now = new Date();
+        var status = '✓ ' + now.toLocaleTimeString() + ' | M:' + masterData.length + ' B:' + bankersData.length + ' CP:' + cpData.length + ' L:' + lenderData.length;
+        document.getElementById('lastSync').textContent = status;
+
+        // Show debug panel if no data loaded
+        if (masterData.length === 0 && bankersData.length === 0) {
+            debugLog.push('');
+            debugLog.push('━━━ TROUBLESHOOTING ━━━');
+            debugLog.push('Your Google Sheet is not accessible. Please do BOTH:');
+            debugLog.push('1. Share → "Anyone with the link" → Viewer');
+            debugLog.push('2. File → Share → Publish to web → Publish');
+            showDebug();
+        } else {
+            hideDebug();
+        }
+
+        console.log('=== BANKERKLUB SYNC ===');
+        debugLog.forEach(function(l) { console.log(l); });
 
         renderDashboard();
         populateFilters();
         populateRecoDropdowns();
-
-        var now = new Date();
-        document.getElementById('lastSync').textContent = '✓ ' + now.toLocaleTimeString() + ' | M:' + masterData.length + ' B:' + bankersData.length + ' CP:' + cpData.length + ' L:' + lenderData.length;
     }).catch(function(err) {
-        document.getElementById('lastSync').textContent = '❌ Failed - Publish sheet to web first';
-        console.error('Refresh failed:', err);
+        document.getElementById('lastSync').textContent = '❌ Sync failed';
+        debugLog.push('❌ Fatal error: ' + err.message);
+        showDebug();
     });
 }
 
+function showDebug() {
+    var el = document.getElementById('debugPanel');
+    el.innerHTML = '<strong>⚠️ Connection Debug Log:</strong><br>' + debugLog.join('<br>');
+    el.classList.add('visible');
+}
+function hideDebug() {
+    document.getElementById('debugPanel').classList.remove('visible');
+}
+
 // ================================================================
-// FILTERS - Exact column names from your sheet
+// FILTERS
 // ================================================================
 var FILTER_KEYS = [
-    {key:'Case Status', label:'Case Status'},
-    {key:'Unit Name', label:'Unit Name'},
-    {key:'Mandate Branch', label:'Mandate Branch'},
-    {key:'Tagging', label:'Tagging'},
-    {key:'Lead Source', label:'Lead Source'},
-    {key:'Current Tagging In', label:'Current Tagging In'},
-    {key:'Mandate Status', label:'Mandate Status'},
-    {key:'Execution Owner', label:'Execution Owner'},
-    {key:'Mandate Type', label:'Mandate Type'},
-    {key:'Deal Stage', label:'Deal Stage'},
-    {key:'Ageing Slab', label:'Ageing Slab'},
-    {key:'Ticket Size', label:'Ticket Size'},
-    {key:'Company Name', label:'Company Name'},
-    {key:'Lender Shortlist', label:'Lender Shortlist'},
-    {key:'Doability Branch', label:'Doability Branch'}
+    {key:'Case Status',label:'Case Status'},{key:'Unit Name',label:'Unit Name'},{key:'Mandate Branch',label:'Mandate Branch'},
+    {key:'Tagging',label:'Tagging'},{key:'Lead Source',label:'Lead Source'},{key:'Current Tagging In',label:'Current Tagging In'},
+    {key:'Mandate Status',label:'Mandate Status'},{key:'Execution Owner',label:'Execution Owner'},{key:'Mandate Type',label:'Mandate Type'},
+    {key:'Deal Stage',label:'Deal Stage'},{key:'Ageing Slab',label:'Ageing Slab'},{key:'Ticket Size',label:'Ticket Size'},
+    {key:'Company Name',label:'Company Name'},{key:'Lender Shortlist',label:'Lender Shortlist'},{key:'Doability Branch',label:'Doability Branch'}
 ];
 
 function populateFilters() {
     var container = document.getElementById('filtersContainer');
     container.innerHTML = '';
     FILTER_KEYS.forEach(function(f) {
-        var vals = [];
-        var seen = {};
-        masterData.forEach(function(r) {
-            var v = (r[f.key] || '').toString().trim();
-            if (v && !seen[v]) { seen[v] = true; vals.push(v); }
-        });
+        var seen = {}, vals = [];
+        masterData.forEach(function(r) { var v = (r[f.key] || '').toString().trim(); if (v && !seen[v]) { seen[v] = true; vals.push(v); } });
         vals.sort();
         var div = document.createElement('div');
         div.className = 'filter-group';
@@ -302,8 +352,8 @@ function applyFilters() {
 }
 
 function clearAllFilters() {
-    var selects = document.querySelectorAll('#filtersContainer select');
-    for (var i = 0; i < selects.length; i++) selects[i].value = '';
+    var s = document.querySelectorAll('#filtersContainer select');
+    for (var i = 0; i < s.length; i++) s[i].value = '';
     filteredData = masterData.slice();
     renderDashboard();
 }
@@ -311,404 +361,176 @@ function clearAllFilters() {
 // ================================================================
 // UTILITIES
 // ================================================================
-function parseNum(val) {
-    if (!val) return 0;
-    return parseFloat(val.toString().replace(/[^0-9.\-]/g, '')) || 0;
-}
+function parseNum(v) { if (!v) return 0; return parseFloat(v.toString().replace(/[^0-9.\-]/g,'')) || 0; }
 function fmtCr(n) { return '₹' + n.toFixed(2) + ' Cr'; }
-
-function getTagBadge(v) {
-    var s = (v || '').toString().toLowerCase().trim();
-    if (s === 'alert' || s === 'red') return '<span class="tag-alert">● Alert</span>';
-    if (s === 'on track' || s === 'green' || s === 'ontrack') return '<span class="tag-ontrack">● On Track</span>';
-    if (s === 'wip' || s === 'amber' || s === 'yellow') return '<span class="tag-wip">● WIP</span>';
-    return v || '--';
-}
-function getRowClass(v) {
-    var s = (v || '').toString().toLowerCase().trim();
-    if (s === 'alert' || s === 'red') return 'row-alert';
-    if (s === 'on track' || s === 'green' || s === 'ontrack') return 'row-ontrack';
-    if (s === 'wip' || s === 'amber' || s === 'yellow') return 'row-wip';
-    return '';
-}
+function getTagBadge(v) { var s=(v||'').toString().toLowerCase().trim(); if(s==='alert'||s==='red')return'<span class="tag-alert">● Alert</span>'; if(s==='on track'||s==='green'||s==='ontrack')return'<span class="tag-ontrack">● On Track</span>'; if(s==='wip'||s==='amber'||s==='yellow')return'<span class="tag-wip">● WIP</span>'; return v||'--'; }
+function getRowClass(v) { var s=(v||'').toString().toLowerCase().trim(); if(s==='alert'||s==='red')return'row-alert'; if(s==='on track'||s==='green'||s==='ontrack')return'row-ontrack'; if(s==='wip'||s==='amber'||s==='yellow')return'row-wip'; return''; }
 
 // ================================================================
-// RENDER DASHBOARD
+// RENDER
 // ================================================================
-function renderDashboard() {
-    renderKPIs();
-    renderCharts();
-    renderRawData();
-}
+function renderDashboard() { renderKPIs(); renderCharts(); renderRawData(); }
 
 function renderKPIs() {
-    var d = filteredData;
-    var total = d.length;
-    var leads = d.filter(function(r) { var s = (r['Lead / Deal Status'] || r['Case Status'] || '').toLowerCase(); return s.indexOf('lead') >= 0 || s === 'new' || s === 'open' || s === 'fresh'; }).length;
-    var deals = d.filter(function(r) { var s = (r['Lead / Deal Status'] || r['Case Status'] || '').toLowerCase(); return s.indexOf('deal') >= 0 || s.indexOf('mandate') >= 0 || s.indexOf('convert') >= 0 || s.indexOf('won') >= 0; }).length;
-    var bankerCt = bankersData.length;
-    var cpCt = cpData.length;
-    var lenderNames = {};
-    lenderData.forEach(function(r) { var n = (r['Lender Name'] || '').trim(); if (n) lenderNames[n] = true; });
-    var lenderCt = Object.keys(lenderNames).length;
+    var d = filteredData, total = d.length;
+    var leads = d.filter(function(r){var s=(r['Lead / Deal Status']||r['Case Status']||'').toLowerCase();return s.indexOf('lead')>=0||s==='new'||s==='open'||s==='fresh';}).length;
+    var deals = d.filter(function(r){var s=(r['Lead / Deal Status']||r['Case Status']||'').toLowerCase();return s.indexOf('deal')>=0||s.indexOf('mandate')>=0||s.indexOf('convert')>=0||s.indexOf('won')>=0;}).length;
+    var bCt=bankersData.length, cCt=cpData.length;
+    var ln={}; lenderData.forEach(function(r){var n=(r['Lender Name']||'').trim();if(n)ln[n]=true;}); var lCt=Object.keys(ln).length;
+    var revP=0,revC=0,adv=0,ref=0,net=0;
+    d.forEach(function(r){revP+=parseNum(r['Total Expected Revenue']);revC+=parseNum(r['Total Payment Received']);adv+=parseNum(r['Advance Amt']);ref+=parseNum(r['Refund']);net+=parseNum(r['Net Revenue']);});
 
-    var revPipeline = 0, revCollected = 0, advAmt = 0, refund = 0, netRev = 0;
-    d.forEach(function(r) {
-        revPipeline += parseNum(r['Total Expected Revenue']);
-        revCollected += parseNum(r['Total Payment Received']);
-        advAmt += parseNum(r['Advance Amt']);
-        refund += parseNum(r['Refund']);
-        netRev += parseNum(r['Net Revenue']);
-    });
-
-    var kpis = [
-        {label:'Total Count', val:total, disp:total, cls:'', flt:'all'},
-        {label:'Leads', val:leads, disp:leads, cls:'', flt:'leads'},
-        {label:'Deals', val:deals, disp:deals, cls:'', flt:'deals'},
-        {label:'Bankers', val:bankerCt, disp:bankerCt, cls:'info', flt:'bankers'},
-        {label:'Channel Partners', val:cpCt, disp:cpCt, cls:'info', flt:'cp'},
-        {label:'Unique Lenders', val:lenderCt, disp:lenderCt, cls:'info', flt:'lenders'},
-        {label:'Revenue Pipeline', val:revPipeline, disp:fmtCr(revPipeline), cls:'revenue', flt:'all'},
-        {label:'Revenue Collected', val:revCollected, disp:fmtCr(revCollected), cls:'revenue', flt:'all'},
-        {label:'Advance Amt', val:advAmt, disp:fmtCr(advAmt), cls:'revenue', flt:'all'},
-        {label:'Refund', val:refund, disp:fmtCr(refund), cls:'alert', flt:'all'},
-        {label:'Net Revenue', val:netRev, disp:fmtCr(netRev), cls:'revenue', flt:'all'}
+    var kpis=[
+        {l:'Total Count',v:total,d:total,c:'',f:'all'},{l:'Leads',v:leads,d:leads,c:'',f:'leads'},{l:'Deals',v:deals,d:deals,c:'',f:'deals'},
+        {l:'Bankers',v:bCt,d:bCt,c:'info',f:'bankers'},{l:'Channel Partners',v:cCt,d:cCt,c:'info',f:'cp'},{l:'Unique Lenders',v:lCt,d:lCt,c:'info',f:'lenders'},
+        {l:'Revenue Pipeline',v:revP,d:fmtCr(revP),c:'revenue',f:'all'},{l:'Revenue Collected',v:revC,d:fmtCr(revC),c:'revenue',f:'all'},
+        {l:'Advance Amt',v:adv,d:fmtCr(adv),c:'revenue',f:'all'},{l:'Refund',v:ref,d:fmtCr(ref),c:'alert',f:'all'},{l:'Net Revenue',v:net,d:fmtCr(net),c:'revenue',f:'all'}
     ];
+    var h='';kpis.forEach(function(k){h+='<div class="kpi-card '+k.c+'" onclick="openDrill(\''+k.l+'\',\''+k.f+'\')"><div class="kpi-label">'+k.l+'</div><div class="kpi-value">'+k.d+'</div><div class="kpi-sub">Click to drill-down →</div></div>';});
+    document.getElementById('kpiContainer').innerHTML=h;
 
-    var html = '';
-    kpis.forEach(function(k) {
-        html += '<div class="kpi-card ' + k.cls + '" onclick="openDrill(\'' + k.label + '\',\'' + k.flt + '\')"><div class="kpi-label">' + k.label + '</div><div class="kpi-value">' + k.disp + '</div><div class="kpi-sub">Click to drill-down →</div></div>';
-    });
-    document.getElementById('kpiContainer').innerHTML = html;
-
-    // Avg TAT
-    var tatVals = d.map(function(r) { return parseNum(r['TAT (In Days) Leads to Mandate Signoff']); }).filter(function(v) { return v > 0; });
-    var avgTAT = tatVals.length > 0 ? (tatVals.reduce(function(a, b) { return a + b; }, 0) / tatVals.length).toFixed(1) : '--';
-    document.getElementById('avgTAT').textContent = avgTAT;
+    var tatV=d.map(function(r){return parseNum(r['TAT (In Days) Leads to Mandate Signoff']);}).filter(function(v){return v>0;});
+    document.getElementById('avgTAT').textContent=tatV.length?(tatV.reduce(function(a,b){return a+b;},0)/tatV.length).toFixed(1):'--';
 }
 
 // ================================================================
 // CHARTS
 // ================================================================
-var chartPipeline = null, chartRevenue = null, chartAlloc = null, chartRegion = null;
-
+var ch1=null,ch2=null,ch3=null,ch4=null;
 function renderCharts() {
-    // Pipeline by Mandate Status
-    var statusCounts = {};
-    filteredData.forEach(function(r) {
-        var s = (r['Mandate Status'] || '').trim();
-        if (s) statusCounts[s] = (statusCounts[s] || 0) + 1;
-    });
+    var sc={};filteredData.forEach(function(r){var s=(r['Mandate Status']||'').trim();if(s)sc[s]=(sc[s]||0)+1;});
+    if(ch1)ch1.destroy();
+    ch1=new Chart(document.getElementById('pipelineChart').getContext('2d'),{type:'bar',data:{labels:Object.keys(sc),datasets:[{label:'Count',data:Object.values(sc),backgroundColor:'#3f51b5',borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 
-    if (chartPipeline) chartPipeline.destroy();
-    chartPipeline = new Chart(document.getElementById('pipelineChart').getContext('2d'), {
-        type: 'bar',
-        data: { labels: Object.keys(statusCounts), datasets: [{ label: 'Count', data: Object.values(statusCounts), backgroundColor: '#3f51b5', borderRadius: 4 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-    });
-
-    // Revenue Doughnut
-    var revD = filteredData.reduce(function(s, r) { return s + parseNum(r['Total Debt Amt']); }, 0);
-    var revE = filteredData.reduce(function(s, r) { return s + parseNum(r['Total Equity Amt']); }, 0);
-    var revF = filteredData.reduce(function(s, r) { return s + parseNum(r['Total Fixed Fee Amt']); }, 0);
-    var revC = filteredData.reduce(function(s, r) { return s + parseNum(r['Total Payment Received']); }, 0);
-    var revA = filteredData.reduce(function(s, r) { return s + parseNum(r['Advance Amt']); }, 0);
-
-    if (chartRevenue) chartRevenue.destroy();
-    chartRevenue = new Chart(document.getElementById('revenueChart').getContext('2d'), {
-        type: 'doughnut',
-        data: { labels: ['Debt Amt','Equity Amt','Fixed Fee','Collected','Advance'], datasets: [{ data: [revD, revE, revF, revC, revA], backgroundColor: ['#1a237e','#3f51b5','#7986cb','#2e7d32','#f57c00'] }] },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
+    var rD=0,rE=0,rF=0,rC=0,rA=0;
+    filteredData.forEach(function(r){rD+=parseNum(r['Total Debt Amt']);rE+=parseNum(r['Total Equity Amt']);rF+=parseNum(r['Total Fixed Fee Amt']);rC+=parseNum(r['Total Payment Received']);rA+=parseNum(r['Advance Amt']);});
+    if(ch2)ch2.destroy();
+    ch2=new Chart(document.getElementById('revenueChart').getContext('2d'),{type:'doughnut',data:{labels:['Debt','Equity','Fixed Fee','Collected','Advance'],datasets:[{data:[rD,rE,rF,rC,rA],backgroundColor:['#1a237e','#3f51b5','#7986cb','#2e7d32','#f57c00']}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 }
 
 // ================================================================
-// RAW DATA - Correct column names (no "In Cr." suffix)
+// RAW DATA
 // ================================================================
-var RAW_COLS = ['Company Name','Tagging','Unit Name','Mandate Branch','Execution Owner','Mandate Type','Mandate Status','TAT (In Days) Leads to Mandate Signoff','Case Status','Comments','Total Debt Amt','Total Equity Amt','Total Fixed Fee Amt','% Fee on Debt Amt','% Fee on Equity Amt','% Fee on Fixed Amt','Total Expected Revenue','Total Payment Received','Refund','Net Revenue'];
+var RAW_COLS=['Company Name','Tagging','Unit Name','Mandate Branch','Execution Owner','Mandate Type','Mandate Status','Case Status','Deal Stage','Ticket Size','Total Expected Revenue','Total Payment Received','Refund','Net Revenue','Comments'];
 
-function buildTable(data, cols, colorTag) {
-    if (!data || !data.length) return '<div class="no-data">No data available.</div>';
-    var useCols = cols.filter(function(c) { return data.some(function(r) { return r[c] !== undefined; }); });
-    if (!useCols.length) { useCols = Object.keys(data[0]).slice(0, 10); }
-    var h = '<table class="data-table"><thead><tr>';
-    useCols.forEach(function(c) { h += '<th>' + c + '</th>'; });
-    h += '</tr></thead><tbody>';
-    var max = Math.min(data.length, 500);
-    for (var i = 0; i < max; i++) {
-        var rc = colorTag ? getRowClass(data[i]['Tagging']) : '';
-        h += '<tr class="' + rc + '">';
-        useCols.forEach(function(c) {
-            if (c === 'Tagging') h += '<td>' + getTagBadge(data[i][c]) + '</td>';
-            else h += '<td>' + ((data[i][c] || '--').toString().substring(0, 60)) + '</td>';
-        });
-        h += '</tr>';
-    }
-    h += '</tbody></table>';
-    if (data.length > 500) h += '<p style="text-align:center;color:#888;margin-top:10px">Showing 500 of ' + data.length + '</p>';
-    return h;
+function buildTable(data,cols,colorTag){
+    if(!data||!data.length)return'<div class="no-data">No data available.</div>';
+    var useCols=cols.filter(function(c){return data.some(function(r){return r[c]!==undefined;});});
+    if(!useCols.length)useCols=Object.keys(data[0]).filter(function(k){return k.trim();}).slice(0,12);
+    var h='<table class="data-table"><thead><tr>';
+    useCols.forEach(function(c){h+='<th>'+c+'</th>';});h+='</tr></thead><tbody>';
+    var max=Math.min(data.length,500);
+    for(var i=0;i<max;i++){var rc=colorTag?getRowClass(data[i]['Tagging']):'';h+='<tr class="'+rc+'">';useCols.forEach(function(c){if(c==='Tagging')h+='<td>'+getTagBadge(data[i][c])+'</td>';else h+='<td>'+((data[i][c]||'--').toString().substring(0,60))+'</td>';});h+='</tr>';}
+    h+='</tbody></table>';if(data.length>500)h+='<p style="text-align:center;color:#888;margin-top:10px">Showing 500 of '+data.length+'</p>';return h;
 }
-
-function renderRawData() {
-    var el = document.getElementById('rawDataTable');
-    if (!filteredData.length) { el.innerHTML = '<div class="no-data">No data. Click ⟳ Refresh.</div>'; return; }
-    el.innerHTML = buildTable(filteredData, RAW_COLS, true);
-}
+function renderRawData(){var el=document.getElementById('rawDataTable');if(!filteredData.length){el.innerHTML='<div class="no-data">No data. Click ⟳ Refresh.</div>';return;}el.innerHTML=buildTable(filteredData,RAW_COLS,true);}
 
 // ================================================================
-// DRILL-DOWN MODAL
+// DRILL-DOWN
 // ================================================================
-function openDrill(title, flt) {
-    var drillData;
-    if (flt === 'leads') {
-        drillData = filteredData.filter(function(r) { var s = (r['Lead / Deal Status'] || r['Case Status'] || '').toLowerCase(); return s.indexOf('lead') >= 0 || s === 'new' || s === 'open'; });
-    } else if (flt === 'deals') {
-        drillData = filteredData.filter(function(r) { var s = (r['Lead / Deal Status'] || r['Case Status'] || '').toLowerCase(); return s.indexOf('deal') >= 0 || s.indexOf('mandate') >= 0 || s.indexOf('convert') >= 0; });
-    } else if (flt === 'bankers') {
-        document.getElementById('modalTitle').textContent = 'Banker Details';
-        document.getElementById('modalCount').textContent = bankersData.length + ' records';
-        document.getElementById('modalBody').innerHTML = buildTable(bankersData, ['Banker Name','City','State','Banking Experience','Core_Expertise','Services.','Core Expertise'], false);
-        document.getElementById('drillModal').classList.add('active'); return;
-    } else if (flt === 'cp') {
-        document.getElementById('modalTitle').textContent = 'Channel Partner Details';
-        document.getElementById('modalCount').textContent = cpData.length + ' records';
-        document.getElementById('modalBody').innerHTML = buildTable(cpData, ['Channel Partner Name','City','Channel Partner Owner Name','EXPERTISE'], false);
-        document.getElementById('drillModal').classList.add('active'); return;
-    } else if (flt === 'lenders') {
-        document.getElementById('modalTitle').textContent = 'Lender Details';
-        document.getElementById('modalCount').textContent = lenderData.length + ' records';
-        document.getElementById('modalBody').innerHTML = buildTable(lenderData, ['Lender Name','Lender Type','Unit Name','Lender Status','Amount','Deals'], false);
-        document.getElementById('drillModal').classList.add('active'); return;
-    } else {
-        drillData = filteredData;
-    }
-    document.getElementById('modalTitle').textContent = 'Drill-Down: ' + title;
-    document.getElementById('modalCount').textContent = (drillData ? drillData.length : 0) + ' records';
-    document.getElementById('modalBody').innerHTML = buildTable(drillData || [], RAW_COLS, true);
-    document.getElementById('drillModal').classList.add('active');
+function openDrill(title,flt){
+    var dd;
+    if(flt==='leads'){dd=filteredData.filter(function(r){var s=(r['Lead / Deal Status']||r['Case Status']||'').toLowerCase();return s.indexOf('lead')>=0||s==='new'||s==='open';});}
+    else if(flt==='deals'){dd=filteredData.filter(function(r){var s=(r['Lead / Deal Status']||r['Case Status']||'').toLowerCase();return s.indexOf('deal')>=0||s.indexOf('mandate')>=0||s.indexOf('convert')>=0;});}
+    else if(flt==='bankers'){document.getElementById('modalTitle').textContent='Banker Details';document.getElementById('modalCount').textContent=bankersData.length+' records';document.getElementById('modalBody').innerHTML=buildTable(bankersData,['Banker Name','City','State','Banking Experience','Core_Expertise','Services.','Core Expertise'],false);document.getElementById('drillModal').classList.add('active');return;}
+    else if(flt==='cp'){document.getElementById('modalTitle').textContent='Channel Partner Details';document.getElementById('modalCount').textContent=cpData.length+' records';document.getElementById('modalBody').innerHTML=buildTable(cpData,['Channel Partner Name','City','Channel Partner Owner Name','EXPERTISE'],false);document.getElementById('drillModal').classList.add('active');return;}
+    else if(flt==='lenders'){document.getElementById('modalTitle').textContent='Lender Details';document.getElementById('modalCount').textContent=lenderData.length+' records';document.getElementById('modalBody').innerHTML=buildTable(lenderData,['Lender Name','Lender Type','Unit Name','Lender Status','Amount','Deals'],false);document.getElementById('drillModal').classList.add('active');return;}
+    else{dd=filteredData;}
+    document.getElementById('modalTitle').textContent='Drill-Down: '+title;document.getElementById('modalCount').textContent=(dd?dd.length:0)+' records';document.getElementById('modalBody').innerHTML=buildTable(dd||[],RAW_COLS,true);document.getElementById('drillModal').classList.add('active');
 }
-function closeModal() { document.getElementById('drillModal').classList.remove('active'); }
+function closeModal(){document.getElementById('drillModal').classList.remove('active');}
 
 // ================================================================
-// TAB NAVIGATION
+// TAB NAV
 // ================================================================
-function switchTab(id, el) {
-    var tabs = document.querySelectorAll('.tab-content');
-    var navs = document.querySelectorAll('.nav-tab');
-    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-    for (var i = 0; i < navs.length; i++) navs[i].classList.remove('active');
-    document.getElementById('tab-' + id).classList.add('active');
-    el.classList.add('active');
-    if (id === 'allocation') renderAllocation();
-}
+function switchTab(id,el){var t=document.querySelectorAll('.tab-content'),n=document.querySelectorAll('.nav-tab');for(var i=0;i<t.length;i++)t[i].classList.remove('active');for(var i=0;i<n.length;i++)n[i].classList.remove('active');document.getElementById('tab-'+id).classList.add('active');el.classList.add('active');if(id==='allocation')renderAllocation();}
 
 // ================================================================
 // ALLOCATION TAB
 // ================================================================
-function renderAllocation() {
-    var d = filteredData;
-    var counts = {inhouse:0, banker:0, cp:0, referral:0, other:0};
-    d.forEach(function(r) {
-        var t = ((r['Current Tagging In'] || '') + ' ' + (r['Job Allocation'] || '')).toLowerCase();
-        if (t.indexOf('banker') >= 0) counts.banker++;
-        else if (t.indexOf('channel') >= 0 || t.indexOf('cp') >= 0 || t.indexOf('partner') >= 0) counts.cp++;
-        else if (t.indexOf('referral') >= 0 || t.indexOf('refer') >= 0) counts.referral++;
-        else if (t.indexOf('inhouse') >= 0 || t.indexOf('in-house') >= 0 || t.indexOf('in house') >= 0 || t.indexOf('internal') >= 0 || t.indexOf('team') >= 0) counts.inhouse++;
-        else counts.other++;
-    });
+function renderAllocation(){
+    var d=filteredData,ct={inhouse:0,banker:0,cp:0,referral:0,other:0};
+    d.forEach(function(r){var t=((r['Current Tagging In']||'')+' '+(r['Job Allocation']||'')).toLowerCase();if(t.indexOf('banker')>=0)ct.banker++;else if(t.indexOf('channel')>=0||t.indexOf('cp')>=0||t.indexOf('partner')>=0)ct.cp++;else if(t.indexOf('referral')>=0||t.indexOf('refer')>=0)ct.referral++;else if(t.indexOf('inhouse')>=0||t.indexOf('in-house')>=0||t.indexOf('in house')>=0||t.indexOf('internal')>=0||t.indexOf('team')>=0)ct.inhouse++;else ct.other++;});
+    document.getElementById('allocationKPIs').innerHTML='<div class="kpi-card"><div class="kpi-label">Inhouse</div><div class="kpi-value">'+ct.inhouse+'</div></div><div class="kpi-card"><div class="kpi-label">Banker</div><div class="kpi-value">'+ct.banker+'</div></div><div class="kpi-card"><div class="kpi-label">Channel Partner</div><div class="kpi-value">'+ct.cp+'</div></div><div class="kpi-card"><div class="kpi-label">Referral</div><div class="kpi-value">'+ct.referral+'</div></div><div class="kpi-card info"><div class="kpi-label">Others</div><div class="kpi-value">'+ct.other+'</div></div>';
 
-    document.getElementById('allocationKPIs').innerHTML =
-        '<div class="kpi-card" onclick="openDrill(\'Inhouse\',\'all\')"><div class="kpi-label">Inhouse Team</div><div class="kpi-value">' + counts.inhouse + '</div></div>' +
-        '<div class="kpi-card" onclick="openDrill(\'Banker\',\'all\')"><div class="kpi-label">Banker</div><div class="kpi-value">' + counts.banker + '</div></div>' +
-        '<div class="kpi-card" onclick="openDrill(\'CP\',\'all\')"><div class="kpi-label">Channel Partner</div><div class="kpi-value">' + counts.cp + '</div></div>' +
-        '<div class="kpi-card" onclick="openDrill(\'Referral\',\'all\')"><div class="kpi-label">Referral</div><div class="kpi-value">' + counts.referral + '</div></div>' +
-        '<div class="kpi-card info" onclick="openDrill(\'Other\',\'all\')"><div class="kpi-label">Others</div><div class="kpi-value">' + counts.other + '</div></div>';
-
-    if (chartAlloc) chartAlloc.destroy();
-    chartAlloc = new Chart(document.getElementById('allocationChart').getContext('2d'), {
-        type: 'pie',
-        data: { labels: ['Inhouse','Banker','Channel Partner','Referral','Others'], datasets: [{ data: [counts.inhouse, counts.banker, counts.cp, counts.referral, counts.other], backgroundColor: ['#1a237e','#3f51b5','#7986cb','#f57c00','#90a4ae'] }] },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
-
-    var regions = {};
-    d.forEach(function(r) { var u = (r['Unit Name'] || '').trim(); if (u) regions[u] = (regions[u] || 0) + 1; });
-    if (chartRegion) chartRegion.destroy();
-    chartRegion = new Chart(document.getElementById('regionChart').getContext('2d'), {
-        type: 'bar',
-        data: { labels: Object.keys(regions), datasets: [{ label: 'Count', data: Object.values(regions), backgroundColor: '#2e7d32', borderRadius: 4 }] },
-        options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
-    });
+    if(ch3)ch3.destroy();ch3=new Chart(document.getElementById('allocationChart').getContext('2d'),{type:'pie',data:{labels:['Inhouse','Banker','CP','Referral','Others'],datasets:[{data:[ct.inhouse,ct.banker,ct.cp,ct.referral,ct.other],backgroundColor:['#1a237e','#3f51b5','#7986cb','#f57c00','#90a4ae']}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+    var rg={};d.forEach(function(r){var u=(r['Unit Name']||'').trim();if(u)rg[u]=(rg[u]||0)+1;});
+    if(ch4)ch4.destroy();ch4=new Chart(document.getElementById('regionChart').getContext('2d'),{type:'bar',data:{labels:Object.keys(rg),datasets:[{label:'Count',data:Object.values(rg),backgroundColor:'#2e7d32',borderRadius:4}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
 }
 
 // ================================================================
-// RECOMMENDATION: BANKER / CP
+// RECOMMENDATION: BANKER/CP
 // ================================================================
-function populateRecoDropdowns() {
-    var states = {}, cities = {};
-    bankersData.forEach(function(r) { var s = (r['State'] || '').trim(); var c = (r['City'] || '').trim(); if (s) states[s] = true; if (c) cities[c] = true; });
-    cpData.forEach(function(r) { var c = (r['City'] || '').trim(); if (c) cities[c] = true; });
-
-    var stateArr = Object.keys(states).sort();
-    var cityArr = Object.keys(cities).sort();
-
-    document.getElementById('recoState').innerHTML = '<option value="">-- All States --</option>' + stateArr.map(function(s) { return '<option>' + s + '</option>'; }).join('');
-    document.getElementById('recoCity').innerHTML = '<option value="">-- All Cities --</option>' + cityArr.map(function(c) { return '<option>' + c + '</option>'; }).join('');
-
-    // Lender dropdowns
-    var lTypes = {}, lUnits = {};
-    lenderData.forEach(function(r) { var t = (r['Lender Type'] || '').trim(); var u = (r['Unit Name'] || '').trim(); if (t) lTypes[t] = true; if (u) lUnits[u] = true; });
-    document.getElementById('lenderTypeFilter').innerHTML = '<option value="">-- All --</option>' + Object.keys(lTypes).sort().map(function(t) { return '<option>' + t + '</option>'; }).join('');
-    document.getElementById('lenderUnitFilter').innerHTML = '<option value="">-- All --</option>' + Object.keys(lUnits).sort().map(function(u) { return '<option>' + u + '</option>'; }).join('');
+function populateRecoDropdowns(){
+    var states={},cities={};
+    bankersData.forEach(function(r){var s=(r['State']||'').trim(),c=(r['City']||'').trim();if(s)states[s]=true;if(c)cities[c]=true;});
+    cpData.forEach(function(r){var c=(r['City']||'').trim();if(c)cities[c]=true;});
+    document.getElementById('recoState').innerHTML='<option value="">-- All --</option>'+Object.keys(states).sort().map(function(s){return'<option>'+s+'</option>';}).join('');
+    document.getElementById('recoCity').innerHTML='<option value="">-- All --</option>'+Object.keys(cities).sort().map(function(c){return'<option>'+c+'</option>';}).join('');
+    var lT={},lU={};lenderData.forEach(function(r){var t=(r['Lender Type']||'').trim(),u=(r['Unit Name']||'').trim();if(t)lT[t]=true;if(u)lU[u]=true;});
+    document.getElementById('lenderTypeFilter').innerHTML='<option value="">-- All --</option>'+Object.keys(lT).sort().map(function(t){return'<option>'+t+'</option>';}).join('');
+    document.getElementById('lenderUnitFilter').innerHTML='<option value="">-- All --</option>'+Object.keys(lU).sort().map(function(u){return'<option>'+u+'</option>';}).join('');
 }
 
-function runBankerReco() {
-    var mandateType = document.getElementById('recoMandateType').value;
-    var state = document.getElementById('recoState').value;
-    var city = document.getElementById('recoCity').value;
-    var searchType = document.getElementById('recoSearchType').value;
-    if (!mandateType) { alert('Please select a Mandate Type'); return; }
+function runBankerReco(){
+    var mt=document.getElementById('recoMandateType').value,state=document.getElementById('recoState').value,city=document.getElementById('recoCity').value,type=document.getElementById('recoSearchType').value;
+    if(!mt){alert('Select Mandate Type');return;}
+    var terms=[mt.toLowerCase()];var ml=mt.toLowerCase();
+    if(ml==='npa/ots'){terms.push('npa','ots');}if(ml==='debt+equity'){terms.push('debt','equity');}if(ml==='retail loan - lap'){terms.push('retail','lap');}if(ml==='ipo advisory'){terms.push('ipo');}if(ml==='pre-ipo'){terms.push('pre-ipo','pre ipo');}if(ml==='working capital'){terms.push('working capital','wc');}if(ml==='term loan'){terms.push('term loan','tl');}if(ml==='structured debt'){terms.push('structured');}if(ml==='bill discounting'){terms.push('bill discounting','bill');}if(ml==='acquisition finance'){terms.push('acquisition');}
 
-    var terms = [mandateType.toLowerCase()];
-    var ml = mandateType.toLowerCase();
-    if (ml === 'npa/ots') { terms.push('npa','ots'); }
-    if (ml === 'debt+equity') { terms.push('debt','equity'); }
-    if (ml === 'retail loan - lap') { terms.push('retail','lap'); }
-    if (ml === 'ipo advisory') { terms.push('ipo'); }
-    if (ml === 'pre-ipo') { terms.push('pre-ipo','pre ipo'); }
-    if (ml === 'working capital') { terms.push('working capital','wc'); }
-    if (ml === 'term loan') { terms.push('term loan','tl'); }
-    if (ml === 'structured debt') { terms.push('structured'); }
-    if (ml === 'bill discounting') { terms.push('bill discounting','bill'); }
-    if (ml === 'acquisition finance') { terms.push('acquisition'); }
+    var results=[];
+    if(type==='banker'||type==='both'){bankersData.forEach(function(r){var exp=((r['Core_Expertise']||'')+' '+(r['Services.']||'')+' '+(r['Core Expertise']||'')+' '+(r['Please Specify the details']||'')).toLowerCase();var match=terms.some(function(t){return exp.indexOf(t)>=0;});if(!match)return;if(state&&(r['State']||'').trim().toLowerCase()!==state.toLowerCase())return;if(city&&(r['City']||'').trim().toLowerCase()!==city.toLowerCase())return;results.push({name:r['Banker Name']||'N/A',city:r['City']||'--',state:r['State']||'--',exp:r['Banking Experience']||'--',src:'Banker'});});}
+    if(type==='cp'||type==='both'){cpData.forEach(function(r){var exp=(r['EXPERTISE']||'').toLowerCase();var match=terms.some(function(t){return exp.indexOf(t)>=0;});if(!match)return;if(city&&(r['City']||'').trim().toLowerCase()!==city.toLowerCase())return;results.push({name:r['Channel Partner Name']||'N/A',city:r['City']||'--',state:'--',exp:'--',src:'CP'});});}
 
-    var results = [];
-
-    // Bankers
-    if (searchType === 'banker' || searchType === 'both') {
-        bankersData.forEach(function(r) {
-            var expertise = ((r['Core_Expertise'] || '') + ' ' + (r['Services.'] || '') + ' ' + (r['Core Expertise'] || '') + ' ' + (r['Please Specify the details'] || '')).toLowerCase();
-            var match = terms.some(function(t) { return expertise.indexOf(t) >= 0; });
-            if (!match) return;
-            if (state && (r['State'] || '').trim().toLowerCase() !== state.toLowerCase()) return;
-            if (city && (r['City'] || '').trim().toLowerCase() !== city.toLowerCase()) return;
-            results.push({ name: r['Banker Name'] || 'N/A', city: r['City'] || '--', state: r['State'] || '--', exp: r['Banking Experience'] || '--', source: 'Banker' });
-        });
-    }
-
-    // Channel Partners
-    if (searchType === 'cp' || searchType === 'both') {
-        cpData.forEach(function(r) {
-            var expertise = (r['EXPERTISE'] || '').toLowerCase();
-            var match = terms.some(function(t) { return expertise.indexOf(t) >= 0; });
-            if (!match) return;
-            if (city && (r['City'] || '').trim().toLowerCase() !== city.toLowerCase()) return;
-            results.push({ name: r['Channel Partner Name'] || 'N/A', city: r['City'] || '--', state: '--', exp: '--', source: 'CP' });
-        });
-    }
-
-    // Sort by experience desc
-    results.sort(function(a, b) { return parseNum(b.exp) - parseNum(a.exp); });
-    results = results.slice(0, 15);
-
-    var container = document.getElementById('bankerRecoResults');
-    if (!results.length) {
-        container.innerHTML = '<div class="no-data">❌ No matches for "' + mandateType + '". Try removing location filters or selecting "Both".</div>';
-        return;
-    }
-    var html = '<h4>✅ Top ' + results.length + ' for "' + mandateType + '"</h4>';
-    results.forEach(function(r, i) {
-        html += '<div class="reco-card"><div class="reco-rank">' + (i+1) + '</div><div class="reco-info"><div class="name">' + r.name + '</div><div class="details">📍 ' + r.city + ', ' + r.state + ' | Exp: ' + r.exp + ' yrs | ' + r.source + '</div></div><div class="match-score' + (i >= 5 ? ' medium' : '') + '">' + (i < 5 ? 'Strong' : 'Match') + '</div></div>';
-    });
-    container.innerHTML = html;
+    results.sort(function(a,b){return parseNum(b.exp)-parseNum(a.exp);});results=results.slice(0,15);
+    var ctr=document.getElementById('bankerRecoResults');
+    if(!results.length){ctr.innerHTML='<div class="no-data">❌ No matches for "'+mt+'". Try removing filters or selecting "Both".</div>';return;}
+    var h='<h4>✅ Top '+results.length+' for "'+mt+'"</h4>';
+    results.forEach(function(r,i){h+='<div class="reco-card"><div class="reco-rank">'+(i+1)+'</div><div class="reco-info"><div class="name">'+r.name+'</div><div class="details">📍 '+r.city+', '+r.state+' | Exp: '+r.exp+' | '+r.src+'</div></div><div class="match-score'+(i>=5?' medium':'')+'">'+( i<5?'Strong':'Match')+'</div></div>';});
+    ctr.innerHTML=h;
 }
 
 // ================================================================
 // RECOMMENDATION: LENDER
-// Cross-reference: Find lenders tagged to deals with matching Mandate Type
 // ================================================================
-function runLenderReco() {
-    var mandateType = document.getElementById('lenderMandateType').value;
-    var lenderType = document.getElementById('lenderTypeFilter').value;
-    var unitName = document.getElementById('lenderUnitFilter').value;
-    if (!mandateType) { alert('Please select a Mandate Type'); return; }
+function runLenderReco(){
+    var mt=document.getElementById('lenderMandateType').value,lt=document.getElementById('lenderTypeFilter').value,un=document.getElementById('lenderUnitFilter').value;
+    if(!mt){alert('Select Mandate Type');return;}
 
-    // Strategy 1: Direct match from Lender Tagging sheet
-    // Since lender sheet doesn't have Mandate Type, we cross-reference via Master Data
-    // Find company names in Master with this Mandate Type, then find lenders tagged to them
+    // Cross-reference: find lender names from Master that match this mandate type
+    var masterLenders={};
+    masterData.forEach(function(r){if((r['Mandate Type']||'').toLowerCase().trim()===mt.toLowerCase().trim()){var ln=(r['Lender Name']||'').trim();if(ln)masterLenders[ln.toLowerCase()]=true;}});
 
-    // Get deals with this mandate type
-    var mandateDeals = {};
-    masterData.forEach(function(r) {
-        if ((r['Mandate Type'] || '').toLowerCase().trim() === mandateType.toLowerCase().trim()) {
-            var cn = (r['Company Name'] || '').trim().toLowerCase();
-            if (cn) mandateDeals[cn] = true;
-            // Also check Lender Name directly in master
-            var ln = (r['Lender Name'] || '').trim();
-            if (ln) mandateDeals['__lender__' + ln.toLowerCase()] = true;
-        }
+    var scores={};
+    lenderData.forEach(function(r){
+        var lName=(r['Lender Name']||'').trim();if(!lName)return;
+        if(lt&&(r['Lender Type']||'').trim()!==lt)return;
+        if(un&&(r['Unit Name']||'').trim()!==un)return;
+        if(!scores[lName])scores[lName]={name:lName,type:r['Lender Type']||'--',unit:r['Unit Name']||'--',count:0,match:false};
+        scores[lName].count++;
+        if(masterLenders[lName.toLowerCase()])scores[lName].match=true;
     });
 
-    // Now find unique lenders from lender sheet
-    var lenderScores = {};
-    lenderData.forEach(function(r) {
-        var lName = (r['Lender Name'] || '').trim();
-        if (!lName) return;
-        if (lenderType && (r['Lender Type'] || '').trim() !== lenderType) return;
-        if (unitName && (r['Unit Name'] || '').trim() !== unitName) return;
+    // Also add from master directly
+    masterData.forEach(function(r){if((r['Mandate Type']||'').toLowerCase().trim()===mt.toLowerCase().trim()){var ln=(r['Lender Name']||'').trim();if(ln){if(!scores[ln])scores[ln]={name:ln,type:r['Lender Type']||'--',unit:r['Unit Name']||'--',count:1,match:true};else scores[ln].match=true;}}});
 
-        // Score: lender is relevant if tagged to a deal with same mandate type
-        var relatedLead = (r['Related Lead'] || r['Deals'] || '').toLowerCase().trim();
-        var isMatch = mandateDeals[relatedLead] || mandateDeals['__lender__' + lName.toLowerCase()];
+    var results=Object.values(scores);
+    results.sort(function(a,b){if(a.match&&!b.match)return-1;if(!a.match&&b.match)return 1;return b.count-a.count;});
+    results=results.slice(0,15);
 
-        if (!lenderScores[lName]) {
-            lenderScores[lName] = { name: lName, type: r['Lender Type'] || '--', unit: r['Unit Name'] || '--', status: r['Lender Status'] || '--', count: 0, directMatch: false };
-        }
-        lenderScores[lName].count++;
-        if (isMatch) lenderScores[lName].directMatch = true;
-    });
-
-    // Also add lenders mentioned directly in Master Data for this Mandate Type
-    masterData.forEach(function(r) {
-        if ((r['Mandate Type'] || '').toLowerCase().trim() === mandateType.toLowerCase().trim()) {
-            var ln = (r['Lender Name'] || '').trim();
-            if (ln && !lenderScores[ln]) {
-                lenderScores[ln] = { name: ln, type: r['Lender Type'] || '--', unit: r['Unit Name'] || '--', status: 'From Master', count: 1, directMatch: true };
-            } else if (ln && lenderScores[ln]) {
-                lenderScores[ln].directMatch = true;
-            }
-        }
-    });
-
-    // Sort: direct matches first, then by count
-    var results = Object.values(lenderScores);
-    results.sort(function(a, b) {
-        if (a.directMatch && !b.directMatch) return -1;
-        if (!a.directMatch && b.directMatch) return 1;
-        return b.count - a.count;
-    });
-    results = results.slice(0, 15);
-
-    var container = document.getElementById('lenderRecoResults');
-    if (!results.length) {
-        container.innerHTML = '<div class="no-data">❌ No lenders found for "' + mandateType + '". Try removing filters.</div>';
-        return;
-    }
-    var html = '<h4>✅ Top ' + results.length + ' Lenders for "' + mandateType + '"</h4>';
-    results.forEach(function(r, i) {
-        var scoreClass = r.directMatch ? '' : ' medium';
-        var scoreText = r.directMatch ? 'Recommended' : 'Possible';
-        html += '<div class="reco-card"><div class="reco-rank">' + (i+1) + '</div><div class="reco-info"><div class="name">' + r.name + '</div><div class="details">🏦 Type: ' + r.type + ' | Unit: ' + r.unit + ' | Tagged ' + r.count + 'x</div></div><div class="match-score' + scoreClass + '">' + scoreText + '</div></div>';
-    });
-    container.innerHTML = html;
+    var ctr=document.getElementById('lenderRecoResults');
+    if(!results.length){ctr.innerHTML='<div class="no-data">❌ No lenders for "'+mt+'". Try removing filters.</div>';return;}
+    var h='<h4>✅ Top '+results.length+' Lenders for "'+mt+'"</h4>';
+    results.forEach(function(r,i){h+='<div class="reco-card"><div class="reco-rank">'+(i+1)+'</div><div class="reco-info"><div class="name">'+r.name+'</div><div class="details">🏦 '+r.type+' | Unit: '+r.unit+' | Tagged '+r.count+'x</div></div><div class="match-score'+(r.match?'':' medium')+'">'+( r.match?'Recommended':'Possible')+'</div></div>';});
+    ctr.innerHTML=h;
 }
 
 // ================================================================
 // INIT
 // ================================================================
-document.addEventListener('DOMContentLoaded', function() { refreshData(); });
-document.getElementById('drillModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('DOMContentLoaded',function(){refreshData();});
+document.getElementById('drillModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
 </script>
 </body>
 </html>
