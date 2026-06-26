@@ -1,1219 +1,1001 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BankerKlub — Management Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<style>
-/* ============================================================
-   BANKERKLUB DASHBOARD  —  Production v7.0
-   RCA FIX: Uses gviz/tq JSON (not CSV) for reliable headers
-   Lead/Deal split: auto-detects correct column from live sheet
-   ============================================================ */
-:root{
-  --ink:#0d1b2a;--ink2:#1e2e42;--surface:#f4f6fb;--card:#fff;
-  --border:#dde3ec;--accent:#1a56db;--accent2:#0e3fa8;
-  --green:#10b981;--red:#ef4444;--amber:#f59e0b;
-  --purple:#8b5cf6;--teal:#14b8a6;
-  --radius:10px;--shadow:0 2px 12px rgba(13,27,42,.08)
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:14px}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankerKlub Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-light: #e8f0fe;
+      --success: #0f9d58;
+      --warning: #f4b400;
+      --danger: #db4437;
+      --info: #4285f4;
+      --dark: #202124;
+      --gray-50: #f8f9fa;
+      --gray-100: #f1f3f4;
+      --gray-200: #e8eaed;
+      --gray-600: #5f6368;
+      --gray-800: #3c4043;
+      --shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+      --shadow-lg: 0 4px 6px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.06);
+      --radius: 12px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',sans-serif; background:var(--gray-50); color:var(--dark); line-height:1.6; }
+    
+    /* Header */
+    .header { background:#fff; border-bottom:1px solid var(--gray-200); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:var(--shadow); }
+    .header h1 { font-size:20px; font-weight:700; color:var(--primary); }
+    .header .status { font-size:13px; color:var(--gray-600); display:flex; align-items:center; gap:8px; }
+    .header .status .dot { width:8px; height:8px; border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-/* ── TOPBAR ── */
-.topbar{background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;height:54px;position:sticky;top:0;z-index:300;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.3px}
-.brand-dot{width:28px;height:28px;background:var(--accent);border-radius:7px;
-  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
-.topbar-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sync-pill{font-size:11px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
-  padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#6ee7b7;animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.btn{cursor:pointer;border:none;border-radius:6px;font-size:12px;font-weight:700;
-  padding:6px 13px;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
-.btn-ghost{background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.2)}
-.btn-ghost:hover{background:rgba(255,255,255,.24)}
+    /* Navigation Tabs */
+    .nav-tabs { background:#fff; border-bottom:1px solid var(--gray-200); padding:0 32px; display:flex; gap:4px; overflow-x:auto; }
+    .nav-tab { padding:12px 20px; font-size:13px; font-weight:500; color:var(--gray-600); cursor:pointer; border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; }
+    .nav-tab:hover { color:var(--primary); background:var(--primary-light); }
+    .nav-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
 
-/* ── NAV TABS ── */
-.nav{background:var(--card);border-bottom:1px solid var(--border);
-  display:flex;padding:0 18px;overflow-x:auto;position:sticky;top:54px;z-index:200}
-.ntab{padding:13px 16px;font-size:12px;font-weight:700;color:#64748b;cursor:pointer;
-  border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px}
-.ntab:hover{color:var(--ink)}
-.ntab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    /* Main Container */
+    .container { max-width:1600px; margin:0 auto; padding:24px 32px; }
 
-/* ── PAGE ── */
-.page{display:none;padding:18px 20px;animation:fadeIn .18s ease}
-.page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    /* Metric Cards */
+    .metrics-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-bottom:24px; }
+    .metric-card { background:#fff; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border-left:4px solid var(--primary); transition:transform .2s, box-shadow .2s; cursor:pointer; }
+    .metric-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+    .metric-card.leads { border-left-color:var(--info); }
+    .metric-card.deals { border-left-color:var(--success); }
+    .metric-card.warning { border-left-color:var(--warning); }
+    .metric-card.danger { border-left-color:var(--danger); }
+    .metric-card .label { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-600); margin-bottom:4px; }
+    .metric-card .value { font-size:28px; font-weight:700; color:var(--dark); }
+    .metric-card .sub { font-size:11px; color:var(--gray-600); margin-top:4px; }
 
-/* ── STATUS BAR ── */
-.status-bar{border-radius:7px;padding:9px 14px;font-size:12px;margin-bottom:14px;
-  display:flex;align-items:center;gap:7px;font-weight:500}
-.status-bar.info{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3}
-.status-bar.ok{background:#d1fae5;border:1px solid #a7f3d0;color:#065f46}
-.status-bar.warn{background:#fef3c7;border:1px solid #fde68a;color:#92400e}
-.status-bar.err{background:#fee2e2;border:1px solid #fecaca;color:#991b1b}
+    /* Section */
+    .section { background:#fff; border-radius:var(--radius); padding:24px; margin-bottom:24px; box-shadow:var(--shadow); }
+    .section-title { font-size:16px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .section-title i { color:var(--primary); }
 
-/* ── DEBUG BOX ── */
-.debug-box{background:#1e293b;color:#94a3b8;font-family:monospace;font-size:11px;
-  border-radius:8px;padding:12px 14px;margin-bottom:14px;display:none;max-height:180px;overflow-y:auto}
-.debug-box.show{display:block}
-.debug-box .ok{color:#6ee7b7}
-.debug-box .err{color:#fca5a5}
-.debug-box .hi{color:#fcd34d}
+    /* Charts Grid */
+    .charts-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:24px; margin-bottom:24px; }
+    .chart-box { background:#fff; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
+    .chart-box h3 { font-size:14px; font-weight:600; margin-bottom:12px; color:var(--gray-800); }
+    .chart-box canvas { width:100% !important; max-height:300px; }
 
-/* ── SECTION HEADER ── */
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.sec-title{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:7px}
-.sec-title::before{content:'';width:4px;height:17px;background:var(--accent);border-radius:2px}
+    /* Filters */
+    .filters { background:#fff; border-radius:var(--radius); padding:16px 20px; margin-bottom:24px; box-shadow:var(--shadow); display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .filter-group { display:flex; flex-direction:column; gap:4px; }
+    .filter-group label { font-size:11px; font-weight:500; color:var(--gray-600); text-transform:uppercase; }
+    .filter-group select, .filter-group input { padding:8px 12px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; min-width:150px; }
+    .filter-btn { padding:8px 16px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; font-weight:500; }
+    .filter-btn.clear { background:var(--gray-100); color:var(--gray-800); }
 
-/* ── KPI GRID ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:11px;margin-bottom:18px}
-.kpi{background:var(--card);border-radius:var(--radius);padding:15px;border:1px solid var(--border);
-  box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
-.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,27,42,.12)}
-.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.kpi.c-blue::after{background:var(--accent)}
-.kpi.c-green::after{background:var(--green)}
-.kpi.c-gold::after{background:var(--amber)}
-.kpi.c-red::after{background:var(--red)}
-.kpi.c-purple::after{background:var(--purple)}
-.kpi.c-teal::after{background:var(--teal)}
-.kpi-lbl{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.kpi-val{font-size:22px;font-weight:900;color:var(--ink);line-height:1.1}
-.kpi-sub{font-size:10px;color:#94a3b8;margin-top:3px}
+    /* Tables */
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { background:var(--gray-50); padding:10px 12px; text-align:left; font-weight:600; color:var(--gray-800); border-bottom:2px solid var(--gray-200); white-space:nowrap; }
+    td { padding:10px 12px; border-bottom:1px solid var(--gray-100); }
+    tr:hover td { background:var(--primary-light); }
 
-/* ── FILTER BAR ── */
-.fbar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:13px 15px;margin-bottom:16px;box-shadow:var(--shadow)}
-.fbar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
-.fbar-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#64748b}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:7px}
-.fg label{display:block;font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;
-  letter-spacing:.4px;margin-bottom:2px}
-.fg select{width:100%;border:1px solid var(--border);border-radius:5px;padding:5px 7px;
-  font-size:11px;background:#fff;color:var(--ink);cursor:pointer;outline:none}
-.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(26,86,219,.1)}
-.btn-clear{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:5px;
-  font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer}
-.btn-clear:hover{background:#fee2e2}
+    /* Status Badges */
+    .badge { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:500; display:inline-block; }
+    .badge-success { background:#e6f4ea; color:#137333; }
+    .badge-warning { background:#fef7e0; color:#b05a00; }
+    .badge-danger { background:#fce8e6; color:#c5221f; }
+    .badge-info { background:#e8f0fe; color:#1a73e8; }
+    .badge-gray { background:var(--gray-100); color:var(--gray-600); }
 
-/* ── CHART CARDS ── */
-.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:18px}
-.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:16px;box-shadow:var(--shadow)}
-.cc-title{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:12px}
-.cc canvas{height:220px!important}
+    /* Loading */
+    .loading { text-align:center; padding:60px; }
+    .spinner { width:40px; height:40px; border:4px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
-/* ── TAT CARD ── */
-.tat-card{background:linear-gradient(135deg,var(--ink),var(--ink2));color:#fff;
-  border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:18px}
-.tat-val{font-size:46px;font-weight:900;color:#fcd34d;line-height:1}
-.tat-lbl{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
-.tat-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+    /* Tab Content */
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
 
-/* ── BIFURCATION BAR ── */
-.bif-bar{height:28px;border-radius:7px;overflow:hidden;display:flex;margin-bottom:8px}
-.bif-seg{display:flex;align-items:center;justify-content:center;color:#fff;
-  font-size:10px;font-weight:700;transition:width .4s ease}
-.bif-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px}
-.bif-dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px}
-
-/* ── TABLE ── */
-.tw{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;box-shadow:var(--shadow)}
-.t-toolbar{padding:10px 14px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}
-.t-search{border:1px solid var(--border);border-radius:5px;padding:5px 10px;font-size:12px;width:210px;outline:none}
-.t-search:focus{border-color:var(--accent)}
-.t-scroll{overflow-x:auto;max-height:480px;overflow-y:auto}
-table{width:100%;border-collapse:collapse;font-size:11px}
-thead{position:sticky;top:0;z-index:10}
-thead th{background:var(--ink);color:#fff;padding:7px 10px;text-align:left;
-  font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
-tbody tr:hover{background:#f8fafc}
-tbody td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:200px;
-  overflow:hidden;text-overflow:ellipsis}
-.t-pager{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;
-  border-top:1px solid var(--border);font-size:11px;color:#64748b}
-.pbtns{display:flex;gap:3px}
-.pb{border:1px solid var(--border);background:#fff;border-radius:4px;
-  padding:3px 8px;cursor:pointer;font-size:11px}
-.pb.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.pb:disabled{opacity:.4;cursor:default}
-
-/* ── TAG BADGES ── */
-.tag-alert{background:#fee2e2;color:#b91c1c;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:800}
-.tag-ontrack{background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:800}
-.tag-wip{background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:800}
-.tag-def{background:#e2e8f0;color:#475569;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:800}
-tr.r-alert td:first-child{border-left:3px solid var(--red)}
-tr.r-ontrack td:first-child{border-left:3px solid var(--green)}
-tr.r-wip td:first-child{border-left:3px solid var(--amber)}
-
-/* ── MODAL ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;
-  justify-content:center;align-items:flex-start;padding:36px 16px;overflow-y:auto}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:100%;max-width:1200px;
-  box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-hdr{padding:16px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between}
-.modal-ttl{font-size:14px;font-weight:800;color:var(--ink)}
-.modal-x{background:none;border:none;cursor:pointer;font-size:18px;color:#64748b;
-  width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px}
-.modal-x:hover{background:#f1f5f9}
-
-/* ── REC ENGINE ── */
-.rec-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;box-shadow:var(--shadow);margin-bottom:18px}
-.rec-hdr{background:var(--ink);color:#fff;padding:13px 16px}
-.rec-hdr-title{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px}
-.rec-body{padding:15px}
-.rec-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:12px}
-.rf label{display:block;font-size:10px;font-weight:700;color:#64748b;
-  text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
-.rf select,.rf input{width:100%;border:1px solid var(--border);border-radius:6px;
-  padding:7px 9px;font-size:12px;outline:none}
-.rf select:focus,.rf input:focus{border-color:var(--accent)}
-.rec-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:9px;margin-top:12px}
-.rc{border:1px solid var(--border);border-radius:8px;padding:11px 13px;background:#f8fafc}
-.rc:hover{box-shadow:0 4px 12px rgba(13,27,42,.1)}
-.rc-inner{display:flex;align-items:flex-start;gap:9px}
-.rc-rank{width:21px;height:21px;background:var(--accent);color:#fff;border-radius:50%;
-  font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.rc-name{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:3px}
-.rc-meta{font-size:10px;color:#64748b;display:flex;flex-wrap:wrap;gap:3px}
-.rp{background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:9px;font-size:9px;font-weight:700}
-.rp.g{background:#d1fae5;color:#065f46}
-.rp.y{background:#fef3c7;color:#92400e}
-.rp.hi{background:#d1fae5;color:#065f46}
-.rp.med{background:#fef3c7;color:#92400e}
-
-/* ── ALLOC SECTION ── */
-.alloc-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:11px;margin-bottom:18px}
-.alloc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px;text-align:center;box-shadow:var(--shadow);cursor:pointer}
-.alloc-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,27,42,.12)}
-.alloc-label{font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
-.alloc-val{font-size:26px;font-weight:900;color:var(--ink)}
-.alloc-pct{font-size:11px;color:#94a3b8;margin-top:2px}
-
-/* ── BANKER SUMMARY CARDS ── */
-.state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:11px;margin-bottom:18px}
-.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px;box-shadow:var(--shadow)}
-.sc-title{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
-
-/* ── RIBBON TABS ── */
-.ribbon{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
-.rtab{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;
-  border:1px solid var(--border);background:#fff;color:#64748b;transition:all .15s}
-.rtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-
-/* ── MISC ── */
-.empty{text-align:center;padding:28px;color:#94a3b8;font-size:12px}
-.loader{text-align:center;padding:30px;color:#64748b}
-.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);
-  border-radius:50%;animation:rot .7s linear infinite;margin:0 auto 8px}
-@keyframes rot{to{transform:rotate(360deg)}}
-
-/* ── RESPONSIVE ── */
-@media(max-width:768px){
-  .topbar{padding:0 12px;height:auto;flex-wrap:wrap;gap:6px;padding-top:8px;padding-bottom:8px}
-  .cgrid{grid-template-columns:1fr}
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .page{padding:12px}
-}
-</style>
+    /* Responsive */
+    @media(max-width:768px) {
+      .container { padding:16px; }
+      .metrics-grid { grid-template-columns:repeat(2, 1fr); }
+      .charts-grid { grid-template-columns:1fr; }
+      .header { padding:12px 16px; }
+      .nav-tabs { padding:0 16px; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ═══ TOPBAR ═══ -->
-<header class="topbar">
-  <div class="brand"><div class="brand-dot">BK</div>BankerKlub Dashboard</div>
-  <div class="topbar-r">
-    <div class="sync-pill"><span class="sync-dot"></span><span id="syncLbl">Initialising…</span></div>
-    <button class="btn btn-ghost" onclick="refreshAll()">⟳ Refresh</button>
-    <button class="btn btn-ghost" onclick="toggleDebug()">🔍 Debug</button>
+<!-- HEADER -->
+<div class="header">
+  <h1><i class="fas fa-chart-line"></i> BankerKlub Dashboard</h1>
+  <div class="status">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Connecting...</span>
+    <span id="lastUpdated"></span>
   </div>
-</header>
-
-<!-- ═══ NAV ═══ -->
-<nav class="nav">
-  <div class="ntab active" data-page="overview">📊 Overview</div>
-  <div class="ntab" data-page="pipeline">🔄 Pipeline</div>
-  <div class="ntab" data-page="revenue">💰 Revenue</div>
-  <div class="ntab" data-page="allocation">👥 Allocation</div>
-  <div class="ntab" data-page="bankers">👤 Bankers</div>
-  <div class="ntab" data-page="cp">🤝 Channel Partners</div>
-  <div class="ntab" data-page="lenders">🏦 Lenders</div>
-  <div class="ntab" data-page="reco">🎯 Recommend</div>
-  <div class="ntab" data-page="rawdata">📋 Raw Data</div>
-</nav>
-
-<!-- ═══ DEBUG BOX ═══ -->
-<div style="padding:0 20px" id="debugWrap">
-  <div class="debug-box" id="debugBox"></div>
 </div>
 
-<!-- ═══════════════════════════════════
-     PAGE: OVERVIEW
-═══════════════════════════════════════ -->
-<div id="page-overview" class="page active">
-  <div class="status-bar info" id="mainStatus">⏳ Connecting to Google Sheets…</div>
+<!-- NAVIGATION -->
+<div class="nav-tabs">
+  <div class="nav-tab active" data-tab="overview">📊 Overview</div>
+  <div class="nav-tab" data-tab="pipeline">📋 Pipeline Analysis</div>
+  <div class="nav-tab" data-tab="revenue">💰 Revenue Analysis</div>
+  <div class="nav-tab" data-tab="allocation">📌 Lead Allocation</div>
+  <div class="nav-tab" data-tab="bankers">🏦 Banker Analytics</div>
+  <div class="nav-tab" data-tab="channelpartners">🤝 Channel Partners</div>
+</div>
 
-  <!-- COUNT KPIs -->
-  <div class="sec-hdr"><div class="sec-title">Pipeline Metrics</div>
-    <span style="font-size:10px;color:#94a3b8">Click any card to drill down</span></div>
-  <div class="kpi-grid" id="kpiCounts">
-    <div class="kpi c-blue" onclick="openModal('all')"><div class="kpi-lbl">Total Records</div><div class="kpi-val" id="k-total">—</div><div class="kpi-sub">All mandates</div></div>
-    <div class="kpi c-blue" onclick="openModal('leads')"><div class="kpi-lbl">Leads</div><div class="kpi-val" id="k-leads">—</div><div class="kpi-sub" id="k-leads-pct"></div></div>
-    <div class="kpi c-green" onclick="openModal('deals')"><div class="kpi-lbl">Deals</div><div class="kpi-val" id="k-deals">—</div><div class="kpi-sub" id="k-deals-pct"></div></div>
-    <div class="kpi c-purple" onclick="openModal('bankers')"><div class="kpi-lbl">Bankers</div><div class="kpi-val" id="k-bankers">—</div><div class="kpi-sub">Onboarded</div></div>
-    <div class="kpi c-teal" onclick="openModal('cp')"><div class="kpi-lbl">Channel Partners</div><div class="kpi-val" id="k-cp">—</div><div class="kpi-sub">Active CPs</div></div>
-    <div class="kpi c-gold" onclick="openModal('lenders')"><div class="kpi-lbl">Lenders</div><div class="kpi-val" id="k-lenders">—</div><div class="kpi-sub">In database</div></div>
+<!-- MAIN CONTENT -->
+<div class="container">
+
+  <!-- LOADING STATE -->
+  <div class="loading" id="loadingState">
+    <div class="spinner"></div>
+    <p>⏳ Connecting to Google Sheets...</p>
   </div>
 
-  <!-- REVENUE KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi c-gold" onclick="openModal('rev_pipeline')"><div class="kpi-lbl">Revenue Pipeline</div><div class="kpi-val" id="k-revpipe">—</div><div class="kpi-sub">Total Expected (Cr.)</div></div>
-    <div class="kpi c-green" onclick="openModal('rev_expected')"><div class="kpi-lbl">Revenue Expected</div><div class="kpi-val" id="k-revexp">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi c-green" onclick="openModal('rev_collected')"><div class="kpi-lbl">Revenue Collected</div><div class="kpi-val" id="k-revcol">—</div><div class="kpi-sub">Payments received</div></div>
-    <div class="kpi c-blue" onclick="openModal('rev_advance')"><div class="kpi-lbl">Advance Amt</div><div class="kpi-val" id="k-adv">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi c-red" onclick="openModal('rev_refund')"><div class="kpi-lbl">Refund Amount</div><div class="kpi-val" id="k-refund">—</div><div class="kpi-sub">Cr. refunded</div></div>
-    <div class="kpi c-teal" onclick="openModal('rev_net')"><div class="kpi-lbl">Net Revenue</div><div class="kpi-val" id="k-net">—</div><div class="kpi-sub">After refunds</div></div>
-  </div>
-
-  <!-- TAT + CHARTS -->
-  <div class="cgrid" style="grid-template-columns:220px 1fr 1fr;margin-bottom:16px" id="topChartsRow">
-    <div class="tat-card">
-      <div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:7px">Avg TAT</div>
-        <div class="tat-val" id="avgTAT">—</div>
-        <div class="tat-lbl">Days · Leads → Mandate Signoff</div>
-        <div class="tat-sub">Across filtered mandates</div>
+  <!-- ===== OVERVIEW TAB ===== -->
+  <div class="tab-content active" id="tab-overview" style="display:none;">
+    
+    <!-- PRIMARY METRICS -->
+    <div class="metrics-grid" id="primaryMetrics">
+      <div class="metric-card">
+        <div class="label">Total Records</div>
+        <div class="value" id="totalRecords">—</div>
+        <div class="sub">All mandates</div>
+      </div>
+      <div class="metric-card leads">
+        <div class="label">Leads</div>
+        <div class="value" id="totalLeads">—</div>
+        <div class="sub">From "Current Tagging in"</div>
+      </div>
+      <div class="metric-card deals">
+        <div class="label">Deals</div>
+        <div class="value" id="totalDeals">—</div>
+        <div class="sub">From "Current Tagging in"</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Bankers</div>
+        <div class="value" id="totalBankers">—</div>
+        <div class="sub">Onboarded</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Channel Partners</div>
+        <div class="value" id="totalCPs">—</div>
+        <div class="sub">Active CPs</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Lenders</div>
+        <div class="value" id="totalLenders">—</div>
+        <div class="sub">In database</div>
       </div>
     </div>
-    <div class="cc"><div class="cc-title">Tagging Status Mix</div><canvas id="chartTagging"></canvas></div>
-    <div class="cc"><div class="cc-title">Pipeline by Mandate Status</div><canvas id="chartMandateStatus"></canvas></div>
-  </div>
 
-  <!-- FILTERS -->
-  <div class="fbar">
-    <div class="fbar-top">
-      <div class="fbar-lbl">🔍 Live Filters & Slicers (15 dimensions)</div>
-      <button class="btn-clear" onclick="clearFilters()">✕ Clear All</button>
-    </div>
-    <div class="fgrid" id="filterGrid"></div>
-  </div>
-
-  <!-- BIFURCATION -->
-  <div class="sec-hdr"><div class="sec-title">Route Bifurcation (by Lead Source)</div></div>
-  <div class="cc" style="margin-bottom:16px">
-    <div class="bif-bar" id="bifBar"></div>
-    <div class="bif-legend" id="bifLegend"></div>
-  </div>
-  <div class="alloc-cards" id="bifCards"></div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: PIPELINE
-═══════════════════════════════════════ -->
-<div id="page-pipeline" class="page">
-  <div class="sec-hdr"><div class="sec-title">Pipeline Analysis</div></div>
-  <div class="ribbon" id="pipeRibbon">
-    <div class="rtab active" onclick="setPipeTab('status',this)">By Status</div>
-    <div class="rtab" onclick="setPipeTab('type',this)">By Mandate Type</div>
-    <div class="rtab" onclick="setPipeTab('branch',this)">By Branch</div>
-    <div class="rtab" onclick="setPipeTab('ageing',this)">Ageing</div>
-    <div class="rtab" onclick="setPipeTab('stage',this)">Deal Stage</div>
-  </div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title" id="pc1t">Mandate Status Distribution</div><canvas id="pc1"></canvas></div>
-    <div class="cc"><div class="cc-title" id="pc2t">Mandate Type Mix</div><canvas id="pc2"></canvas></div>
-    <div class="cc"><div class="cc-title" id="pc3t">Branch Performance</div><canvas id="pc3"></canvas></div>
-  </div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">Ageing Slab Distribution</div><canvas id="pc4"></canvas></div>
-    <div class="cc"><div class="cc-title">Deal Stage Funnel</div><canvas id="pc5"></canvas></div>
-    <div class="cc"><div class="cc-title">Ticket Size Distribution</div><canvas id="pc6"></canvas></div>
-  </div>
-  <div class="sec-hdr" style="margin-top:6px"><div class="sec-title">Pipeline Table</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tPipe')">
-    <span id="tPipeCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tPipe"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tPipePager"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: REVENUE
-═══════════════════════════════════════ -->
-<div id="page-revenue" class="page">
-  <div class="sec-hdr"><div class="sec-title">Revenue Analysis</div></div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">Revenue Breakdown (Cr.)</div><canvas id="rc1"></canvas></div>
-    <div class="cc"><div class="cc-title">Revenue by Mandate Type</div><canvas id="rc2"></canvas></div>
-    <div class="cc"><div class="cc-title">Revenue by Branch</div><canvas id="rc3"></canvas></div>
-  </div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">Debt vs Equity vs Fixed Fee</div><canvas id="rc4"></canvas></div>
-    <div class="cc"><div class="cc-title">Revenue Waterfall</div><canvas id="rc5"></canvas></div>
-  </div>
-  <div class="sec-hdr" style="margin-top:6px"><div class="sec-title">Revenue Table</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tRev')">
-    <span id="tRevCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tRev"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tRevPager"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: ALLOCATION
-═══════════════════════════════════════ -->
-<div id="page-allocation" class="page">
-  <div class="sec-hdr"><div class="sec-title">Lead Allocation Bifurcation</div></div>
-  <div class="cc" style="margin-bottom:16px">
-    <div class="bif-bar" id="allocBar2"></div>
-    <div class="bif-legend" id="allocLegend2"></div>
-  </div>
-  <div class="alloc-cards" id="allocCards2"></div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">Allocation by Route</div><canvas id="ac1"></canvas></div>
-    <div class="cc"><div class="cc-title">Unit-wise Bifurcation</div><canvas id="ac2"></canvas></div>
-    <div class="cc"><div class="cc-title">Branch × Route Heatmap</div><canvas id="ac3"></canvas></div>
-  </div>
-  <div class="sec-hdr" style="margin-top:6px"><div class="sec-title">Allocation Table</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tAlloc')">
-    <span id="tAllocCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tAlloc"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tAllocPager"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: BANKERS
-═══════════════════════════════════════ -->
-<div id="page-bankers" class="page">
-  <div class="sec-hdr"><div class="sec-title">Banker Onboarding & Analytics</div></div>
-  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi c-purple"><div class="kpi-lbl">Total Bankers</div><div class="kpi-val" id="bk-tot">—</div></div>
-    <div class="kpi c-green"><div class="kpi-lbl">States Covered</div><div class="kpi-val" id="bk-states">—</div></div>
-    <div class="kpi c-gold"><div class="kpi-lbl">Cities Covered</div><div class="kpi-val" id="bk-cities">—</div></div>
-    <div class="kpi c-teal"><div class="kpi-lbl">Avg Experience</div><div class="kpi-val" id="bk-exp">—</div><div class="kpi-sub">years</div></div>
-  </div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">Banker Expertise Distribution</div><canvas id="bkc1"></canvas></div>
-    <div class="cc"><div class="cc-title">Bankers by State</div><canvas id="bkc2"></canvas></div>
-    <div class="cc"><div class="cc-title">Experience Distribution</div><canvas id="bkc3"></canvas></div>
-  </div>
-  <div class="sec-hdr" style="margin-top:2px"><div class="sec-title">State & Amount Summary</div></div>
-  <div class="state-grid" id="bkStateSummary"></div>
-  <div class="sec-hdr"><div class="sec-title">Banker Directory</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tBanker')">
-    <span id="tBankerCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tBanker"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tBankerPager"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: CHANNEL PARTNERS
-═══════════════════════════════════════ -->
-<div id="page-cp" class="page">
-  <div class="sec-hdr"><div class="sec-title">Channel Partner Overview</div></div>
-  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi c-teal"><div class="kpi-lbl">Total CPs</div><div class="kpi-val" id="cp-tot">—</div></div>
-    <div class="kpi c-green"><div class="kpi-lbl">States</div><div class="kpi-val" id="cp-states">—</div></div>
-    <div class="kpi c-gold"><div class="kpi-lbl">Cities</div><div class="kpi-val" id="cp-cities">—</div></div>
-    <div class="kpi c-blue"><div class="kpi-lbl">Expertise Areas</div><div class="kpi-val" id="cp-exp">—</div></div>
-  </div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">CP Expertise</div><canvas id="cpc1"></canvas></div>
-    <div class="cc"><div class="cc-title">CPs by State</div><canvas id="cpc2"></canvas></div>
-    <div class="cc"><div class="cc-title">Top Cities</div><canvas id="cpc3"></canvas></div>
-  </div>
-  <div class="sec-hdr"><div class="sec-title">CP Directory</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tCP')">
-    <span id="tCPCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tCP"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tCPPager"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: LENDERS
-═══════════════════════════════════════ -->
-<div id="page-lenders" class="page">
-  <div class="sec-hdr"><div class="sec-title">Lender Database</div></div>
-  <div class="cgrid">
-    <div class="cc"><div class="cc-title">Lenders by Loan Type Expertise</div><canvas id="lc1"></canvas></div>
-    <div class="cc"><div class="cc-title">Lender Category Mix</div><canvas id="lc2"></canvas></div>
-    <div class="cc"><div class="cc-title">Geographic Coverage</div><canvas id="lc3"></canvas></div>
-  </div>
-  <div class="sec-hdr"><div class="sec-title">Lender Directory</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tLender')">
-    <span id="tLenderCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tLender"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tLenderPager"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PAGE: RECOMMEND
-═══════════════════════════════════════ -->
-<div id="page-reco" class="page">
-  <!-- Banker/CP -->
-  <div class="rec-wrap">
-    <div class="rec-hdr"><div class="rec-hdr-title">🎯 Banker & Channel Partner Recommendation Engine</div></div>
-    <div class="rec-body">
-      <div class="rec-form">
-        <div class="rf"><label>Mandate Type *</label>
-          <select id="rmt" onchange="runBankerRec()">
-            <option value="">— Select —</option>
-            <option>Debt</option><option>Debt+Equity</option><option>Equity</option>
-            <option>Structured Debt</option><option>IPO Advisory</option><option>Pre-IPO</option>
-            <option>NPA/OTS</option><option>Bill Discounting</option><option>Acquisition Finance</option>
-            <option>Working Capital</option><option>Term Loan</option><option>Other</option>
-            <option>Retail Loan - LAP</option>
-          </select></div>
-        <div class="rf"><label>State</label><select id="rst" onchange="runBankerRec()"><option value="">All States</option></select></div>
-        <div class="rf"><label>City</label><select id="rct" onchange="runBankerRec()"><option value="">All Cities</option></select></div>
-        <div class="rf"><label>Source Type</label>
-          <select id="rtype" onchange="runBankerRec()">
-            <option value="both">Banker + CP</option><option value="banker">Banker Only</option><option value="cp">CP Only</option>
-          </select></div>
+    <!-- REVENUE METRICS -->
+    <div class="metrics-grid" id="revenueMetrics">
+      <div class="metric-card warning">
+        <div class="label">Revenue Pipeline</div>
+        <div class="value" id="revPipeline">—</div>
+        <div class="sub">Total Expected (Cr.)</div>
       </div>
-      <div id="bankerRecOut" class="rec-results"><div class="empty">Select Mandate Type to get recommendations</div></div>
-    </div>
-  </div>
-
-  <!-- Lender -->
-  <div class="rec-wrap">
-    <div class="rec-hdr"><div class="rec-hdr-title">🏦 Lender Shortlisting Engine</div></div>
-    <div class="rec-body">
-      <div class="rec-form">
-        <div class="rf"><label>Mandate Type *</label>
-          <select id="lmt" onchange="runLenderRec()">
-            <option value="">— Select —</option>
-            <option>Debt</option><option>Debt+Equity</option><option>Equity</option>
-            <option>Structured Debt</option><option>IPO Advisory</option><option>Pre-IPO</option>
-            <option>NPA/OTS</option><option>Bill Discounting</option><option>Acquisition Finance</option>
-            <option>Working Capital</option><option>Term Loan</option><option>Other</option>
-            <option>Retail Loan - LAP</option>
-          </select></div>
-        <div class="rf"><label>State</label><select id="lst" onchange="runLenderRec()"><option value="">All States</option></select></div>
-        <div class="rf"><label>City</label><select id="lct" onchange="runLenderRec()"><option value="">All Cities</option></select></div>
-        <div class="rf"><label>Required Amount (Cr.)</label><input type="number" id="lamt" placeholder="e.g. 50" oninput="runLenderRec()"></div>
+      <div class="metric-card">
+        <div class="label">Revenue Expected</div>
+        <div class="value" id="revExpected">—</div>
+        <div class="sub">Cr.</div>
       </div>
-      <div id="lenderRecOut" class="rec-results"><div class="empty">Select Mandate Type to get recommendations</div></div>
+      <div class="metric-card deals">
+        <div class="label">Revenue Collected</div>
+        <div class="value" id="revCollected">—</div>
+        <div class="sub">Payments received</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Advance Amt</div>
+        <div class="value" id="revAdvance">—</div>
+        <div class="sub">Cr.</div>
+      </div>
+      <div class="metric-card danger">
+        <div class="label">Refund Amount</div>
+        <div class="value" id="revRefund">—</div>
+        <div class="sub">Cr. refunded</div>
+      </div>
+      <div class="metric-card deals">
+        <div class="label">Net Revenue</div>
+        <div class="value" id="revNet">—</div>
+        <div class="sub">After refunds</div>
+      </div>
+    </div>
+
+    <!-- TAGGING STATUS & PIPELINE CHARTS -->
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3><i class="fas fa-tags"></i> Tagging Status Mix (Leads vs Deals)</h3>
+        <canvas id="chartTaggingMix"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3><i class="fas fa-stream"></i> Pipeline by Lender Status</h3>
+        <canvas id="chartPipelineStatus"></canvas>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="section">
+      <div class="section-title"><i class="fas fa-filter"></i> 🔍 Live Filters & Slicers</div>
+      <div class="filters">
+        <div class="filter-group">
+          <label>Unit</label>
+          <select id="filterUnit"><option value="">All Units</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Branch</label>
+          <select id="filterBranch"><option value="">All Branches</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Lender Status</label>
+          <select id="filterStatus"><option value="">All Statuses</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Lender Type</label>
+          <select id="filterLenderType"><option value="">All Types</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Tagging (Lead/Deal)</label>
+          <select id="filterTagging">
+            <option value="">All</option>
+            <option value="Lead">Leads Only</option>
+            <option value="Deal">Deals Only</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date From</label>
+          <input type="date" id="filterDateFrom">
+        </div>
+        <div class="filter-group">
+          <label>Date To</label>
+          <input type="date" id="filterDateTo">
+        </div>
+        <button class="filter-btn" onclick="applyFilters()">Apply</button>
+        <button class="filter-btn clear" onclick="clearFilters()">✕ Clear All</button>
+      </div>
+    </div>
+
+    <!-- ADDITIONAL OVERVIEW CHARTS -->
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3><i class="fas fa-sitemap"></i> Unit-wise Distribution</h3>
+        <canvas id="chartUnitDist"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3><i class="fas fa-building"></i> Branch-wise Distribution</h3>
+        <canvas id="chartBranchDist"></canvas>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════
-     PAGE: RAW DATA
-═══════════════════════════════════════ -->
-<div id="page-rawdata" class="page">
-  <div class="sec-hdr"><div class="sec-title">Raw Data — Master Sheet</div></div>
-  <div class="tw">
-    <div class="t-toolbar"><input class="t-search" placeholder="Search any field…" oninput="tblSearch(this,'tRaw')">
-    <span id="tRawCount" style="font-size:11px;color:#64748b"></span></div>
-    <div class="t-scroll"><table id="tRaw"><thead><tr></tr></thead><tbody></tbody></table></div>
-    <div class="t-pager" id="tRawPager"></div>
-  </div>
-</div>
-
-<!-- ═══ MODAL ═══ -->
-<div class="modal-bg" id="modalBg" onclick="closeBgModal(event)">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-ttl" id="modalTtl">Drill Down</div>
-      <button class="modal-x" onclick="closeModal()">✕</button>
+  <!-- ===== PIPELINE TAB ===== -->
+  <div class="tab-content" id="tab-pipeline">
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3>Mandate Status Distribution</h3>
+        <canvas id="chartMandateStatus"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Lender Type Distribution</h3>
+        <canvas id="chartLenderType"></canvas>
+      </div>
     </div>
-    <div class="tw" style="border:none;border-radius:0">
-      <div class="t-toolbar"><input class="t-search" placeholder="Search…" oninput="tblSearch(this,'tModal')">
-      <span id="tModalCount" style="font-size:11px;color:#64748b"></span></div>
-      <div class="t-scroll"><table id="tModal"><thead><tr></tr></thead><tbody></tbody></table></div>
-      <div class="t-pager" id="tModalPager"></div>
+    <div class="section">
+      <div class="section-title"><i class="fas fa-table"></i> Pipeline Table</div>
+      <div class="table-wrap">
+        <table id="pipelineTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Lead/Deal</th>
+              <th>Current Tagging</th>
+              <th>Deals Name</th>
+              <th>Lender Status</th>
+              <th>Amount (₹)</th>
+              <th>Lender Type</th>
+              <th>Lender Name</th>
+              <th>Unit</th>
+              <th>Branch</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="pipelineTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
+
+  <!-- ===== REVENUE TAB ===== -->
+  <div class="tab-content" id="tab-revenue">
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3>Revenue by Branch</h3>
+        <canvas id="chartRevBranch"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Revenue by Status</h3>
+        <canvas id="chartRevStatus"></canvas>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title"><i class="fas fa-table"></i> Revenue Table</div>
+      <div class="table-wrap" id="revenueTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ===== ALLOCATION TAB ===== -->
+  <div class="tab-content" id="tab-allocation">
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3>Allocation by Unit</h3>
+        <canvas id="chartAllocUnit"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Lead vs Deal by Branch</h3>
+        <canvas id="chartAllocBranch"></canvas>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title"><i class="fas fa-table"></i> Allocation Table</div>
+      <div class="table-wrap" id="allocationTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ===== BANKERS TAB ===== -->
+  <div class="tab-content" id="tab-bankers">
+    <div class="metrics-grid" id="bankerMetrics"></div>
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3>Bankers by State</h3>
+        <canvas id="chartBankerState"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Banker Expertise Distribution</h3>
+        <canvas id="chartBankerExpertise"></canvas>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title"><i class="fas fa-address-book"></i> Banker Directory</div>
+      <div class="table-wrap" id="bankerTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ===== CHANNEL PARTNERS TAB ===== -->
+  <div class="tab-content" id="tab-channelpartners">
+    <div class="metrics-grid" id="cpMetrics"></div>
+    <div class="charts-grid">
+      <div class="chart-box">
+        <h3>CPs by State</h3>
+        <canvas id="chartCPState"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>CP Expertise Distribution</h3>
+        <canvas id="chartCPExpertise"></canvas>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title"><i class="fas fa-handshake"></i> CP Directory</div>
+      <div class="table-wrap" id="cpTableWrap"></div>
+    </div>
+  </div>
+
 </div>
 
-<!-- ═══════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════ -->
 <script>
-'use strict';
+// =====================================================================
+// CONFIGURATION - UPDATE THIS WITH YOUR DEPLOYED APPS SCRIPT URL
+// =====================================================================
+const APPS_SCRIPT_URL = 'YOUR_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE';
+// Example: 'https://script.google.com/macros/s/AKfycbx.../exec'
 
-/* ─────────────────────────────────────
-   CONFIG
-───────────────────────────────────── */
-var SHEET_ID = '1zo85_oRIDLQsR--kCmwWSYBDgm-ZElHIkoC9PNaUB2k';
-var GIDS = { master:'397920580', bankers:'1311522759', cp:'949525485', lenders:'695157663' };
-var PAGE_SZ = 50;
-var PALETTE = ['#1A56DB','#10B981','#F59E0B','#8B5CF6','#14B8A6','#EF4444','#EC4899','#F97316','#06B6D4','#84CC16','#6366F1','#A855F7','#64748B'];
+// =====================================================================
+// GLOBAL STATE
+// =====================================================================
+let rawData = null;
+let filteredData = null;
+let charts = {};
 
-/* ─────────────────────────────────────
-   STATE
-───────────────────────────────────── */
-var D = { master:[], bankers:[], cp:[], lenders:[] };
-var FILTERED = [];
-var ACTIVE_FILTERS = {};
-var CHARTS = {};
-var TBLS = {};            // pagination state per table-id
-var DBG = [];             // debug log lines
-var COL = {};             // resolved column keys for master sheet
+// =====================================================================
+// INITIALIZATION
+// =====================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  fetchData();
+});
 
-/* ─────────────────────────────────────
-   COLUMN DEFINITIONS
-   These are the DISPLAY names we show in filters/headers.
-   The resolver will find the actual key from the sheet.
-───────────────────────────────────── */
-var MASTER_COL_NAMES = {
-  company:       'Company Name',
-  tagging:       'Tagging',
-  unit:          'Unit Name',
-  branch:        'Mandate Branch',
-  execOwner:     'Execution Owner',
-  mandateOwner:  'Mandate Owner',
-  mandateType:   'Mandate Type',
-  mandateStatus: 'Mandate Status',
-  tat:           'TAT (In Days) Leads to Mandate Signoff',
-  status:        'Current Status',
-  comments:      'Comments',
-  debtAmt:       'Total Debt Amt (In Cr.)',
-  equityAmt:     'Total Equity Amt (In Cr.)',
-  fixedFee:      'Total Fixed Fee Amt (In Cr.)',
-  feePctDebt:    '% Fee on Debt Amt',
-  feePctEq:      '% Fee on Equity Amt',
-  feePctFixed:   '% Fee on Fixed Amt',
-  expectedRev:   'Total Expected Revenue (In Cr.)',
-  payment:       'Total Payment Received',
-  refund:        'Refund',
-  netRev:        'Net Revenue',
-  caseStatus:    'Case Status',
-  leadSource:    'Lead Source',
-  currentTagIn:  'Current Tagging In',
-  dealStage:     'Deal Stage',
-  ageingSlab:    'Ageing Slab',
-  ticketSize:    'Ticket Size',
-  lenderShort:   'Lender Shortlist',
-  doability:     'Doability Branch',
-};
-
-/* Filter definitions (order matches your spec) */
-var FILTER_DEFS = [
-  {k:'caseStatus',  lbl:'Case Status'},
-  {k:'unit',        lbl:'Unit Name'},
-  {k:'branch',      lbl:'Mandate Branch'},
-  {k:'tagging',     lbl:'Tagging'},
-  {k:'leadSource',  lbl:'Lead Source'},
-  {k:'currentTagIn',lbl:'Current Tagging In'},
-  {k:'mandateStatus',lbl:'Mandate Status'},
-  {k:'mandateOwner',lbl:'Mandate Owner'},
-  {k:'mandateType', lbl:'Mandate Type'},
-  {k:'dealStage',   lbl:'Deal Stage'},
-  {k:'ageingSlab',  lbl:'Ageing Slab'},
-  {k:'ticketSize',  lbl:'Ticket Size'},
-  {k:'company',     lbl:'Company Name'},
-  {k:'lenderShort', lbl:'Lender Shortlist'},
-  {k:'doability',   lbl:'Doability Branch'},
-];
-
-/* Drill-down modal columns */
-var DRILL_KEYS = ['company','tagging','unit','branch','execOwner','mandateType',
-  'mandateStatus','tat','status','comments','debtAmt','equityAmt','fixedFee',
-  'feePctDebt','feePctEq','feePctFixed','expectedRev','payment','refund','netRev'];
-
-/* ─────────────────────────────────────
-   FETCH — uses gviz/tq JSON (preserves column labels exactly)
-───────────────────────────────────── */
-function gvizJSON(gid){
-  return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-         '/gviz/tq?tqx=out:json&gid=' + gid;
-}
-
-function fetchSheet(gid, label){
-  return fetch(gvizJSON(gid))
-    .then(function(r){ return r.text(); })
-    .then(function(txt){
-      /* gviz wraps response in a JS callback: google.visualization.Query.setResponse({...}); */
-      var json = JSON.parse(txt.replace(/^[^\(]+\(/, '').replace(/\);\s*$/, ''));
-      var table = json.table;
-      var cols = table.cols.map(function(c){ return (c.label || c.id || '').trim(); });
-      var rows = table.rows.map(function(r){
-        var obj = {};
-        cols.forEach(function(name, i){
-          var cell = r.c && r.c[i];
-          obj[name] = (cell && cell.v !== null && cell.v !== undefined) ? cell.v : '';
-        });
-        return obj;
-      });
-      var clean = rows.filter(function(row){
-        return Object.values(row).some(function(v){ return v !== '' && v !== null; });
-      });
-      dbg('<span class="ok">✅ ' + label + ': ' + clean.length + ' rows | cols: ' + cols.slice(0,6).join(', ') + '…</span>');
-      return { cols:cols, rows:clean };
-    })
-    .catch(function(e){
-      dbg('<span class="err">❌ ' + label + ' failed: ' + e.message + '</span>');
-      return { cols:[], rows:[] };
+// =====================================================================
+// TAB NAVIGATION
+// =====================================================================
+function initTabs() {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      const target = document.getElementById('tab-' + tab.dataset.tab);
+      if (target) target.classList.add('active');
     });
+  });
 }
 
-/* ─────────────────────────────────────
-   COLUMN RESOLVER
-   After loading, maps our logical keys to actual sheet column names.
-   Strategy: exact match → case-insensitive match → keyword match
-───────────────────────────────────── */
-function resolveColumns(sampleRow){
-  var sheetKeys = Object.keys(sampleRow);
-  COL = {};
+// =====================================================================
+// DATA FETCHING
+// =====================================================================
+async function fetchData() {
+  try {
+    updateStatus('connecting', 'Fetching data...');
+    
+    const response = await fetch(APPS_SCRIPT_URL + '?action=all');
+    if (!response.ok) throw new Error('Network error: ' + response.status);
+    
+    rawData = await response.json();
+    
+    if (rawData.error) throw new Error(rawData.error);
+    
+    filteredData = rawData.masterData || [];
+    
+    updateStatus('connected', 'Live');
+    document.getElementById('lastUpdated').textContent = 
+      '| Updated: ' + new Date().toLocaleTimeString('en-IN');
+    
+    // Hide loading, show content
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('tab-overview').style.display = 'block';
+    
+    // Render everything
+    renderDashboard();
+    populateFilters();
+    
+  } catch (error) {
+    console.error('Fetch Error:', error);
+    updateStatus('error', 'Connection failed');
+    document.getElementById('loadingState').innerHTML = 
+      '<p style="color:#db4437;">❌ Failed to connect: ' + error.message + '</p>' +
+      '<p style="margin-top:12px;color:#5f6368;">Check your Apps Script deployment URL</p>' +
+      '<button onclick="fetchData()" style="margin-top:16px;padding:10px 20px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;">Retry</button>';
+  }
+}
 
-  Object.keys(MASTER_COL_NAMES).forEach(function(logicalKey){
-    var target = MASTER_COL_NAMES[logicalKey].toLowerCase().trim();
-    // 1. Exact match
-    var found = sheetKeys.find(function(k){ return k.trim() === MASTER_COL_NAMES[logicalKey]; });
-    // 2. Case-insensitive
-    if(!found) found = sheetKeys.find(function(k){ return k.toLowerCase().trim() === target; });
-    // 3. Keyword heuristics
-    if(!found){
-      if(logicalKey === 'currentTagIn')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('current') && kl.includes('tagging'); });
-      else if(logicalKey === 'leadSource')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('lead') && kl.includes('source'); });
-      else if(logicalKey === 'caseStatus')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('case') && kl.includes('status'); });
-      else if(logicalKey === 'mandateStatus')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('mandate') && kl.includes('status'); });
-      else if(logicalKey === 'mandateType')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('mandate') && kl.includes('type'); });
-      else if(logicalKey === 'expectedRev')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return (kl.includes('expected') || kl.includes('total expected')); });
-      else if(logicalKey === 'payment')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('payment') || kl.includes('received'); });
-      else if(logicalKey === 'tat')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('tat') || (kl.includes('days') && kl.includes('leads')); });
-      else if(logicalKey === 'debtAmt')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('debt') && kl.includes('amt'); });
-      else if(logicalKey === 'equityAmt')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('equity') && kl.includes('amt'); });
-      else if(logicalKey === 'dealStage')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('deal') && kl.includes('stage'); });
-      else if(logicalKey === 'ageingSlab')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('ageing') || kl.includes('aging'); });
-      else if(logicalKey === 'lenderShort')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('lender') && kl.includes('short'); });
-      else if(logicalKey === 'doability')
-        found = sheetKeys.find(function(k){ var kl=k.toLowerCase(); return kl.includes('doability'); });
+function updateStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  statusText.textContent = text;
+  dot.style.background = state === 'connected' ? '#0f9d58' : state === 'error' ? '#db4437' : '#f4b400';
+}
+
+// =====================================================================
+// RENDER DASHBOARD
+// =====================================================================
+function renderDashboard() {
+  renderMetrics();
+  renderCharts();
+  renderPipelineTable();
+  renderBankerSection();
+  renderCPSection();
+  renderRevenueSection();
+  renderAllocationSection();
+}
+
+// =====================================================================
+// METRICS RENDERING (with accurate Lead/Deal split)
+// =====================================================================
+function renderMetrics() {
+  const data = filteredData;
+  const summary = rawData.summary || {};
+  
+  // *** CRITICAL: ACCURATE LEAD/DEAL SPLIT from "Current Tagging in" column ***
+  let leads = 0;
+  let deals = 0;
+  
+  data.forEach(record => {
+    const tagging = String(record.currentTaggingIn || '').trim().toLowerCase();
+    
+    if (tagging === 'lead' || tagging === 'leads' || tagging === 'l') {
+      leads++;
+    } else if (tagging === 'deal' || tagging === 'deals' || tagging === 'd') {
+      deals++;
+    } else if (tagging === '') {
+      // Fallback: if Deals column name differs from Related Lead → it's a Deal
+      const dealName = String(record.deals || '').trim();
+      const leadName = String(record.relatedLead || '').trim();
+      if (dealName && dealName !== leadName) {
+        deals++;
+      } else {
+        leads++;
+      }
+    } else {
+      // Other values - check if contains 'deal'
+      if (tagging.includes('deal')) {
+        deals++;
+      } else {
+        leads++;
+      }
     }
-    COL[logicalKey] = found || null;
   });
-
-  /* ── CRITICAL: Lead vs Deal detection ──
-     Priority 1: "Case Status" column (values: Lead / Deal)
-     Priority 2: "Current Tagging In" column (values: Lead / Deal)
-     We log what we find so you can verify in Debug panel */
-  var colReport = [
-    'caseStatus   → ' + (COL.caseStatus  || 'NOT FOUND'),
-    'currentTagIn → ' + (COL.currentTagIn || 'NOT FOUND'),
-    'leadSource   → ' + (COL.leadSource  || 'NOT FOUND'),
-    'tagging      → ' + (COL.tagging     || 'NOT FOUND'),
-    'company      → ' + (COL.company     || 'NOT FOUND'),
-  ];
-  dbg('<span class="hi">── Column Resolution ──</span>');
-  colReport.forEach(function(l){ dbg('<span class="ok">' + esc(l) + '</span>'); });
-
-  /* Sample first 3 rows to show actual values */
-  if(D.master.length > 0){
-    var sample = D.master.slice(0, 3);
-    dbg('<span class="hi">── Sample values (rows 1-3) ──</span>');
-    sample.forEach(function(row, i){
-      var cs  = COL.caseStatus   ? row[COL.caseStatus]   : 'n/a';
-      var cti = COL.currentTagIn ? row[COL.currentTagIn] : 'n/a';
-      var ls  = COL.leadSource   ? row[COL.leadSource]   : 'n/a';
-      var tag = COL.tagging      ? row[COL.tagging]      : 'n/a';
-      dbg('Row ' + (i+1) + ': CaseStatus="<span class="hi">' + esc(String(cs)) +
-          '</span>" | CurrentTagIn="<span class="hi">' + esc(String(cti)) +
-          '</span>" | LeadSource="' + esc(String(ls)) + '" | Tagging="' + esc(String(tag)) + '"');
+  
+  const totalRecords = data.length;
+  
+  // Verify: Total = Leads + Deals
+  console.log(`✅ Verification: Total(${totalRecords}) = Leads(${leads}) + Deals(${deals}) → ${totalRecords === leads + deals ? 'PASS' : 'FAIL'}`);
+  
+  document.getElementById('totalRecords').textContent = totalRecords.toLocaleString('en-IN');
+  document.getElementById('totalLeads').textContent = leads.toLocaleString('en-IN');
+  document.getElementById('totalDeals').textContent = deals.toLocaleString('en-IN');
+  document.getElementById('totalBankers').textContent = (rawData.bankers || []).length || '—';
+  document.getElementById('totalCPs').textContent = (rawData.channelPartners || []).length || '—';
+  document.getElementById('totalLenders').textContent = (rawData.lenders || []).length || '—';
+  
+  // Revenue metrics
+  const revenue = rawData.revenue || [];
+  if (revenue.length > 0) {
+    let totalExpected = 0, collected = 0, advance = 0, refund = 0;
+    revenue.forEach(r => {
+      totalExpected += parseFloat(r.expectedRevenue || r.revenueExpected || 0);
+      collected += parseFloat(r.revenueCollected || r.collected || 0);
+      advance += parseFloat(r.advanceAmount || r.advance || 0);
+      refund += parseFloat(r.refundAmount || r.refund || 0);
     });
+    document.getElementById('revPipeline').textContent = formatCr(totalExpected);
+    document.getElementById('revExpected').textContent = formatCr(totalExpected);
+    document.getElementById('revCollected').textContent = formatCr(collected);
+    document.getElementById('revAdvance').textContent = formatCr(advance);
+    document.getElementById('revRefund').textContent = formatCr(refund);
+    document.getElementById('revNet').textContent = formatCr(collected - refund);
   }
 }
 
-/* ─────────────────────────────────────
-   CLASSIFY ROW → 'lead' | 'deal'
-
-   The RCA shows two possible column names:
-   - "Case Status" with values like "Lead" / "Deal"
-   - "Current Tagging In" with values like "Lead" / "Deal"
-
-   We try both, preferring Case Status.
-   ANY row where neither resolves to "deal" is counted as Lead
-   → guarantees Leads + Deals = Total (no rows lost)
-───────────────────────────────────── */
-function classify(row){
-  var v1 = COL.caseStatus   ? String(row[COL.caseStatus]   || '').trim().toLowerCase() : '';
-  var v2 = COL.currentTagIn ? String(row[COL.currentTagIn] || '').trim().toLowerCase() : '';
-  /* "deal" or "deals" in either column → Deal */
-  if(v1 === 'deal' || v1 === 'deals') return 'deal';
-  if(v2 === 'deal' || v2 === 'deals') return 'deal';
-  /* explicit "lead" → Lead */
-  if(v1 === 'lead' || v1 === 'leads') return 'lead';
-  if(v2 === 'lead' || v2 === 'leads') return 'lead';
-  /* fallback: treat unknown as Lead so count is preserved */
-  return 'lead';
+function formatCr(val) {
+  if (!val || isNaN(val)) return '—';
+  return '₹' + (val / 10000000).toFixed(2) + ' Cr';
 }
 
-/* ─────────────────────────────────────
-   CLASSIFY ALLOCATION (Lead Source)
-───────────────────────────────────── */
-var ALLOC_COLORS = {
-  'banker':   '#1a56db',
-  'cp':       '#8b5cf6',
-  'referral': '#f59e0b',
-  'inhouse':  '#10b981',
-  'other':    '#64748b',
-};
-var ALLOC_LABELS = {
-  'banker':'🏦 Banker','cp':'🤝 Channel Partner','referral':'🔗 Referral','inhouse':'🏢 Inhouse/Direct','other':'📌 Other'
-};
-
-function allocCat(row){
-  var v = COL.leadSource ? String(row[COL.leadSource] || '').trim().toLowerCase() : '';
-  if(!v) return 'inhouse';
-  if(v === 'banker' || v === 'bankers') return 'banker';
-  if(v.includes('channel') || v === 'cp') return 'cp';
-  if(v.includes('referral') || v.includes('refer')) return 'referral';
-  if(v === 'direct' || v.includes('inhouse') || v.includes('in-house') || v === 'internal' || v === 'team') return 'inhouse';
-  return v; // keep original value
+function formatAmount(val) {
+  if (!val || isNaN(val) || val === 0) return '—';
+  const num = parseFloat(val);
+  if (num >= 10000000) return '₹' + (num / 10000000).toFixed(2) + ' Cr';
+  if (num >= 100000) return '₹' + (num / 100000).toFixed(2) + ' L';
+  return '₹' + num.toLocaleString('en-IN');
 }
 
-/* ─────────────────────────────────────
-   COLUMN VALUE HELPERS
-───────────────────────────────────── */
-function cv(row, logKey){
-  var k = COL[logKey];
-  if(!k) return '';
-  var v = row[k];
-  if(v === null || v === undefined) return '';
-  return String(v).trim();
-}
-function cn(row, logKey){
-  var s = cv(row, logKey).replace(/[^0-9.\-]/g,'');
-  var n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
+// =====================================================================
+// CHARTS RENDERING
+// =====================================================================
+function renderCharts() {
+  renderTaggingMixChart();
+  renderPipelineStatusChart();
+  renderUnitDistChart();
+  renderBranchDistChart();
 }
 
-/* ─────────────────────────────────────
-   LOAD ALL DATA
-───────────────────────────────────── */
-function refreshAll(){
-  D = { master:[], bankers:[], cp:[], lenders:[] };
-  DBG = [];
-  setSync('⏳ Loading…');
-  setStatus('info','⏳ Connecting to Google Sheets (gviz JSON endpoint)…');
-
-  Promise.all([
-    fetchSheet(GIDS.master,  'Master'),
-    fetchSheet(GIDS.bankers, 'Bankers'),
-    fetchSheet(GIDS.cp,      'CP'),
-    fetchSheet(GIDS.lenders, 'Lenders'),
-  ]).then(function(res){
-    D.master  = res[0].rows;
-    D.bankers = res[1].rows;
-    D.cp      = res[2].rows;
-    D.lenders = res[3].rows;
-    FILTERED  = D.master.slice();
-
-    if(!D.master.length){
-      setStatus('err','❌ Master sheet returned 0 rows. Ensure the sheet is published (File → Share → Publish to web) and the GID is correct.');
-      setSync('No data');
-      return;
+function renderTaggingMixChart() {
+  const data = filteredData;
+  let leads = 0, deals = 0;
+  
+  data.forEach(record => {
+    const tagging = String(record.currentTaggingIn || '').trim().toLowerCase();
+    if (tagging === 'deal' || tagging === 'deals' || tagging === 'd') {
+      deals++;
+    } else if (tagging === '' && record.deals && record.deals !== record.relatedLead) {
+      deals++;
+    } else {
+      leads++;
     }
-
-    resolveColumns(D.master[0]);
-
-    /* Verify Lead/Deal split */
-    var leads = 0, deals = 0;
-    D.master.forEach(function(r){ if(classify(r)==='deal') deals++; else leads++; });
-    dbg('<span class="hi">── Lead/Deal Count ──</span>');
-    dbg('Leads: <span class="ok">' + leads + '</span> | Deals: <span class="ok">' + deals + '</span> | Total: <span class="ok">' + D.master.length + '</span> | Sum match: <span class="' + (leads+deals===D.master.length?'ok':'err') + '">' + (leads+deals===D.master.length?'✅ YES':'❌ NO - BUG!') + '</span>');
-
-    setSync('✓ Synced ' + new Date().toLocaleTimeString() +
-            ' | M:' + D.master.length + ' B:' + D.bankers.length +
-            ' CP:' + D.cp.length + ' L:' + D.lenders.length);
-    setStatus('ok','✅ Data loaded — ' + D.master.length + ' master records | ' +
-              leads + ' Leads + ' + deals + ' Deals = ' + D.master.length);
-
-    buildFilters();
-    render();
-    buildAllCharts();
-    buildAllTables();
-    populateRecDropdowns();
-
-  }).catch(function(e){
-    setStatus('err','❌ Network error: ' + e.message);
-    setSync('Error');
   });
-}
-
-/* ─────────────────────────────────────
-   FILTERS
-───────────────────────────────────── */
-function buildFilters(){
-  var grid = document.getElementById('filterGrid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  FILTER_DEFS.forEach(function(fd){
-    var k = COL[fd.k];
-    if(!k) return;
-    var vals = uniq(D.master.map(function(r){ return String(r[k]||'').trim(); }).filter(Boolean)).sort();
-    var div = el('div','fg');
-    div.innerHTML = '<label>' + esc(fd.lbl) + '</label>' +
-      '<select onchange="ACTIVE_FILTERS[\'' + fd.k + '\']=this.value;applyFilters()">' +
-      '<option value="">All (' + vals.length + ')</option>' +
-      vals.map(function(v){ return '<option value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('') +
-      '</select>';
-    grid.appendChild(div);
-  });
-}
-
-function applyFilters(){
-  FILTERED = D.master.filter(function(row){
-    return FILTER_DEFS.every(function(fd){
-      var v = ACTIVE_FILTERS[fd.k];
-      if(!v) return true;
-      var k = COL[fd.k];
-      if(!k) return true;
-      return String(row[k]||'').trim() === v;
-    });
-  });
-  render();
-  buildAllCharts();
-  buildAllTables();
-}
-
-function clearFilters(){
-  ACTIVE_FILTERS = {};
-  document.querySelectorAll('#filterGrid select').forEach(function(s){ s.value=''; });
-  FILTERED = D.master.slice();
-  render();
-  buildAllCharts();
-  buildAllTables();
-}
-
-/* ─────────────────────────────────────
-   RENDER KPIs & OVERVIEW
-───────────────────────────────────── */
-function render(){
-  var rows = FILTERED;
-  var total = rows.length;
-
-  /* ── Lead / Deal ── */
-  var leads = 0, deals = 0;
-  rows.forEach(function(r){ if(classify(r)==='deal') deals++; else leads++; });
-  var lPct = total ? (leads/total*100).toFixed(1)+'%' : '—';
-  var dPct = total ? (deals/total*100).toFixed(1)+'%' : '—';
-
-  setText('k-total', total);
-  setText('k-leads', leads);     setText('k-leads-pct', lPct + ' of total');
-  setText('k-deals', deals);     setText('k-deals-pct', dPct + ' of total');
-  setText('k-bankers', D.bankers.length);
-  setText('k-cp', D.cp.length);
-  setText('k-lenders', D.lenders.length);
-
-  /* ── Revenue ── */
-  var pipe=0, col_=0, refund=0, adv=0;
-  rows.forEach(function(r){
-    pipe   += cn(r,'expectedRev');
-    col_   += cn(r,'payment');
-    refund += cn(r,'refund');
-    adv    += cn(r,'debtAmt') + cn(r,'equityAmt'); /* advance proxy */
-  });
-  var net = col_ - refund;
-  setText('k-revpipe', fmtCr(pipe));
-  setText('k-revexp',  fmtCr(pipe));
-  setText('k-revcol',  fmtCr(col_));
-  setText('k-adv',     fmtCr(adv));
-  setText('k-refund',  fmtCr(refund));
-  setText('k-net',     fmtCr(net));
-
-  /* ── TAT ── */
-  var tats = rows.map(function(r){ return cn(r,'tat'); }).filter(function(v){ return v>0; });
-  setText('avgTAT', tats.length ? (tats.reduce(function(a,b){return a+b;},0)/tats.length).toFixed(1) : '—');
-
-  /* ── Bifurcation ── */
-  var bif = { inhouse:0, banker:0, cp:0, referral:0, other:0 };
-  rows.forEach(function(r){
-    var cat = allocCat(r);
-    if(bif[cat]!==undefined) bif[cat]++;
-    else bif.other++;
-  });
-  var bifKeys = ['inhouse','banker','cp','referral','other'];
-  var bifColors = ['#10b981','#1a56db','#8b5cf6','#f59e0b','#64748b'];
-  var bifLabels = ['Inhouse/Direct','Banker','Channel Partner','Referral','Other'];
-
-  /* Bar */
-  var bar = document.getElementById('bifBar');
-  var leg = document.getElementById('bifLegend');
-  if(bar){
-    bar.innerHTML = bifKeys.map(function(k,i){
-      var pct = total ? (bif[k]/total*100) : 0;
-      return '<div class="bif-seg" style="width:' + pct.toFixed(1) + '%;background:' + bifColors[i] + '" title="' + bifLabels[i] + ': ' + bif[k] + '">' +
-             (pct > 8 ? bif[k] : '') + '</div>';
-    }).join('');
-  }
-  if(leg){
-    leg.innerHTML = bifKeys.map(function(k,i){
-      return '<span><span class="bif-dot" style="background:' + bifColors[i] + '"></span>' +
-             bifLabels[i] + ': ' + bif[k] + ' (' + (total ? (bif[k]/total*100).toFixed(1) : '0') + '%)</span>';
-    }).join('');
-  }
-
-  /* Cards */
-  var bifCards = document.getElementById('bifCards');
-  if(bifCards){
-    bifCards.innerHTML = bifKeys.map(function(k,i){
-      var pct = total ? (bif[k]/total*100).toFixed(1) : '0';
-      return '<div class="alloc-card" onclick="openModal(\'alloc_' + k + '\')">' +
-             '<div class="alloc-label" style="color:' + bifColors[i] + '">' + bifLabels[i] + '</div>' +
-             '<div class="alloc-val">' + bif[k] + '</div>' +
-             '<div class="alloc-pct">' + pct + '% · click to drill down</div></div>';
-    }).join('');
-  }
-
-  /* Allocation page duplicates */
-  renderAllocPage(bif, bifKeys, bifColors, bifLabels, total);
-}
-
-function renderAllocPage(bif, bifKeys, bifColors, bifLabels, total){
-  var b2 = document.getElementById('allocBar2');
-  var l2 = document.getElementById('allocLegend2');
-  var c2 = document.getElementById('allocCards2');
-  if(b2){
-    b2.innerHTML = bifKeys.map(function(k,i){
-      var pct = total ? (bif[k]/total*100) : 0;
-      return '<div class="bif-seg" style="width:' + pct.toFixed(1) + '%;background:' + bifColors[i] + '">' +
-             (pct > 8 ? bif[k] : '') + '</div>';
-    }).join('');
-  }
-  if(l2){
-    l2.innerHTML = bifKeys.map(function(k,i){
-      return '<span><span class="bif-dot" style="background:' + bifColors[i] + '"></span>' +
-             bifLabels[i] + ': ' + bif[k] + ' (' + (total ? (bif[k]/total*100).toFixed(1) : '0') + '%)</span>';
-    }).join('');
-  }
-  if(c2){
-    c2.innerHTML = bifKeys.map(function(k,i){
-      var pct = total ? (bif[k]/total*100).toFixed(1) : '0';
-      return '<div class="alloc-card" onclick="openModal(\'alloc_' + k + '\')">' +
-             '<div class="alloc-label" style="color:' + bifColors[i] + '">' + bifLabels[i] + '</div>' +
-             '<div class="alloc-val">' + bif[k] + '</div>' +
-             '<div class="alloc-pct">' + pct + '%</div></div>';
-    }).join('');
-  }
-}
-
-/* ─────────────────────────────────────
-   CHARTS
-───────────────────────────────────── */
-function mk(id, config){
-  var canvas = document.getElementById(id);
-  if(!canvas) return;
-  if(CHARTS[id]){ CHARTS[id].destroy(); }
-  var ctx = canvas.getContext('2d');
-  config.options = config.options || {};
-  config.options.responsive = true;
-  config.options.maintainAspectRatio = false;
-  CHARTS[id] = new Chart(ctx, config);
-}
-
-function bar(labels, data, color){
-  return { type:'bar', data:{ labels:labels, datasets:[{ label:'Count', data:data,
-    backgroundColor: typeof color==='string' ? color : (color||'#1a56db'), borderRadius:4 }]},
-    options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }};
-}
-function hbar(labels, data, colors){
-  return { type:'bar', data:{ labels:labels, datasets:[{ data:data,
-    backgroundColor: colors || PALETTE, borderRadius:4 }]},
-    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}} }};
-}
-function donut(labels, data){
-  return { type:'doughnut', data:{ labels:labels, datasets:[{ data:data,
-    backgroundColor:PALETTE.slice(0,labels.length), borderWidth:2 }]},
-    options:{ plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}, cutout:'55%' }};
-}
-
-function buildAllCharts(){
-  if(!FILTERED.length) return;
-
-  /* Overview */
-  var tagC  = countBy(FILTERED, function(r){ return cv(r,'tagging')||'Unknown'; });
-  var msC   = countBy(FILTERED, function(r){ return cv(r,'mandateStatus')||'Unknown'; });
-  mk('chartTagging',      donut(Object.keys(tagC), Object.values(tagC)));
-  mk('chartMandateStatus',bar(Object.keys(msC), Object.values(msC), '#1a56db'));
-
-  /* Pipeline */
-  var dsC  = countBy(FILTERED, function(r){ return cv(r,'dealStage')||'Unknown'; });
-  var mtC  = countBy(FILTERED, function(r){ return cv(r,'mandateType')||'Unknown'; });
-  var brC  = countBy(FILTERED, function(r){ return cv(r,'branch')||'Unknown'; });
-  var agC  = countBy(FILTERED, function(r){ return cv(r,'ageingSlab')||'Unknown'; });
-  var stC  = countBy(FILTERED, function(r){ return cv(r,'dealStage')||'Unknown'; });
-  var tkC  = countBy(FILTERED, function(r){ return cv(r,'ticketSize')||'Unknown'; });
-  mk('pc1', bar(Object.keys(msC), Object.values(msC), '#1a56db'));
-  mk('pc2', donut(Object.keys(mtC), Object.values(mtC)));
-  mk('pc3', hbar(top10k(brC), top10v(brC), PALETTE));
-  mk('pc4', bar(Object.keys(agC), Object.values(agC), '#f59e0b'));
-  mk('pc5', bar(Object.keys(dsC), Object.values(dsC), '#8b5cf6'));
-  mk('pc6', bar(Object.keys(tkC), Object.values(tkC), '#14b8a6'));
-
-  /* Revenue */
-  var pipe = FILTERED.reduce(function(s,r){ return s+cn(r,'expectedRev'); },0);
-  var col_ = FILTERED.reduce(function(s,r){ return s+cn(r,'payment'); },0);
-  var ref_ = FILTERED.reduce(function(s,r){ return s+cn(r,'refund'); },0);
-  var debt = FILTERED.reduce(function(s,r){ return s+cn(r,'debtAmt'); },0);
-  var eq   = FILTERED.reduce(function(s,r){ return s+cn(r,'equityAmt'); },0);
-  var fix  = FILTERED.reduce(function(s,r){ return s+cn(r,'fixedFee'); },0);
-  mk('rc1', donut(['Expected','Collected','Refund','Net'],[pipe,col_,ref_,col_-ref_]));
-  var revByType={};
-  FILTERED.forEach(function(r){ var t=cv(r,'mandateType')||'Unknown'; revByType[t]=(revByType[t]||0)+cn(r,'expectedRev'); });
-  mk('rc2', hbar(top10k(revByType), top10v(revByType)));
-  var revByBr={};
-  FILTERED.forEach(function(r){ var b=cv(r,'branch')||'Unknown'; revByBr[b]=(revByBr[b]||0)+cn(r,'expectedRev'); });
-  mk('rc3', bar(top10k(revByBr), top10v(revByBr), '#10b981'));
-  mk('rc4', bar(['Debt','Equity','Fixed Fee'],[+debt.toFixed(2),+eq.toFixed(2),+fix.toFixed(2)],['#1a56db','#10b981','#f59e0b']));
-  mk('rc5', bar(['Pipeline','Collected','Refund','Net'],[+pipe.toFixed(2),+col_.toFixed(2),+(-ref_).toFixed(2),+(col_-ref_).toFixed(2)],['#1a56db','#10b981','#ef4444','#14b8a6']));
-
-  /* Allocation */
-  var allocC={};
-  FILTERED.forEach(function(r){ var c=allocCat(r); allocC[c]=(allocC[c]||0)+1; });
-  var uC = countBy(FILTERED, function(r){ return cv(r,'unit')||'Unknown'; });
-  var brAllocC = {};
-  FILTERED.forEach(function(r){ var br=cv(r,'branch')||'Unknown'; var ac=allocCat(r); if(!brAllocC[br]) brAllocC[br]={}; brAllocC[br][ac]=(brAllocC[br][ac]||0)+1; });
-  var brKeys = Object.keys(brAllocC).slice(0,8);
-  mk('ac1', donut(Object.keys(allocC).map(function(k){ return k; }), Object.values(allocC)));
-  mk('ac2', hbar(top10k(uC), top10v(uC)));
-  mk('ac3', { type:'bar', data:{ labels:brKeys, datasets:[
-    {label:'Inhouse',data:brKeys.map(function(b){ return (brAllocC[b]||{}).inhouse||0; }),backgroundColor:'#10b981',borderRadius:2},
-    {label:'Banker', data:brKeys.map(function(b){ return (brAllocC[b]||{}).banker||0;  }),backgroundColor:'#1a56db',borderRadius:2},
-    {label:'CP',     data:brKeys.map(function(b){ return (brAllocC[b]||{}).cp||0;     }),backgroundColor:'#8b5cf6',borderRadius:2},
-    {label:'Referral',data:brKeys.map(function(b){ return (brAllocC[b]||{}).referral||0;}),backgroundColor:'#f59e0b',borderRadius:2},
-  ]}, options:{plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true},x:{stacked:true},yA:{stacked:true}}} });
-
-  /* Bankers */
-  buildBankerCharts();
-  buildCPCharts();
-  buildLenderCharts();
-}
-
-function buildBankerCharts(){
-  if(!D.bankers.length) return;
-  var keys = Object.keys(D.bankers[0]||{});
-  var stateKey = keys.find(function(k){ return k.toLowerCase().includes('state'); });
-  var expKey   = keys.find(function(k){ return k.toLowerCase().includes('experience'); });
-  var expertCols = keys.filter(function(k){
-    return D.bankers.some(function(r){ return (r[k]||'').toString().toUpperCase()==='YES'; });
-  });
-  var ec={};
-  expertCols.forEach(function(k){ ec[k]=D.bankers.filter(function(r){ return (r[k]||'').toString().toUpperCase()==='YES'; }).length; });
-  var sorted=Object.entries(ec).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
-  mk('bkc1', hbar(sorted.map(function(s){ return s[0]; }), sorted.map(function(s){ return s[1]; })));
-
-  if(stateKey){
-    var sc=countBy(D.bankers,function(r){ return r[stateKey]||'Unknown'; });
-    var top=Object.entries(sc).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
-    mk('bkc2', hbar(top.map(function(t){ return t[0]; }), top.map(function(t){ return t[1]; })));
-  }
-  if(expKey){
-    var bk={'0-2':0,'3-5':0,'6-10':0,'11-15':0,'15+':0};
-    D.bankers.forEach(function(r){
-      var v=parseFloat(r[expKey]);
-      if(isNaN(v)) return;
-      if(v<=2) bk['0-2']++;
-      else if(v<=5) bk['3-5']++;
-      else if(v<=10) bk['6-10']++;
-      else if(v<=15) bk['11-15']++;
-      else bk['15+']++;
-    });
-    mk('bkc3', donut(Object.keys(bk), Object.values(bk)));
-  }
-
-  /* State summary */
-  setText('bk-tot', D.bankers.length);
-  if(stateKey){
-    setText('bk-states', uniq(D.bankers.map(function(r){ return r[stateKey]||''; }).filter(Boolean)).length);
-    var cityKey=keys.find(function(k){ return k.toLowerCase().includes('city'); });
-    if(cityKey) setText('bk-cities', uniq(D.bankers.map(function(r){ return r[cityKey]||''; }).filter(Boolean)).length);
-    if(expKey){
-      var exps=D.bankers.map(function(r){ return parseFloat(r[expKey]); }).filter(function(v){ return !isNaN(v); });
-      if(exps.length) setText('bk-exp', (exps.reduce(function(a,b){ return a+b; },0)/exps.length).toFixed(1));
+  
+  destroyChart('chartTaggingMix');
+  charts.chartTaggingMix = new Chart(document.getElementById('chartTaggingMix'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Leads', 'Deals'],
+      datasets: [{
+        data: [leads, deals],
+        backgroundColor: ['#4285f4', '#0f9d58'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true, text: `Total: ${data.length} | Leads: ${leads} | Deals: ${deals}` }
+      }
     }
+  });
+}
 
-    var byState={};
-    D.bankers.forEach(function(r){
-      var st=r[stateKey]||'Unknown';
-      if(!byState[st]) byState[st]={count:0,amt:0};
-      byState[st].count++;
-    });
-    var sg=document.getElementById('bkStateSummary');
-    if(sg){
-      var entries=Object.entries(byState).sort(function(a,b){ return b[1].count-a[1].count; });
-      sg.innerHTML=entries.map(function(e){
-        return '<div class="sc"><div class="sc-title">' + esc(e[0]) + '</div>' +
-               '<strong>' + e[1].count + '</strong> Bankers</div>';
-      }).join('');
+function renderPipelineStatusChart() {
+  const statusCounts = {};
+  filteredData.forEach(r => {
+    const s = String(r.lenderStatus || '').trim();
+    if (s) statusCounts[s] = (statusCounts[s] || 0) + 1;
+  });
+  
+  const colors = {
+    'Doablility Check': '#4285f4',
+    'Logged In': '#f4b400',
+    'Sanction': '#0f9d58',
+    'Disbursement': '#34a853',
+    'Drop/Declined': '#db4437',
+    'NBG/ In Principle Sanction': '#673ab7',
+    'No Action Taken': '#9e9e9e'
+  };
+  
+  destroyChart('chartPipelineStatus');
+  charts.chartPipelineStatus = new Chart(document.getElementById('chartPipelineStatus'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(statusCounts),
+      datasets: [{
+        label: 'Count',
+        data: Object.values(statusCounts),
+        backgroundColor: Object.keys(statusCounts).map(k => colors[k] || '#78909c')
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
-  }
+  });
 }
 
-function buildCPCharts(){
-  if(!D.cp.length) return;
-  var keys=Object.keys(D.cp[0]||{});
-  var stateKey=keys.find(function(k){ return k.toLowerCase().includes('state'); });
-  var cityKey=keys.find(function(k){ return k.toLowerCase().includes('city'); });
-  var expertCols=keys.filter(function(k){ return D.cp.some(function(r){ return (r[k]||'').toString().toUpperCase()==='YES'; }); });
-  var ec={};
-  expertCols.forEach(function(k){ ec[k]=D.cp.filter(function(r){ return (r[k]||'').toString().toUpperCase()==='YES'; }).length; });
-  var sorted=Object.entries(ec).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
-  mk('cpc1', hbar(sorted.map(function(s){ return s[0]; }), sorted.map(function(s){ return s[1]; })));
-  if(stateKey){
-    var sc=countBy(D.cp,function(r){ return r[stateKey]||'Unknown'; });
-    var top=Object.entries(sc).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
-    mk('cpc2', hbar(top.map(function(t){ return t[0]; }), top.map(function(t){ return t[1]; })));
-  }
-  if(cityKey){
-    var cc=countBy(D.cp,function(r){ return r[cityKey]||'Unknown'; });
-    var top2=Object.entries(cc).sort(function(a,b){ return b[1]-a[1]; }).slice(0,8);
-    mk('cpc3', donut(top2.map(function(t){ return t[0]; }), top2.map(function(t){ return t[1]; })));
-  }
-  setText('cp-tot', D.cp.length);
-  if(stateKey) setText('cp-states', uniq(D.cp.map(function(r){ return r[stateKey]||''; }).filter(Boolean)).length);
-  if(cityKey)  setText('cp-cities', uniq(D.cp.map(function(r){ return r[cityKey]||''; }).filter(Boolean)).length);
-  setText('cp-exp', expertCols.length);
+function renderUnitDistChart() {
+  const unitCounts = {};
+  filteredData.forEach(r => {
+    const u = String(r.unitName || '').trim();
+    if (u) unitCounts[u] = (unitCounts[u] || 0) + 1;
+  });
+  
+  destroyChart('chartUnitDist');
+  charts.chartUnitDist = new Chart(document.getElementById('chartUnitDist'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(unitCounts),
+      datasets: [{
+        data: Object.values(unitCounts),
+        backgroundColor: ['#4285f4', '#0f9d58', '#f4b400', '#db4437']
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
 }
 
-function buildLenderCharts(){
-  if(!D.lenders.length) return;
-  var keys=Object.keys(D.lenders[0]||{});
-  var expertCols=keys.filter(function(k){ return D.lenders.some(function(r){ return (r[k]||'').toString().toUpperCase()==='YES'; }); });
-  var ec={};
-  expertCols.forEach(function(k){ ec[k]=D.lenders.filter(function(r){ return (r[k]||'').toString().toUpperCase()==='YES'; }).length; });
-  var sorted=Object.entries(ec).sort(function(a,b){ return b[1]-a[1]; }).slice(0,12);
-  mk('lc1', hbar(sorted.map(function(s){ return s[0]; }), sorted.map(function(s){ return s[1]; })));
-  var catKey=keys.find(function(k){ return k.toLowerCase().includes('type')||k.toLowerCase().includes('category'); });
-  if(catKey){ var cc=countBy(D.lenders,function(r){ return r[catKey]||'Unknown'; }); mk('lc2', donut(Object.keys(cc), Object.values(cc))); }
-  var stKey=keys.find(function(k){ return k.toLowerCase().includes('state'); });
-  if(stKey){ var sc=countBy(D.lenders,fu
+function renderBranchDistChart() {
+  const branchCounts = {};
+  filteredData.forEach(r => {
+    const b = String(r.branchName || r.name || '').trim();
+    if (b) branchCounts[b] = (branchCounts[b] || 0) + 1;
+  });
+  
+  destroyChart('chartBranchDist');
+  charts.chartBranchDist = new Chart(document.getElementById('chartBranchDist'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(branchCounts),
+      datasets: [{
+        label: 'Cases',
+        data: Object.values(branchCounts),
+        backgroundColor: '#4285f4'
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+}
+
+// =====================================================================
+// PIPELINE TABLE
+// =====================================================================
+function renderPipelineTable() {
+  const tbody = document.getElementById('pipelineTableBody');
+  if (!tbody) return;
+  
+  let html = '';
+  filteredData.forEach(r => {
+    const tagging = String(r.currentTaggingIn || '').trim();
+    const taggingDisplay = tagging || (r.deals && r.deals !== r.relatedLead ? 'Deal' : 'Lead');
+    const badgeClass = taggingDisplay.toLowerCase().includes('deal') ? 'badge-success' : 'badge-info';
+    const statusBadge = getStatusBadge(r.lenderStatus);
+    
+    html += `<tr>
+      <td>${formatDate(r.createdTime)}</td>
+      <td>${r.relatedLead || '—'}</td>
+      <td><span class="badge ${badgeClass}">${taggingDisplay}</span></td>
+      <td>${r.deals || '—'}</td>
+      <td>${statusBadge}</td>
+      <td>${formatAmount(r.amount)}</td>
+      <td>${r.lenderType || '—'}</td>
+      <td>${r.lenderName || '—'}</td>
+      <td>${r.unitName || '—'}</td>
+      <td>${r.branchName || '—'}</td>
+      <td>${r.statusRemarks || '—'}</td>
+    </tr>`;
+  });
+  
+  tbody.innerHTML = html || '<tr><td colspan="11" style="text-align:center;">No data</td></tr>';
+}
+
+function getStatusBadge(status) {
+  const s = String(status || '').trim();
+  let cls = 'badge-gray';
+  if (s.includes('Sanction') || s.includes('Disbursement')) cls = 'badge-success';
+  else if (s.includes('Logged')) cls = 'badge-warning';
+  else if (s.includes('Drop') || s.includes('Declined')) cls = 'badge-danger';
+  else if (s.includes('Doab') || s.includes('Check')) cls = 'badge-info';
+  return `<span class="badge ${cls}">${s || '—'}</span>`;
+}
+
+function formatDate(val) {
+  if (!val) return '—';
+  try {
+    const d = new Date(val);
+    if (isNaN(d)) return String(val).substring(0, 10);
+    return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'2-digit' });
+  } catch(e) { return String(val).substring(0, 10); }
+}
+
+// =====================================================================
+// BANKER SECTION
+// =====================================================================
+function renderBankerSection() {
+  const bankers = rawData.bankers || [];
+  if (bankers.length === 0) return;
+  
+  // Metrics
+  const states = new Set(), cities = new Set();
+  let totalExp = 0;
+  bankers.forEach(b => {
+    if (b.state) states.add(b.state);
+    if (b.city) cities.add(b.city);
+    totalExp += parseFloat(b.experience || b.yearsOfExperience || 0);
+  });
+  
+  document.getElementById('bankerMetrics').innerHTML = `
+    <div class="metric-card"><div class="label">Total Bankers</div><div class="value">${bankers.length}</div></div>
+    <div class="metric-card leads"><div class="label">States Covered</div><div class="value">${states.size}</div></div>
+    <div class="metric-card deals"><div class="label">Cities Covered</div><div class="value">${cities.size}</div></div>
+    <div class="metric-card"><div class="label">Avg Experience</div><div class="value">${(totalExp/bankers.length).toFixed(1)} yrs</div></div>
+  `;
+  
+  // State chart
+  const stateCounts = {};
+  bankers.forEach(b => { if(b.state) stateCounts[b.state] = (stateCounts[b.state]||0)+1; });
+  
+  destroyChart('chartBankerState');
+  const ctx = document.getElementById('chartBankerState');
+  if (ctx) {
+    charts.chartBankerState = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: Object.keys(stateCounts), datasets: [{ label:'Bankers', data:Object.values(stateCounts), backgroundColor:'#4285f4' }] },
+      options: { responsive:true, plugins:{legend:{display:false}} }
+    });
+  }
+  
+  // Directory table
+  let tableHtml = '<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Experience</th></tr></thead><tbody>';
+  bankers.forEach(b => {
+    tableHtml += `<tr><td>${b.name||b.bankerName||'—'}</td><td>${b.state||'—'}</td><td>${b.city||'—'}</td><td>${b.expertise||b.specialization||'—'}</td><td>${b.experience||b.yearsOfExperience||'—'} yrs</td></tr>`;
+  });
+  tableHtml += '</tbody></table>';
+  document.getElementById('bankerTableWrap').innerHTML = tableHtml;
+}
+
+// =====================================================================
+// CHANNEL PARTNER SECTION
+// =====================================================================
+function renderCPSection() {
+  const cps = rawData.channelPartners || [];
+  if (cps.length === 0) return;
+  
+  const states = new Set(), cities = new Set(), expertise = new Set();
+  cps.forEach(c => {
+    if (c.state) states.add(c.state);
+    if (c.city) cities.add(c.city);
+    if (c.expertise) expertise.add(c.expertise);
+  });
+  
+  document.getElementById('cpMetrics').innerHTML = `
+    <div class="metric-card"><div class="label">Total CPs</div><div class="value">${cps.length}</div></div>
+    <div class="metric-card leads"><div class="label">States</div><div class="value">${states.size}</div></div>
+    <div class="metric-card deals"><div class="label">Cities</div><div class="value">${cities.size}</div></div>
+    <div class="metric-card"><div class="label">Expertise Areas</div><div class="value">${expertise.size}</div></div>
+  `;
+  
+  // Table
+  let tableHtml = '<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Contact</th></tr></thead><tbody>';
+  cps.forEach(c => {
+    tableHtml += `<tr><td>${c.name||c.cpName||'—'}</td><td>${c.state||'—'}</td><td>${c.city||'—'}</td><td>${c.expertise||'—'}</td><td>${c.phone||c.contact||'—'}</td></tr>`;
+  });
+  tableHtml += '</tbody></table>';
+  document.getElementById('cpTableWrap').innerHTML = tableHtml;
+}
+
+// =====================================================================
+// REVENUE SECTION
+// =====================================================================
+function renderRevenueSection() {
+  const revenue = rawData.revenue || [];
+  if (revenue.length === 0) {
+    document.getElementById('revenueTableWrap').innerHTML = '<p>No revenue data available</p>';
+    return;
+  }
+  
+  let tableHtml = '<table><thead><tr>';
+  const keys = Object.keys(revenue[0]);
+  keys.forEach(k => { tableHtml += `<th>${k}</th>`; });
+  tableHtml += '</tr></thead><tbody>';
+  revenue.forEach(r => {
+    tableHtml += '<tr>';
+    keys.forEach(k => { tableHtml += `<td>${r[k] || '—'}</td>`; });
+    tableHtml += '</tr>';
+  });
+  tableHtml += '</tbody></table>';
+  document.getElementById('revenueTableWrap').innerHTML = tableHtml;
+}
+
+// =====================================================================
+// ALLOCATION SECTION
+// =====================================================================
+function renderAllocationSection() {
+  const data = filteredData;
+  
+  // Allocation by Unit with Lead/Deal split
+  const unitAlloc = {};
+  data.forEach(r => {
+    const unit = r.unitName || 'Unknown';
+    if (!unitAlloc[unit]) unitAlloc[unit] = { leads: 0, deals: 0 };
+    const tagging = String(r.currentTaggingIn || '').trim().toLowerCase();
+    if (tagging === 'deal' || tagging === 'deals' || (tagging === '' && r.deals && r.deals !== r.relatedLead)) {
+      unitAlloc[unit].deals++;
+    } else {
+      unitAlloc[unit].leads++;
+    }
+  });
+  
+  destroyChart('chartAllocUnit');
+  const ctx = document.getElementById('chartAllocUnit');
+  if (ctx) {
+    charts.chartAllocUnit = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(unitAlloc),
+        datasets: [
+          { label: 'Leads', data: Object.values(unitAlloc).map(v => v.leads), backgroundColor: '#4285f4' },
+          { label: 'Deals', data: Object.values(unitAlloc).map(v => v.deals), backgroundColor: '#0f9d58' }
+        ]
+      },
+      options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+    });
+  }
+  
+  // Branch allocation
+  const branchAlloc = {};
+  data.forEach(r => {
+    const branch = r.branchName || 'Unknown';
+    if (!branchAlloc[branch]) branchAlloc[branch] = { leads: 0, deals: 0 };
+    const tagging = String(r.currentTaggingIn || '').trim().toLowerCase();
+    if (tagging === 'deal' || tagging === 'deals' || (tagging === '' && r.deals && r.deals !== r.relatedLead)) {
+      branchAlloc[branch].deals++;
+    } else {
+      branchAlloc[branch].leads++;
+    }
+  });
+  
+  destroyChart('chartAllocBranch');
+  const ctx2 = document.getElementById('chartAllocBranch');
+  if (ctx2) {
+    charts.chartAllocBranch = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(branchAlloc),
+        datasets: [
+          { label: 'Leads', data: Object.values(branchAlloc).map(v => v.leads), backgroundColor: '#4285f4' },
+          { label: 'Deals', data: Object.values(branchAlloc).map(v => v.deals), backgroundColor: '#0f9d58' }
+        ]
+      },
+      options: { responsive: true, indexAxis: 'y' }
+    });
+  }
+  
+  // Allocation Table
+  let html = '<table><thead><tr><th>Branch</th><th>Total</th><th>Leads</th><th>Deals</th><th>Lead %</th></tr></thead><tbody>';
+  Object.keys(branchAlloc).forEach(b => {
+    const total = branchAlloc[b].leads + branchAlloc[b].deals;
+    const pct = total > 0 ? ((branchAlloc[b].leads / total) * 100).toFixed(1) : 0;
+    html += `<tr><td>${b}</td><td>${total}</td><td>${branchAlloc[b].leads}</td><td>${branchAlloc[b].deals}</td><td>${pct}%</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('allocationTableWrap').innerHTML = html;
+}
+
+// =====================================================================
+// FILTERS
+// =====================================================================
+function populateFilters() {
+  const units = new Set(), branches = new Set(), statuses = new Set(), lenderTypes = new Set();
+  
+  rawData.masterData.forEach(r => {
+    if (r.unitName) units.add(r.unitName);
+    if (r.branchName) branches.add(r.branchName);
+    if (r.lenderStatus) statuses.add(r.lenderStatus);
+    if (r.lenderType) lenderTypes.add(r.lenderType);
+  });
+  
+  populateSelect('filterUnit', units);
+  populateSelect('filterBranch', branches);
+  populateSelect('filterStatus', statuses);
+  populateSelect('filterLenderType', lenderTypes);
+}
+
+function populateSelect(id, values) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const firstOption = sel.options[0].outerHTML;
+  sel.innerHTML = firstOption;
+  Array.from(values).sort().forEach(v => {
+    sel.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+}
+
+function applyFilters() {
+  const unit = document.getElementById('filterUnit').value;
+  const branch = document.getElementById('filterBranch').value;
+  const status = document.getElementById('filterStatus').value;
+  const lenderType = document.getElementById('filterLenderType').value;
+  const tagging = document.getElementById('filterTagging').value;
+  const dateFrom = document.getElementById('filterDateFrom').value;
+  const dateTo = document.getElementById('filterDateTo').value;
+  
+  filteredData = (rawData.masterData || []).filter(r => {
+    if (unit && r.unitName !== unit) return false;
+    if (branch && r.branchName !== branch) return false;
+    if (status && r.lenderStatus !== status) return false;
+    if (lenderType && r.lenderType !== lenderType) return false;
+    
+    // Tagging filter
+    if (tagging) {
+      const t = String(r.currentTaggingIn || '').trim().toLowerCase();
+      if (tagging === 'Lead' && !(t === 'lead' || t === 'leads' || t === 'l' || t === '')) return false;
+      if (tagging === 'Deal' && !(t === 'deal' || t === 'deals' || t === 'd')) return false;
+    }
+    
+    // Date filters
+    if (dateFrom || dateTo) {
+      try {
+        const recordDate = new Date(r.createdTime);
+        if (isNaN(recordDate)) return true; // keep if date unparseable
+        if (dateFrom && recordDate < new Date(dateFrom)) return false;
+        if (dateTo && recordDate > new Date(dateTo + 'T23:59:59')) return false;
+      } catch(e) {}
+    }
+    
+    return true;
+  });
+  
+  renderDashboard();
+}
+
+function clearFilters() {
+  document.getElementById('filterUnit').value = '';
+  document.getElementById('filterBranch').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterLenderType').value = '';
+  document.getElementById('filterTagging').value = '';
+  document.getElementById('filterDateFrom').value = '';
+  document.getElementById('filterDateTo').value = '';
+  filteredData =
