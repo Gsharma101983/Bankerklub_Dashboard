@@ -1,233 +1,321 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BankerKlub Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    /* ── RESET & BASE ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --primary: #1a73e8;
-      --primary-light: #e8f0fe;
-      --success: #0f9d58;
-      --warning: #f4b400;
-      --danger: #db4437;
-      --info: #4285f4;
-      --dark: #202124;
-      --gray-50: #f8f9fa;
-      --gray-100: #f1f3f4;
-      --gray-200: #e8eaed;
-      --gray-600: #5f6368;
-      --gray-800: #3c4043;
-      --shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
-      --shadow-lg: 0 4px 6px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.06);
-      --radius: 12px;
+      --blue:    #4285f4;
+      --green:   #0f9d58;
+      --yellow:  #f4b400;
+      --red:     #db4437;
+      --purple:  #673ab7;
+      --gray:    #78909c;
+      --bg:      #f0f2f5;
+      --card:    #ffffff;
+      --border:  #e0e0e0;
+      --text:    #212121;
+      --muted:   #757575;
+      --radius:  10px;
+      --shadow:  0 2px 8px rgba(0,0,0,.08);
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Inter',sans-serif; background:var(--gray-50); color:var(--dark); line-height:1.6; }
-    
-    /* Header */
-    .header { background:#fff; border-bottom:1px solid var(--gray-200); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:var(--shadow); }
-    .header h1 { font-size:20px; font-weight:700; color:var(--primary); }
-    .header .status { font-size:13px; color:var(--gray-600); display:flex; align-items:center; gap:8px; }
-    .header .status .dot { width:8px; height:8px; border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
 
-    /* Navigation Tabs */
-    .nav-tabs { background:#fff; border-bottom:1px solid var(--gray-200); padding:0 32px; display:flex; gap:4px; overflow-x:auto; }
-    .nav-tab { padding:12px 20px; font-size:13px; font-weight:500; color:var(--gray-600); cursor:pointer; border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; }
-    .nav-tab:hover { color:var(--primary); background:var(--primary-light); }
-    .nav-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+    /* ── TOP BAR ────────────────────────────────────────────────────── */
+    .topbar {
+      background: #1a237e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 54px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .logo { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+    .logo span { color: #ffd54f; }
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.12);
+      padding: 4px 10px; border-radius: 20px; font-size: 12px;
+    }
+    #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #f4b400; transition: background .4s; }
+    .topbar-right { font-size: 12px; opacity: .8; }
 
-    /* Main Container */
-    .container { max-width:1600px; margin:0 auto; padding:24px 32px; }
+    /* ── NAV TABS ───────────────────────────────────────────────────── */
+    .nav-tabs {
+      display: flex; overflow-x: auto; background: #283593;
+      padding: 0 16px; gap: 4px;
+      scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab {
+      padding: 10px 18px; cursor: pointer; white-space: nowrap;
+      color: rgba(255,255,255,.7); font-size: 13px; font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: all .2s;
+    }
+    .nav-tab:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .nav-tab.active { color: #fff; border-bottom-color: #ffd54f; }
 
-    /* Metric Cards */
-    .metrics-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-bottom:24px; }
-    .metric-card { background:#fff; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border-left:4px solid var(--primary); transition:transform .2s, box-shadow .2s; cursor:pointer; }
-    .metric-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
-    .metric-card.leads { border-left-color:var(--info); }
-    .metric-card.deals { border-left-color:var(--success); }
-    .metric-card.warning { border-left-color:var(--warning); }
-    .metric-card.danger { border-left-color:var(--danger); }
-    .metric-card .label { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-600); margin-bottom:4px; }
-    .metric-card .value { font-size:28px; font-weight:700; color:var(--dark); }
-    .metric-card .sub { font-size:11px; color:var(--gray-600); margin-top:4px; }
+    /* ── LAYOUT ─────────────────────────────────────────────────────── */
+    .main { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    /* Section */
-    .section { background:#fff; border-radius:var(--radius); padding:24px; margin-bottom:24px; box-shadow:var(--shadow); }
-    .section-title { font-size:16px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-    .section-title i { color:var(--primary); }
+    /* ── CARDS ──────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 18px; margin-bottom: 18px;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px;
+    }
 
-    /* Charts Grid */
-    .charts-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:24px; margin-bottom:24px; }
-    .chart-box { background:#fff; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
-    .chart-box h3 { font-size:14px; font-weight:600; margin-bottom:12px; color:var(--gray-800); }
-    .chart-box canvas { width:100% !important; max-height:300px; }
+    /* ── METRIC CARDS ───────────────────────────────────────────────── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px; margin-bottom: 20px;
+    }
+    .metric-card {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 16px 18px;
+      border-left: 4px solid var(--blue);
+    }
+    .metric-card.green  { border-left-color: var(--green); }
+    .metric-card.yellow { border-left-color: var(--yellow); }
+    .metric-card.red    { border-left-color: var(--red); }
+    .metric-card.purple { border-left-color: var(--purple); }
+    .metric-card.gray   { border-left-color: var(--gray); }
+    .metric-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .metric-value { font-size: 28px; font-weight: 700; margin: 6px 0 2px; color: var(--text); }
+    .metric-sub   { font-size: 11px; color: var(--muted); }
 
-    /* Filters */
-    .filters { background:#fff; border-radius:var(--radius); padding:16px 20px; margin-bottom:24px; box-shadow:var(--shadow); display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
-    .filter-group { display:flex; flex-direction:column; gap:4px; }
-    .filter-group label { font-size:11px; font-weight:500; color:var(--gray-600); text-transform:uppercase; }
-    .filter-group select, .filter-group input { padding:8px 12px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; min-width:150px; }
-    .filter-btn { padding:8px 16px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; font-weight:500; }
-    .filter-btn.clear { background:var(--gray-100); color:var(--gray-800); }
+    /* ── CHART GRID ─────────────────────────────────────────────────── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 18px; margin-bottom: 20px;
+    }
+    .chart-wrap { position: relative; height: 280px; }
 
-    /* Tables */
-    .table-wrap { overflow-x:auto; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    th { background:var(--gray-50); padding:10px 12px; text-align:left; font-weight:600; color:var(--gray-800); border-bottom:2px solid var(--gray-200); white-space:nowrap; }
-    td { padding:10px 12px; border-bottom:1px solid var(--gray-100); }
-    tr:hover td { background:var(--primary-light); }
+    /* ── FILTERS ────────────────────────────────────────────────────── */
+    .filter-bar {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 18px;
+    }
+    .filter-bar h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+    .filter-grid {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .filter-group select,
+    .filter-group input {
+      padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 13px; background: #fafafa; min-width: 130px;
+    }
+    .filter-group select:focus,
+    .filter-group input:focus { outline: none; border-color: var(--blue); }
+    .btn {
+      padding: 8px 18px; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-outline { background: #fff; color: var(--muted); border: 1px solid var(--border); }
 
-    /* Status Badges */
-    .badge { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:500; display:inline-block; }
-    .badge-success { background:#e6f4ea; color:#137333; }
-    .badge-warning { background:#fef7e0; color:#b05a00; }
-    .badge-danger { background:#fce8e6; color:#c5221f; }
-    .badge-info { background:#e8f0fe; color:#1a73e8; }
-    .badge-gray { background:var(--gray-100); color:var(--gray-600); }
+    /* ── TABLES ─────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f5f7ff; padding: 10px 12px; text-align: left;
+      font-weight: 600; color: var(--muted); font-size: 11px;
+      text-transform: uppercase; border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr:hover td { background: #fafbff; }
+    .no-data { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; }
 
-    /* Loading */
-    .loading { text-align:center; padding:60px; }
-    .spinner { width:40px; height:40px; border:4px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
-    @keyframes spin { to{transform:rotate(360deg)} }
+    /* ── BADGES ─────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block; padding: 2px 9px; border-radius: 12px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .badge-blue    { background: #e8f0fe; color: #1967d2; }
+    .badge-green   { background: #e6f4ea; color: #1e8e3e; }
+    .badge-yellow  { background: #fef9e0; color: #b06000; }
+    .badge-red     { background: #fce8e6; color: #c5221f; }
+    .badge-purple  { background: #f3e8fd; color: #7b1fa2; }
+    .badge-gray    { background: #f1f3f4; color: #5f6368; }
 
-    /* Tab Content */
-    .tab-content { display:none; }
-    .tab-content.active { display:block; }
+    /* ── LOADING ────────────────────────────────────────────────────── */
+    #loadingState {
+      text-align: center; padding: 80px 20px; color: var(--muted);
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid var(--border);
+      border-top-color: var(--blue); border-radius: 50%;
+      animation: spin .8s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Responsive */
-    @media(max-width:768px) {
-      .container { padding:16px; }
-      .metrics-grid { grid-template-columns:repeat(2, 1fr); }
-      .charts-grid { grid-template-columns:1fr; }
-      .header { padding:12px 16px; }
-      .nav-tabs { padding:0 16px; }
+    /* ── SECTION HEADERS ────────────────────────────────────────────── */
+    .section-title {
+      font-size: 15px; font-weight: 700; color: #1a237e;
+      margin: 24px 0 12px; padding-bottom: 6px;
+      border-bottom: 2px solid #e8eaf6;
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid   { grid-template-columns: 1fr; }
+      .metric-value { font-size: 22px; }
     }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <h1><i class="fas fa-chart-line"></i> BankerKlub Dashboard</h1>
-  <div class="status">
-    <span class="dot" id="statusDot"></span>
-    <span id="statusText">Connecting...</span>
-    <span id="lastUpdated"></span>
+<!-- ═══ TOP BAR ══════════════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Banker<span>Klub</span></div>
+    <div class="status-badge">
+      <div id="statusDot"></div>
+      <span id="statusText">Connecting...</span>
+    </div>
   </div>
+  <div class="topbar-right" id="lastUpdated"></div>
 </div>
 
-<!-- NAVIGATION -->
+<!-- ═══ NAV TABS ═════════════════════════════════════════════════════ -->
 <div class="nav-tabs">
   <div class="nav-tab active" data-tab="overview">📊 Overview</div>
   <div class="nav-tab" data-tab="pipeline">📋 Pipeline Analysis</div>
-  <div class="nav-tab" data-tab="revenue">💰 Revenue Analysis</div>
+  <div class="nav-tab" data-tab="revenue">💰 Revenue</div>
   <div class="nav-tab" data-tab="allocation">📌 Lead Allocation</div>
   <div class="nav-tab" data-tab="bankers">🏦 Banker Analytics</div>
-  <div class="nav-tab" data-tab="channelpartners">🤝 Channel Partners</div>
+  <div class="nav-tab" data-tab="cp">🤝 Channel Partners</div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="container">
+<!-- ═══ MAIN CONTENT ══════════════════════════════════════════════════ -->
+<div class="main">
 
-  <!-- LOADING STATE -->
-  <div class="loading" id="loadingState">
+  <!-- Loading -->
+  <div id="loadingState">
     <div class="spinner"></div>
-    <p>⏳ Connecting to Google Sheets...</p>
+    <p>Connecting to Google Sheets...</p>
   </div>
 
-  <!-- ===== OVERVIEW TAB ===== -->
-  <div class="tab-content active" id="tab-overview" style="display:none;">
-    
-    <!-- PRIMARY METRICS -->
-    <div class="metrics-grid" id="primaryMetrics">
+  <!-- ══════════════════════ TAB: OVERVIEW ══════════════════════════ -->
+  <div class="tab-content" id="tab-overview">
+
+    <!-- KPI Row 1: Core Counts -->
+    <div class="metrics-grid">
       <div class="metric-card">
-        <div class="label">Total Records</div>
-        <div class="value" id="totalRecords">—</div>
-        <div class="sub">All mandates</div>
+        <div class="metric-label">Total Records</div>
+        <div class="metric-value" id="totalRecords">—</div>
+        <div class="metric-sub">All mandates</div>
       </div>
-      <div class="metric-card leads">
-        <div class="label">Leads</div>
-        <div class="value" id="totalLeads">—</div>
-        <div class="sub">From "Current Tagging in"</div>
+      <div class="metric-card green">
+        <div class="metric-label">Leads</div>
+        <div class="metric-value" id="totalLeads">—</div>
+        <div class="metric-sub">From "Current Tagging in"</div>
       </div>
-      <div class="metric-card deals">
-        <div class="label">Deals</div>
-        <div class="value" id="totalDeals">—</div>
-        <div class="sub">From "Current Tagging in"</div>
+      <div class="metric-card yellow">
+        <div class="metric-label">Deals</div>
+        <div class="metric-value" id="totalDeals">—</div>
+        <div class="metric-sub">From "Current Tagging in"</div>
       </div>
-      <div class="metric-card">
-        <div class="label">Bankers</div>
-        <div class="value" id="totalBankers">—</div>
-        <div class="sub">Onboarded</div>
+      <div class="metric-card purple">
+        <div class="metric-label">Bankers</div>
+        <div class="metric-value" id="totalBankers">—</div>
+        <div class="metric-sub">Onboarded</div>
       </div>
-      <div class="metric-card">
-        <div class="label">Channel Partners</div>
-        <div class="value" id="totalCPs">—</div>
-        <div class="sub">Active CPs</div>
+      <div class="metric-card red">
+        <div class="metric-label">Channel Partners</div>
+        <div class="metric-value" id="totalCPs">—</div>
+        <div class="metric-sub">Active CPs</div>
       </div>
-      <div class="metric-card">
-        <div class="label">Lenders</div>
-        <div class="value" id="totalLenders">—</div>
-        <div class="sub">In database</div>
+      <div class="metric-card gray">
+        <div class="metric-label">Lenders</div>
+        <div class="metric-value" id="totalLenders">—</div>
+        <div class="metric-sub">In database</div>
       </div>
     </div>
 
-    <!-- REVENUE METRICS -->
-    <div class="metrics-grid" id="revenueMetrics">
-      <div class="metric-card warning">
-        <div class="label">Revenue Pipeline</div>
-        <div class="value" id="revPipeline">—</div>
-        <div class="sub">Total Expected (Cr.)</div>
-      </div>
+    <!-- KPI Row 2: Revenue -->
+    <div class="metrics-grid">
       <div class="metric-card">
-        <div class="label">Revenue Expected</div>
-        <div class="value" id="revExpected">—</div>
-        <div class="sub">Cr.</div>
+        <div class="metric-label">Revenue Pipeline</div>
+        <div class="metric-value" id="revPipeline">—</div>
+        <div class="metric-sub">Total Expected (Cr.)</div>
       </div>
-      <div class="metric-card deals">
-        <div class="label">Revenue Collected</div>
-        <div class="value" id="revCollected">—</div>
-        <div class="sub">Payments received</div>
+      <div class="metric-card green">
+        <div class="metric-label">Revenue Collected</div>
+        <div class="metric-value" id="revCollected">—</div>
+        <div class="metric-sub">Payments received</div>
       </div>
-      <div class="metric-card">
-        <div class="label">Advance Amt</div>
-        <div class="value" id="revAdvance">—</div>
-        <div class="sub">Cr.</div>
+      <div class="metric-card yellow">
+        <div class="metric-label">Advance Amt</div>
+        <div class="metric-value" id="revAdvance">—</div>
+        <div class="metric-sub">Cr.</div>
       </div>
-      <div class="metric-card danger">
-        <div class="label">Refund Amount</div>
-        <div class="value" id="revRefund">—</div>
-        <div class="sub">Cr. refunded</div>
+      <div class="metric-card red">
+        <div class="metric-label">Refund Amount</div>
+        <div class="metric-value" id="revRefund">—</div>
+        <div class="metric-sub">Cr. refunded</div>
       </div>
-      <div class="metric-card deals">
-        <div class="label">Net Revenue</div>
-        <div class="value" id="revNet">—</div>
-        <div class="sub">After refunds</div>
+      <div class="metric-card purple">
+        <div class="metric-label">Net Revenue</div>
+        <div class="metric-value" id="revNet">—</div>
+        <div class="metric-sub">After refunds</div>
       </div>
     </div>
 
-    <!-- TAGGING STATUS & PIPELINE CHARTS -->
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3><i class="fas fa-tags"></i> Tagging Status Mix (Leads vs Deals)</h3>
-        <canvas id="chartTaggingMix"></canvas>
+    <!-- Charts Row -->
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">Tagging Mix — Leads vs Deals</div>
+        <div class="chart-wrap"><canvas id="chartTaggingMix"></canvas></div>
       </div>
-      <div class="chart-box">
-        <h3><i class="fas fa-stream"></i> Pipeline by Lender Status</h3>
-        <canvas id="chartPipelineStatus"></canvas>
+      <div class="card">
+        <div class="card-title">Pipeline by Lender Status</div>
+        <div class="chart-wrap"><canvas id="chartPipelineStatus"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Unit-wise Distribution</div>
+        <div class="chart-wrap"><canvas id="chartUnitDist"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Branch-wise Distribution</div>
+        <div class="chart-wrap"><canvas id="chartBranchDist"></canvas></div>
       </div>
     </div>
+  </div>
+
+  <!-- ══════════════════════ TAB: PIPELINE ══════════════════════════ -->
+  <div class="tab-content" id="tab-pipeline">
 
     <!-- FILTERS -->
-    <div class="section">
-      <div class="section-title"><i class="fas fa-filter"></i> 🔍 Live Filters & Slicers</div>
-      <div class="filters">
+    <div class="filter-bar">
+      <h3>🔍 Live Filters</h3>
+      <div class="filter-grid">
         <div class="filter-group">
           <label>Unit</label>
           <select id="filterUnit"><option value="">All Units</option></select>
@@ -245,7 +333,7 @@
           <select id="filterLenderType"><option value="">All Types</option></select>
         </div>
         <div class="filter-group">
-          <label>Tagging (Lead/Deal)</label>
+          <label>Tagging</label>
           <select id="filterTagging">
             <option value="">All</option>
             <option value="Lead">Leads Only</option>
@@ -254,54 +342,50 @@
         </div>
         <div class="filter-group">
           <label>Date From</label>
-          <input type="date" id="filterDateFrom">
+          <input type="date" id="filterDateFrom" />
         </div>
         <div class="filter-group">
           <label>Date To</label>
-          <input type="date" id="filterDateTo">
+          <input type="date" id="filterDateTo" />
         </div>
-        <button class="filter-btn" onclick="applyFilters()">Apply</button>
-        <button class="filter-btn clear" onclick="clearFilters()">✕ Clear All</button>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-outline" onclick="clearFilters()">✕ Clear</button>
+        </div>
       </div>
     </div>
 
-    <!-- ADDITIONAL OVERVIEW CHARTS -->
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3><i class="fas fa-sitemap"></i> Unit-wise Distribution</h3>
-        <canvas id="chartUnitDist"></canvas>
+    <!-- Mandate Status + Lender Type charts -->
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">Mandate Status Distribution</div>
+        <div class="chart-wrap"><canvas id="chartMandateStatus"></canvas></div>
       </div>
-      <div class="chart-box">
-        <h3><i class="fas fa-building"></i> Branch-wise Distribution</h3>
-        <canvas id="chartBranchDist"></canvas>
+      <div class="card">
+        <div class="card-title">Lender Type Distribution</div>
+        <div class="chart-wrap"><canvas id="chartLenderType"></canvas></div>
       </div>
     </div>
-  </div>
 
-  <!-- ===== PIPELINE TAB ===== -->
-  <div class="tab-content" id="tab-pipeline">
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3>Mandate Status Distribution</h3>
-        <canvas id="chartMandateStatus"></canvas>
+    <!-- Pipeline Table -->
+    <div class="card">
+      <div class="card-title">Pipeline Table
+        <span id="pipelineCount" style="font-weight:400;color:var(--muted);margin-left:8px;"></span>
       </div>
-      <div class="chart-box">
-        <h3>Lender Type Distribution</h3>
-        <canvas id="chartLenderType"></canvas>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title"><i class="fas fa-table"></i> Pipeline Table</div>
       <div class="table-wrap">
-        <table id="pipelineTable">
+        <table>
           <thead>
             <tr>
               <th>Date</th>
               <th>Lead/Deal</th>
-              <th>Current Tagging</th>
-              <th>Deals Name</th>
+              <th>Related Lead</th>
+              <th>Deal Name</th>
               <th>Lender Status</th>
-              <th>Amount (₹)</th>
+              <th>Amount</th>
               <th>Lender Type</th>
               <th>Lender Name</th>
               <th>Unit</th>
@@ -309,104 +393,117 @@
               <th>Remarks</th>
             </tr>
           </thead>
-          <tbody id="pipelineTableBody"></tbody>
+          <tbody id="pipelineTableBody">
+            <tr><td colspan="11" class="no-data">Loading…</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ===== REVENUE TAB ===== -->
+  <!-- ══════════════════════ TAB: REVENUE ═══════════════════════════ -->
   <div class="tab-content" id="tab-revenue">
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3>Revenue by Branch</h3>
-        <canvas id="chartRevBranch"></canvas>
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">Revenue by Branch</div>
+        <div class="chart-wrap"><canvas id="chartRevBranch"></canvas></div>
       </div>
-      <div class="chart-box">
-        <h3>Revenue by Status</h3>
-        <canvas id="chartRevStatus"></canvas>
+      <div class="card">
+        <div class="card-title">Revenue by Status</div>
+        <div class="chart-wrap"><canvas id="chartRevStatus"></canvas></div>
       </div>
     </div>
-    <div class="section">
-      <div class="section-title"><i class="fas fa-table"></i> Revenue Table</div>
-      <div class="table-wrap" id="revenueTableWrap"></div>
+    <div class="card">
+      <div class="card-title">Revenue Table</div>
+      <div class="table-wrap" id="revenueTableWrap">
+        <p class="no-data">Loading…</p>
+      </div>
     </div>
   </div>
 
-  <!-- ===== ALLOCATION TAB ===== -->
+  <!-- ══════════════════════ TAB: ALLOCATION ════════════════════════ -->
   <div class="tab-content" id="tab-allocation">
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3>Allocation by Unit</h3>
-        <canvas id="chartAllocUnit"></canvas>
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">Allocation by Unit (Leads vs Deals)</div>
+        <div class="chart-wrap"><canvas id="chartAllocUnit"></canvas></div>
       </div>
-      <div class="chart-box">
-        <h3>Lead vs Deal by Branch</h3>
-        <canvas id="chartAllocBranch"></canvas>
+      <div class="card">
+        <div class="card-title">Lead vs Deal by Branch</div>
+        <div class="chart-wrap"><canvas id="chartAllocBranch"></canvas></div>
       </div>
     </div>
-    <div class="section">
-      <div class="section-title"><i class="fas fa-table"></i> Allocation Table</div>
-      <div class="table-wrap" id="allocationTableWrap"></div>
+    <div class="card">
+      <div class="card-title">Allocation Table</div>
+      <div class="table-wrap" id="allocationTableWrap">
+        <p class="no-data">Loading…</p>
+      </div>
     </div>
   </div>
 
-  <!-- ===== BANKERS TAB ===== -->
+  <!-- ══════════════════════ TAB: BANKERS ═══════════════════════════ -->
   <div class="tab-content" id="tab-bankers">
     <div class="metrics-grid" id="bankerMetrics"></div>
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3>Bankers by State</h3>
-        <canvas id="chartBankerState"></canvas>
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">Bankers by State</div>
+        <div class="chart-wrap"><canvas id="chartBankerState"></canvas></div>
       </div>
-      <div class="chart-box">
-        <h3>Banker Expertise Distribution</h3>
-        <canvas id="chartBankerExpertise"></canvas>
+      <div class="card">
+        <div class="card-title">Banker Expertise</div>
+        <div class="chart-wrap"><canvas id="chartBankerExpertise"></canvas></div>
       </div>
     </div>
-    <div class="section">
-      <div class="section-title"><i class="fas fa-address-book"></i> Banker Directory</div>
-      <div class="table-wrap" id="bankerTableWrap"></div>
+    <div class="card">
+      <div class="card-title">Banker Directory</div>
+      <div class="table-wrap" id="bankerTableWrap">
+        <p class="no-data">Loading…</p>
+      </div>
     </div>
   </div>
 
-  <!-- ===== CHANNEL PARTNERS TAB ===== -->
-  <div class="tab-content" id="tab-channelpartners">
+  <!-- ══════════════════════ TAB: CHANNEL PARTNERS ════════════════ -->
+  <div class="tab-content" id="tab-cp">
     <div class="metrics-grid" id="cpMetrics"></div>
-    <div class="charts-grid">
-      <div class="chart-box">
-        <h3>CPs by State</h3>
-        <canvas id="chartCPState"></canvas>
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">CPs by State</div>
+        <div class="chart-wrap"><canvas id="chartCPState"></canvas></div>
       </div>
-      <div class="chart-box">
-        <h3>CP Expertise Distribution</h3>
-        <canvas id="chartCPExpertise"></canvas>
+      <div class="card">
+        <div class="card-title">CP Expertise</div>
+        <div class="chart-wrap"><canvas id="chartCPExpertise"></canvas></div>
       </div>
     </div>
-    <div class="section">
-      <div class="section-title"><i class="fas fa-handshake"></i> CP Directory</div>
-      <div class="table-wrap" id="cpTableWrap"></div>
+    <div class="card">
+      <div class="card-title">CP Directory</div>
+      <div class="table-wrap" id="cpTableWrap">
+        <p class="no-data">Loading…</p>
+      </div>
     </div>
   </div>
 
-</div>
+</div><!-- /main -->
 
+<!-- ═══════════════════════ JAVASCRIPT ═══════════════════════════════ -->
 <script>
 // =====================================================================
-// CONFIGURATION - UPDATE THIS WITH YOUR DEPLOYED APPS SCRIPT URL
+// ⚙️  CONFIGURATION
+// Replace the URL below with YOUR deployed Apps Script Web App URL
+// Deploy steps: Extensions → Apps Script → Deploy → New Deployment
+//               Type: Web App | Execute as: Me | Access: Anyone
 // =====================================================================
-const APPS_SCRIPT_URL = 'YOUR_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE';
-// Example: 'https://script.google.com/macros/s/AKfycbx.../exec'
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQ_Tt-bduiU9oEXXSSIOZ54ZrT9yuYCU67OFaURItVQk-NubR3P9nYY5Bb6EcV1ecNUQ/exec';
 
 // =====================================================================
 // GLOBAL STATE
 // =====================================================================
-let rawData = null;
-let filteredData = null;
-let charts = {};
+let rawData     = null;
+let filteredData = [];
+const charts    = {};
 
 // =====================================================================
-// INITIALIZATION
+// INIT
 // =====================================================================
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
@@ -433,269 +530,170 @@ function initTabs() {
 // =====================================================================
 async function fetchData() {
   try {
-    updateStatus('connecting', 'Fetching data...');
-    
+    setStatus('connecting', 'Fetching data…');
+
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_DEPLOYED')) {
+      throw new Error('Apps Script URL not configured. Please update APPS_SCRIPT_URL in index.html');
+    }
+
     const response = await fetch(APPS_SCRIPT_URL + '?action=all');
     if (!response.ok) throw new Error('Network error: ' + response.status);
-    
+
     rawData = await response.json();
-    
     if (rawData.error) throw new Error(rawData.error);
-    
+
     filteredData = rawData.masterData || [];
-    
-    updateStatus('connected', 'Live');
-    document.getElementById('lastUpdated').textContent = 
-      '| Updated: ' + new Date().toLocaleTimeString('en-IN');
-    
-    // Hide loading, show content
+
+    setStatus('connected', 'Live');
+    document.getElementById('lastUpdated').textContent =
+      'Updated: ' + new Date().toLocaleTimeString('en-IN');
+
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('tab-overview').style.display = 'block';
-    
-    // Render everything
+    document.getElementById('tab-overview').classList.add('active');
+
     renderDashboard();
     populateFilters();
-    
-  } catch (error) {
-    console.error('Fetch Error:', error);
-    updateStatus('error', 'Connection failed');
-    document.getElementById('loadingState').innerHTML = 
-      '<p style="color:#db4437;">❌ Failed to connect: ' + error.message + '</p>' +
-      '<p style="margin-top:12px;color:#5f6368;">Check your Apps Script deployment URL</p>' +
-      '<button onclick="fetchData()" style="margin-top:16px;padding:10px 20px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;">Retry</button>';
+
+  } catch (err) {
+    console.error('Fetch Error:', err);
+    setStatus('error', 'Connection failed');
+    document.getElementById('loadingState').innerHTML =
+      `<p style="color:var(--red);font-size:15px;margin-bottom:10px">❌ ${err.message}</p>
+       <p style="color:var(--muted);margin-bottom:16px">Check your Apps Script deployment URL and ensure it is deployed with <b>Anyone</b> access.</p>
+       <button class="btn btn-primary" onclick="location.reload()">↻ Retry</button>`;
   }
 }
 
-function updateStatus(state, text) {
-  const dot = document.getElementById('statusDot');
-  const statusText = document.getElementById('statusText');
-  statusText.textContent = text;
-  dot.style.background = state === 'connected' ? '#0f9d58' : state === 'error' ? '#db4437' : '#f4b400';
+function setStatus(state, text) {
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('statusDot').style.background =
+    state === 'connected' ? 'var(--green)' : state === 'error' ? 'var(--red)' : 'var(--yellow)';
 }
 
 // =====================================================================
-// RENDER DASHBOARD
+// RENDER ALL
 // =====================================================================
 function renderDashboard() {
   renderMetrics();
-  renderCharts();
+  renderOverviewCharts();
+  renderPipelineCharts();
   renderPipelineTable();
-  renderBankerSection();
-  renderCPSection();
   renderRevenueSection();
   renderAllocationSection();
+  renderBankerSection();
+  renderCPSection();
 }
 
 // =====================================================================
-// METRICS RENDERING (with accurate Lead/Deal split)
+// ✅ METRICS — ACCURATE LEAD/DEAL SPLIT FROM "Current Tagging in"
 // =====================================================================
 function renderMetrics() {
   const data = filteredData;
-  const summary = rawData.summary || {};
-  
-  // *** CRITICAL: ACCURATE LEAD/DEAL SPLIT from "Current Tagging in" column ***
-  let leads = 0;
-  let deals = 0;
-  
-  data.forEach(record => {
-    const tagging = String(record.currentTaggingIn || '').trim().toLowerCase();
-    
-    if (tagging === 'lead' || tagging === 'leads' || tagging === 'l') {
-      leads++;
-    } else if (tagging === 'deal' || tagging === 'deals' || tagging === 'd') {
-      deals++;
-    } else if (tagging === '') {
-      // Fallback: if Deals column name differs from Related Lead → it's a Deal
-      const dealName = String(record.deals || '').trim();
-      const leadName = String(record.relatedLead || '').trim();
-      if (dealName && dealName !== leadName) {
-        deals++;
-      } else {
-        leads++;
-      }
-    } else {
-      // Other values - check if contains 'deal'
-      if (tagging.includes('deal')) {
-        deals++;
-      } else {
-        leads++;
-      }
-    }
-  });
-  
-  const totalRecords = data.length;
-  
-  // Verify: Total = Leads + Deals
-  console.log(`✅ Verification: Total(${totalRecords}) = Leads(${leads}) + Deals(${deals}) → ${totalRecords === leads + deals ? 'PASS' : 'FAIL'}`);
-  
-  document.getElementById('totalRecords').textContent = totalRecords.toLocaleString('en-IN');
-  document.getElementById('totalLeads').textContent = leads.toLocaleString('en-IN');
-  document.getElementById('totalDeals').textContent = deals.toLocaleString('en-IN');
-  document.getElementById('totalBankers').textContent = (rawData.bankers || []).length || '—';
-  document.getElementById('totalCPs').textContent = (rawData.channelPartners || []).length || '—';
-  document.getElementById('totalLenders').textContent = (rawData.lenders || []).length || '—';
-  
-  // Revenue metrics
-  const revenue = rawData.revenue || [];
-  if (revenue.length > 0) {
-    let totalExpected = 0, collected = 0, advance = 0, refund = 0;
-    revenue.forEach(r => {
-      totalExpected += parseFloat(r.expectedRevenue || r.revenueExpected || 0);
-      collected += parseFloat(r.revenueCollected || r.collected || 0);
-      advance += parseFloat(r.advanceAmount || r.advance || 0);
-      refund += parseFloat(r.refundAmount || r.refund || 0);
-    });
-    document.getElementById('revPipeline').textContent = formatCr(totalExpected);
-    document.getElementById('revExpected').textContent = formatCr(totalExpected);
-    document.getElementById('revCollected').textContent = formatCr(collected);
-    document.getElementById('revAdvance').textContent = formatCr(advance);
-    document.getElementById('revRefund').textContent = formatCr(refund);
-    document.getElementById('revNet').textContent = formatCr(collected - refund);
-  }
-}
 
-function formatCr(val) {
-  if (!val || isNaN(val)) return '—';
-  return '₹' + (val / 10000000).toFixed(2) + ' Cr';
-}
-
-function formatAmount(val) {
-  if (!val || isNaN(val) || val === 0) return '—';
-  const num = parseFloat(val);
-  if (num >= 10000000) return '₹' + (num / 10000000).toFixed(2) + ' Cr';
-  if (num >= 100000) return '₹' + (num / 100000).toFixed(2) + ' L';
-  return '₹' + num.toLocaleString('en-IN');
-}
-
-// =====================================================================
-// CHARTS RENDERING
-// =====================================================================
-function renderCharts() {
-  renderTaggingMixChart();
-  renderPipelineStatusChart();
-  renderUnitDistChart();
-  renderBranchDistChart();
-}
-
-function renderTaggingMixChart() {
-  const data = filteredData;
+  // ── CRITICAL: Count leads & deals from the currentTaggingIn field ──
   let leads = 0, deals = 0;
-  
   data.forEach(record => {
     const tagging = String(record.currentTaggingIn || '').trim().toLowerCase();
     if (tagging === 'deal' || tagging === 'deals' || tagging === 'd') {
       deals++;
-    } else if (tagging === '' && record.deals && record.deals !== record.relatedLead) {
-      deals++;
     } else {
+      // 'lead', 'leads', 'l', '', or anything else → Lead
       leads++;
     }
   });
-  
-  destroyChart('chartTaggingMix');
-  charts.chartTaggingMix = new Chart(document.getElementById('chartTaggingMix'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Leads', 'Deals'],
-      datasets: [{
-        data: [leads, deals],
-        backgroundColor: ['#4285f4', '#0f9d58'],
-        borderWidth: 2,
-        borderColor: '#fff'
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom' },
-        title: { display: true, text: `Total: ${data.length} | Leads: ${leads} | Deals: ${deals}` }
-      }
-    }
+
+  // Sanity check in console
+  console.log(`✅ Lead/Deal Split: Total=${data.length} | Leads=${leads} | Deals=${deals} | Match=${data.length === leads + deals ? 'PASS ✓' : 'FAIL ✗'}`);
+
+  // Update from server summary if using rawData (unfiltered)
+  const isFiltered = filteredData.length !== (rawData.masterData || []).length;
+  if (!isFiltered && rawData.summary) {
+    // Use server-computed values for the unfiltered state
+    leads = rawData.summary.leads;
+    deals = rawData.summary.deals;
+  }
+
+  document.getElementById('totalRecords').textContent = data.length.toLocaleString('en-IN');
+  document.getElementById('totalLeads').textContent   = leads.toLocaleString('en-IN');
+  document.getElementById('totalDeals').textContent   = deals.toLocaleString('en-IN');
+  document.getElementById('totalBankers').textContent = (rawData.bankers || []).length || '—';
+  document.getElementById('totalCPs').textContent     = (rawData.channelPartners || []).length || '—';
+  document.getElementById('totalLenders').textContent = (rawData.lenders || []).length || '—';
+
+  // Revenue
+  const revenue = rawData.revenue || [];
+  let totalExpected = 0, collected = 0, advance = 0, refund = 0;
+  revenue.forEach(r => {
+    totalExpected += toNum(r.expectedRevenue);
+    collected     += toNum(r.revenueCollected);
+    advance       += toNum(r.advanceAmount);
+    refund        += toNum(r.refundAmount);
   });
+  document.getElementById('revPipeline').textContent  = fmtCr(totalExpected);
+  document.getElementById('revCollected').textContent = fmtCr(collected);
+  document.getElementById('revAdvance').textContent   = fmtCr(advance);
+  document.getElementById('revRefund').textContent    = fmtCr(refund);
+  document.getElementById('revNet').textContent       = fmtCr(collected - refund);
 }
 
-function renderPipelineStatusChart() {
-  const statusCounts = {};
+// =====================================================================
+// OVERVIEW CHARTS
+// =====================================================================
+function renderOverviewCharts() {
+  // 1. Tagging Mix (Leads vs Deals)
+  const taggingCounts = { Leads: 0, Deals: 0 };
+  filteredData.forEach(r => {
+    const t = String(r.currentTaggingIn || '').trim().toLowerCase();
+    if (t === 'deal' || t === 'deals' || t === 'd') taggingCounts.Deals++;
+    else taggingCounts.Leads++;
+  });
+  renderDoughnut('chartTaggingMix', ['Leads', 'Deals'],
+    [taggingCounts.Leads, taggingCounts.Deals],
+    ['#4285f4', '#0f9d58']);
+
+  // 2. Pipeline by Lender Status
+  const statusMap = {};
   filteredData.forEach(r => {
     const s = String(r.lenderStatus || '').trim();
-    if (s) statusCounts[s] = (statusCounts[s] || 0) + 1;
+    if (s) statusMap[s] = (statusMap[s] || 0) + 1;
   });
-  
-  const colors = {
-    'Doablility Check': '#4285f4',
-    'Logged In': '#f4b400',
-    'Sanction': '#0f9d58',
-    'Disbursement': '#34a853',
-    'Drop/Declined': '#db4437',
-    'NBG/ In Principle Sanction': '#673ab7',
-    'No Action Taken': '#9e9e9e'
+  const statusColors = {
+    'Doablility Check': '#4285f4', 'Doability Check': '#4285f4',
+    'Logged In': '#f4b400', 'Sanction': '#0f9d58',
+    'Disbursement': '#34a853', 'Drop/Declined': '#db4437',
+    'NBG/ In Principle Sanction': '#673ab7', 'No Action Taken': '#9e9e9e'
   };
-  
-  destroyChart('chartPipelineStatus');
-  charts.chartPipelineStatus = new Chart(document.getElementById('chartPipelineStatus'), {
-    type: 'bar',
-    data: {
-      labels: Object.keys(statusCounts),
-      datasets: [{
-        label: 'Count',
-        data: Object.values(statusCounts),
-        backgroundColor: Object.keys(statusCounts).map(k => colors[k] || '#78909c')
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-    }
-  });
+  renderBar('chartPipelineStatus',
+    Object.keys(statusMap), Object.values(statusMap),
+    Object.keys(statusMap).map(k => statusColors[k] || '#78909c'), false);
+
+  // 3. Unit Distribution
+  const unitMap = {};
+  filteredData.forEach(r => { const u = String(r.unitName || '').trim(); if (u) unitMap[u] = (unitMap[u]||0)+1; });
+  renderDoughnut('chartUnitDist', Object.keys(unitMap), Object.values(unitMap),
+    ['#4285f4','#0f9d58','#f4b400','#db4437','#673ab7','#00acc1']);
+
+  // 4. Branch Distribution (horizontal bar)
+  const branchMap = {};
+  filteredData.forEach(r => { const b = String(r.branchName || '').trim(); if (b) branchMap[b] = (branchMap[b]||0)+1; });
+  renderHBar('chartBranchDist', Object.keys(branchMap), Object.values(branchMap), '#4285f4');
 }
 
-function renderUnitDistChart() {
-  const unitCounts = {};
-  filteredData.forEach(r => {
-    const u = String(r.unitName || '').trim();
-    if (u) unitCounts[u] = (unitCounts[u] || 0) + 1;
-  });
-  
-  destroyChart('chartUnitDist');
-  charts.chartUnitDist = new Chart(document.getElementById('chartUnitDist'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(unitCounts),
-      datasets: [{
-        data: Object.values(unitCounts),
-        backgroundColor: ['#4285f4', '#0f9d58', '#f4b400', '#db4437']
-      }]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-  });
-}
+// =====================================================================
+// PIPELINE TAB CHARTS
+// =====================================================================
+function renderPipelineCharts() {
+  // Mandate Status Distribution (pie)
+  const statusMap = {};
+  filteredData.forEach(r => { const s = String(r.lenderStatus||'').trim(); if(s) statusMap[s]=(statusMap[s]||0)+1; });
+  renderDoughnut('chartMandateStatus', Object.keys(statusMap), Object.values(statusMap),
+    ['#4285f4','#f4b400','#0f9d58','#db4437','#673ab7','#9e9e9e','#00acc1']);
 
-function renderBranchDistChart() {
-  const branchCounts = {};
-  filteredData.forEach(r => {
-    const b = String(r.branchName || r.name || '').trim();
-    if (b) branchCounts[b] = (branchCounts[b] || 0) + 1;
-  });
-  
-  destroyChart('chartBranchDist');
-  charts.chartBranchDist = new Chart(document.getElementById('chartBranchDist'), {
-    type: 'bar',
-    data: {
-      labels: Object.keys(branchCounts),
-      datasets: [{
-        label: 'Cases',
-        data: Object.values(branchCounts),
-        backgroundColor: '#4285f4'
-      }]
-    },
-    options: {
-      responsive: true,
-      indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true } }
-    }
-  });
+  // Lender Type Distribution
+  const typeMap = {};
+  filteredData.forEach(r => { const t = String(r.lenderType||'').trim(); if(t) typeMap[t]=(typeMap[t]||0)+1; });
+  renderDoughnut('chartLenderType', Object.keys(typeMap), Object.values(typeMap),
+    ['#4285f4','#0f9d58','#f4b400','#db4437','#673ab7']);
 }
 
 // =====================================================================
@@ -703,126 +701,37 @@ function renderBranchDistChart() {
 // =====================================================================
 function renderPipelineTable() {
   const tbody = document.getElementById('pipelineTableBody');
+  const countEl = document.getElementById('pipelineCount');
   if (!tbody) return;
-  
-  let html = '';
-  filteredData.forEach(r => {
+
+  countEl.textContent = filteredData.length + ' records';
+
+  if (!filteredData.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="no-data">No data matching filters</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filteredData.map(r => {
     const tagging = String(r.currentTaggingIn || '').trim();
-    const taggingDisplay = tagging || (r.deals && r.deals !== r.relatedLead ? 'Deal' : 'Lead');
-    const badgeClass = taggingDisplay.toLowerCase().includes('deal') ? 'badge-success' : 'badge-info';
-    const statusBadge = getStatusBadge(r.lenderStatus);
-    
-    html += `<tr>
-      <td>${formatDate(r.createdTime)}</td>
+    const tagLC   = tagging.toLowerCase();
+    const isLead  = !(tagLC === 'deal' || tagLC === 'deals' || tagLC === 'd');
+    const tagLabel = tagging || (isLead ? 'Lead' : 'Deal');
+    const tagBadge = `<span class="badge ${isLead ? 'badge-blue' : 'badge-green'}">${tagLabel}</span>`;
+
+    return `<tr>
+      <td>${fmtDate(r.createdTime)}</td>
+      <td>${tagBadge}</td>
       <td>${r.relatedLead || '—'}</td>
-      <td><span class="badge ${badgeClass}">${taggingDisplay}</span></td>
       <td>${r.deals || '—'}</td>
-      <td>${statusBadge}</td>
-      <td>${formatAmount(r.amount)}</td>
+      <td>${statusBadge(r.lenderStatus)}</td>
+      <td>${fmtAmount(r.amount)}</td>
       <td>${r.lenderType || '—'}</td>
       <td>${r.lenderName || '—'}</td>
       <td>${r.unitName || '—'}</td>
       <td>${r.branchName || '—'}</td>
       <td>${r.statusRemarks || '—'}</td>
     </tr>`;
-  });
-  
-  tbody.innerHTML = html || '<tr><td colspan="11" style="text-align:center;">No data</td></tr>';
-}
-
-function getStatusBadge(status) {
-  const s = String(status || '').trim();
-  let cls = 'badge-gray';
-  if (s.includes('Sanction') || s.includes('Disbursement')) cls = 'badge-success';
-  else if (s.includes('Logged')) cls = 'badge-warning';
-  else if (s.includes('Drop') || s.includes('Declined')) cls = 'badge-danger';
-  else if (s.includes('Doab') || s.includes('Check')) cls = 'badge-info';
-  return `<span class="badge ${cls}">${s || '—'}</span>`;
-}
-
-function formatDate(val) {
-  if (!val) return '—';
-  try {
-    const d = new Date(val);
-    if (isNaN(d)) return String(val).substring(0, 10);
-    return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'2-digit' });
-  } catch(e) { return String(val).substring(0, 10); }
-}
-
-// =====================================================================
-// BANKER SECTION
-// =====================================================================
-function renderBankerSection() {
-  const bankers = rawData.bankers || [];
-  if (bankers.length === 0) return;
-  
-  // Metrics
-  const states = new Set(), cities = new Set();
-  let totalExp = 0;
-  bankers.forEach(b => {
-    if (b.state) states.add(b.state);
-    if (b.city) cities.add(b.city);
-    totalExp += parseFloat(b.experience || b.yearsOfExperience || 0);
-  });
-  
-  document.getElementById('bankerMetrics').innerHTML = `
-    <div class="metric-card"><div class="label">Total Bankers</div><div class="value">${bankers.length}</div></div>
-    <div class="metric-card leads"><div class="label">States Covered</div><div class="value">${states.size}</div></div>
-    <div class="metric-card deals"><div class="label">Cities Covered</div><div class="value">${cities.size}</div></div>
-    <div class="metric-card"><div class="label">Avg Experience</div><div class="value">${(totalExp/bankers.length).toFixed(1)} yrs</div></div>
-  `;
-  
-  // State chart
-  const stateCounts = {};
-  bankers.forEach(b => { if(b.state) stateCounts[b.state] = (stateCounts[b.state]||0)+1; });
-  
-  destroyChart('chartBankerState');
-  const ctx = document.getElementById('chartBankerState');
-  if (ctx) {
-    charts.chartBankerState = new Chart(ctx, {
-      type: 'bar',
-      data: { labels: Object.keys(stateCounts), datasets: [{ label:'Bankers', data:Object.values(stateCounts), backgroundColor:'#4285f4' }] },
-      options: { responsive:true, plugins:{legend:{display:false}} }
-    });
-  }
-  
-  // Directory table
-  let tableHtml = '<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Experience</th></tr></thead><tbody>';
-  bankers.forEach(b => {
-    tableHtml += `<tr><td>${b.name||b.bankerName||'—'}</td><td>${b.state||'—'}</td><td>${b.city||'—'}</td><td>${b.expertise||b.specialization||'—'}</td><td>${b.experience||b.yearsOfExperience||'—'} yrs</td></tr>`;
-  });
-  tableHtml += '</tbody></table>';
-  document.getElementById('bankerTableWrap').innerHTML = tableHtml;
-}
-
-// =====================================================================
-// CHANNEL PARTNER SECTION
-// =====================================================================
-function renderCPSection() {
-  const cps = rawData.channelPartners || [];
-  if (cps.length === 0) return;
-  
-  const states = new Set(), cities = new Set(), expertise = new Set();
-  cps.forEach(c => {
-    if (c.state) states.add(c.state);
-    if (c.city) cities.add(c.city);
-    if (c.expertise) expertise.add(c.expertise);
-  });
-  
-  document.getElementById('cpMetrics').innerHTML = `
-    <div class="metric-card"><div class="label">Total CPs</div><div class="value">${cps.length}</div></div>
-    <div class="metric-card leads"><div class="label">States</div><div class="value">${states.size}</div></div>
-    <div class="metric-card deals"><div class="label">Cities</div><div class="value">${cities.size}</div></div>
-    <div class="metric-card"><div class="label">Expertise Areas</div><div class="value">${expertise.size}</div></div>
-  `;
-  
-  // Table
-  let tableHtml = '<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Contact</th></tr></thead><tbody>';
-  cps.forEach(c => {
-    tableHtml += `<tr><td>${c.name||c.cpName||'—'}</td><td>${c.state||'—'}</td><td>${c.city||'—'}</td><td>${c.expertise||'—'}</td><td>${c.phone||c.contact||'—'}</td></tr>`;
-  });
-  tableHtml += '</tbody></table>';
-  document.getElementById('cpTableWrap').innerHTML = tableHtml;
+  }).join('');
 }
 
 // =====================================================================
@@ -830,97 +739,200 @@ function renderCPSection() {
 // =====================================================================
 function renderRevenueSection() {
   const revenue = rawData.revenue || [];
-  if (revenue.length === 0) {
-    document.getElementById('revenueTableWrap').innerHTML = '<p>No revenue data available</p>';
+
+  // Charts
+  const branchRev = {}, statusRev = {};
+  revenue.forEach(r => {
+    const b = r.branch || 'Unknown';
+    const s = r.status || 'Unknown';
+    branchRev[b] = (branchRev[b] || 0) + toNum(r.expectedRevenue);
+    statusRev[s] = (statusRev[s] || 0) + toNum(r.expectedRevenue);
+  });
+  renderHBar('chartRevBranch', Object.keys(branchRev), Object.values(branchRev), '#4285f4');
+  renderBar('chartRevStatus', Object.keys(statusRev), Object.values(statusRev), '#0f9d58', false);
+
+  // Table
+  if (!revenue.length) {
+    document.getElementById('revenueTableWrap').innerHTML = '<p class="no-data">No revenue data</p>';
     return;
   }
-  
-  let tableHtml = '<table><thead><tr>';
   const keys = Object.keys(revenue[0]);
-  keys.forEach(k => { tableHtml += `<th>${k}</th>`; });
-  tableHtml += '</tr></thead><tbody>';
+  let html = `<table><thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead><tbody>`;
   revenue.forEach(r => {
-    tableHtml += '<tr>';
-    keys.forEach(k => { tableHtml += `<td>${r[k] || '—'}</td>`; });
-    tableHtml += '</tr>';
+    html += `<tr>${keys.map(k=>`<td>${r[k]||'—'}</td>`).join('')}</tr>`;
   });
-  tableHtml += '</tbody></table>';
-  document.getElementById('revenueTableWrap').innerHTML = tableHtml;
+  html += '</tbody></table>';
+  document.getElementById('revenueTableWrap').innerHTML = html;
 }
 
 // =====================================================================
-// ALLOCATION SECTION
+// ALLOCATION SECTION — Lead/Deal split per Unit & Branch
 // =====================================================================
 function renderAllocationSection() {
   const data = filteredData;
-  
-  // Allocation by Unit with Lead/Deal split
+
+  // By Unit
   const unitAlloc = {};
   data.forEach(r => {
     const unit = r.unitName || 'Unknown';
     if (!unitAlloc[unit]) unitAlloc[unit] = { leads: 0, deals: 0 };
-    const tagging = String(r.currentTaggingIn || '').trim().toLowerCase();
-    if (tagging === 'deal' || tagging === 'deals' || (tagging === '' && r.deals && r.deals !== r.relatedLead)) {
-      unitAlloc[unit].deals++;
-    } else {
-      unitAlloc[unit].leads++;
-    }
+    const t = String(r.currentTaggingIn || '').trim().toLowerCase();
+    if (t === 'deal' || t === 'deals' || t === 'd') unitAlloc[unit].deals++;
+    else unitAlloc[unit].leads++;
   });
-  
+
   destroyChart('chartAllocUnit');
-  const ctx = document.getElementById('chartAllocUnit');
-  if (ctx) {
-    charts.chartAllocUnit = new Chart(ctx, {
+  const ctx1 = document.getElementById('chartAllocUnit');
+  if (ctx1 && Object.keys(unitAlloc).length) {
+    charts.chartAllocUnit = new Chart(ctx1, {
       type: 'bar',
       data: {
         labels: Object.keys(unitAlloc),
         datasets: [
-          { label: 'Leads', data: Object.values(unitAlloc).map(v => v.leads), backgroundColor: '#4285f4' },
-          { label: 'Deals', data: Object.values(unitAlloc).map(v => v.deals), backgroundColor: '#0f9d58' }
+          { label: 'Leads', data: Object.values(unitAlloc).map(v=>v.leads), backgroundColor: '#4285f4' },
+          { label: 'Deals', data: Object.values(unitAlloc).map(v=>v.deals), backgroundColor: '#0f9d58' }
         ]
       },
-      options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+        plugins: { legend: { position: 'bottom' } }
+      }
     });
   }
-  
-  // Branch allocation
+
+  // By Branch
   const branchAlloc = {};
   data.forEach(r => {
-    const branch = r.branchName || 'Unknown';
-    if (!branchAlloc[branch]) branchAlloc[branch] = { leads: 0, deals: 0 };
-    const tagging = String(r.currentTaggingIn || '').trim().toLowerCase();
-    if (tagging === 'deal' || tagging === 'deals' || (tagging === '' && r.deals && r.deals !== r.relatedLead)) {
-      branchAlloc[branch].deals++;
-    } else {
-      branchAlloc[branch].leads++;
-    }
+    const b = r.branchName || 'Unknown';
+    if (!branchAlloc[b]) branchAlloc[b] = { leads: 0, deals: 0 };
+    const t = String(r.currentTaggingIn || '').trim().toLowerCase();
+    if (t === 'deal' || t === 'deals' || t === 'd') branchAlloc[b].deals++;
+    else branchAlloc[b].leads++;
   });
-  
+
   destroyChart('chartAllocBranch');
   const ctx2 = document.getElementById('chartAllocBranch');
-  if (ctx2) {
+  if (ctx2 && Object.keys(branchAlloc).length) {
     charts.chartAllocBranch = new Chart(ctx2, {
       type: 'bar',
       data: {
         labels: Object.keys(branchAlloc),
         datasets: [
-          { label: 'Leads', data: Object.values(branchAlloc).map(v => v.leads), backgroundColor: '#4285f4' },
-          { label: 'Deals', data: Object.values(branchAlloc).map(v => v.deals), backgroundColor: '#0f9d58' }
+          { label: 'Leads', data: Object.values(branchAlloc).map(v=>v.leads), backgroundColor: '#4285f4' },
+          { label: 'Deals', data: Object.values(branchAlloc).map(v=>v.deals), backgroundColor: '#0f9d58' }
         ]
       },
-      options: { responsive: true, indexAxis: 'y' }
+      options: { responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { position: 'bottom' } }
+      }
     });
   }
-  
+
   // Allocation Table
-  let html = '<table><thead><tr><th>Branch</th><th>Total</th><th>Leads</th><th>Deals</th><th>Lead %</th></tr></thead><tbody>';
-  Object.keys(branchAlloc).forEach(b => {
-    const total = branchAlloc[b].leads + branchAlloc[b].deals;
-    const pct = total > 0 ? ((branchAlloc[b].leads / total) * 100).toFixed(1) : 0;
-    html += `<tr><td>${b}</td><td>${total}</td><td>${branchAlloc[b].leads}</td><td>${branchAlloc[b].deals}</td><td>${pct}%</td></tr>`;
+  let html = `<table>
+    <thead><tr><th>Branch</th><th>Total</th><th>Leads</th><th>Deals</th><th>Lead %</th><th>Deal %</th></tr></thead>
+    <tbody>`;
+  Object.keys(branchAlloc).sort().forEach(b => {
+    const { leads, deals } = branchAlloc[b];
+    const total = leads + deals;
+    const leadPct = total ? ((leads/total)*100).toFixed(1) : '0.0';
+    const dealPct = total ? ((deals/total)*100).toFixed(1) : '0.0';
+    html += `<tr>
+      <td><b>${b}</b></td><td>${total}</td>
+      <td><span class="badge badge-blue">${leads}</span></td>
+      <td><span class="badge badge-green">${deals}</span></td>
+      <td>${leadPct}%</td><td>${dealPct}%</td>
+    </tr>`;
   });
   html += '</tbody></table>';
-  document.getElementById('allocationTableWrap').innerHTML = html;
+  document.getElementById('allocationTableWrap').innerHTML = html || '<p class="no-data">No data</p>';
+}
+
+// =====================================================================
+// BANKER SECTION
+// =====================================================================
+function renderBankerSection() {
+  const bankers = rawData.bankers || [];
+  const el = document.getElementById('bankerMetrics');
+  if (!el) return;
+
+  const states = new Set(), cities = new Set();
+  let totalExp = 0;
+  bankers.forEach(b => {
+    if (b.state) states.add(b.state);
+    if (b.city)  cities.add(b.city);
+    totalExp += toNum(b.experience);
+  });
+  const avgExp = bankers.length ? (totalExp / bankers.length).toFixed(1) : '—';
+
+  el.innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total Bankers</div><div class="metric-value">${bankers.length}</div></div>
+    <div class="metric-card green"><div class="metric-label">States Covered</div><div class="metric-value">${states.size}</div></div>
+    <div class="metric-card yellow"><div class="metric-label">Cities Covered</div><div class="metric-value">${cities.size}</div></div>
+    <div class="metric-card purple"><div class="metric-label">Avg Experience</div><div class="metric-value">${avgExp}</div><div class="metric-sub">Years</div></div>`;
+
+  // State chart
+  const stateMap = {};
+  bankers.forEach(b => { if(b.state) stateMap[b.state]=(stateMap[b.state]||0)+1; });
+  renderHBar('chartBankerState', Object.keys(stateMap), Object.values(stateMap), '#4285f4');
+
+  // Expertise chart
+  const expMap = {};
+  bankers.forEach(b => { const e = b.expertise||'Other'; expMap[e]=(expMap[e]||0)+1; });
+  renderDoughnut('chartBankerExpertise', Object.keys(expMap), Object.values(expMap),
+    ['#4285f4','#0f9d58','#f4b400','#db4437','#673ab7','#00acc1']);
+
+  // Table
+  let html = `<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Experience</th><th>Unit</th><th>Branch</th></tr></thead><tbody>`;
+  bankers.forEach(b => {
+    html += `<tr><td><b>${b.name||'—'}</b></td><td>${b.state||'—'}</td><td>${b.city||'—'}</td>
+      <td>${b.expertise||'—'}</td><td>${b.experience||'—'}</td><td>${b.unit||'—'}</td><td>${b.branch||'—'}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('bankerTableWrap').innerHTML = html;
+}
+
+// =====================================================================
+// CHANNEL PARTNER SECTION
+// =====================================================================
+function renderCPSection() {
+  const cps = rawData.channelPartners || [];
+  const el = document.getElementById('cpMetrics');
+  if (!el) return;
+
+  const states = new Set(), cities = new Set(), expertiseSet = new Set();
+  cps.forEach(c => {
+    if (c.state)     states.add(c.state);
+    if (c.city)      cities.add(c.city);
+    if (c.expertise) expertiseSet.add(c.expertise);
+  });
+
+  el.innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total CPs</div><div class="metric-value">${cps.length}</div></div>
+    <div class="metric-card green"><div class="metric-label">States</div><div class="metric-value">${states.size}</div></div>
+    <div class="metric-card yellow"><div class="metric-label">Cities</div><div class="metric-value">${cities.size}</div></div>
+    <div class="metric-card purple"><div class="metric-label">Expertise Areas</div><div class="metric-value">${expertiseSet.size}</div></div>`;
+
+  // State chart
+  const stateMap = {};
+  cps.forEach(c => { if(c.state) stateMap[c.state]=(stateMap[c.state]||0)+1; });
+  renderHBar('chartCPState', Object.keys(stateMap), Object.values(stateMap), '#673ab7');
+
+  // Expertise chart
+  const expMap = {};
+  cps.forEach(c => { const e = c.expertise||'Other'; expMap[e]=(expMap[e]||0)+1; });
+  renderDoughnut('chartCPExpertise', Object.keys(expMap), Object.values(expMap),
+    ['#673ab7','#4285f4','#0f9d58','#f4b400','#db4437']);
+
+  // Table
+  let html = `<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Contact</th><th>Unit</th><th>Branch</th></tr></thead><tbody>`;
+  cps.forEach(c => {
+    html += `<tr><td><b>${c.name||'—'}</b></td><td>${c.state||'—'}</td><td>${c.city||'—'}</td>
+      <td>${c.expertise||'—'}</td><td>${c.phone||'—'}</td><td>${c.unit||'—'}</td><td>${c.branch||'—'}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('cpTableWrap').innerHTML = html;
 }
 
 // =====================================================================
@@ -928,74 +940,160 @@ function renderAllocationSection() {
 // =====================================================================
 function populateFilters() {
   const units = new Set(), branches = new Set(), statuses = new Set(), lenderTypes = new Set();
-  
-  rawData.masterData.forEach(r => {
-    if (r.unitName) units.add(r.unitName);
-    if (r.branchName) branches.add(r.branchName);
+  (rawData.masterData || []).forEach(r => {
+    if (r.unitName)    units.add(r.unitName);
+    if (r.branchName)  branches.add(r.branchName);
     if (r.lenderStatus) statuses.add(r.lenderStatus);
-    if (r.lenderType) lenderTypes.add(r.lenderType);
+    if (r.lenderType)  lenderTypes.add(r.lenderType);
   });
-  
-  populateSelect('filterUnit', units);
-  populateSelect('filterBranch', branches);
-  populateSelect('filterStatus', statuses);
-  populateSelect('filterLenderType', lenderTypes);
+  fillSelect('filterUnit',       units);
+  fillSelect('filterBranch',     branches);
+  fillSelect('filterStatus',     statuses);
+  fillSelect('filterLenderType', lenderTypes);
 }
 
-function populateSelect(id, values) {
-  const sel = document.getElementById(id);
-  if (!sel) return;
-  const firstOption = sel.options[0].outerHTML;
-  sel.innerHTML = firstOption;
-  Array.from(values).sort().forEach(v => {
-    sel.innerHTML += `<option value="${v}">${v}</option>`;
-  });
+function fillSelect(id, values) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const first = el.options[0].outerHTML;
+  el.innerHTML = first + Array.from(values).sort().map(v => `<option value="${v}">${v}</option>`).join('');
 }
 
 function applyFilters() {
-  const unit = document.getElementById('filterUnit').value;
-  const branch = document.getElementById('filterBranch').value;
-  const status = document.getElementById('filterStatus').value;
+  const unit       = document.getElementById('filterUnit').value;
+  const branch     = document.getElementById('filterBranch').value;
+  const status     = document.getElementById('filterStatus').value;
   const lenderType = document.getElementById('filterLenderType').value;
-  const tagging = document.getElementById('filterTagging').value;
-  const dateFrom = document.getElementById('filterDateFrom').value;
-  const dateTo = document.getElementById('filterDateTo').value;
-  
+  const tagging    = document.getElementById('filterTagging').value;
+  const dateFrom   = document.getElementById('filterDateFrom').value;
+  const dateTo     = document.getElementById('filterDateTo').value;
+
   filteredData = (rawData.masterData || []).filter(r => {
-    if (unit && r.unitName !== unit) return false;
-    if (branch && r.branchName !== branch) return false;
-    if (status && r.lenderStatus !== status) return false;
-    if (lenderType && r.lenderType !== lenderType) return false;
-    
-    // Tagging filter
+    if (unit       && r.unitName    !== unit)       return false;
+    if (branch     && r.branchName  !== branch)     return false;
+    if (status     && r.lenderStatus !== status)    return false;
+    if (lenderType && r.lenderType  !== lenderType) return false;
+
     if (tagging) {
       const t = String(r.currentTaggingIn || '').trim().toLowerCase();
-      if (tagging === 'Lead' && !(t === 'lead' || t === 'leads' || t === 'l' || t === '')) return false;
-      if (tagging === 'Deal' && !(t === 'deal' || t === 'deals' || t === 'd')) return false;
+      const isDeal = (t === 'deal' || t === 'deals' || t === 'd');
+      if (tagging === 'Deal' && !isDeal) return false;
+      if (tagging === 'Lead' && isDeal)  return false;
     }
-    
-    // Date filters
+
     if (dateFrom || dateTo) {
       try {
-        const recordDate = new Date(r.createdTime);
-        if (isNaN(recordDate)) return true; // keep if date unparseable
-        if (dateFrom && recordDate < new Date(dateFrom)) return false;
-        if (dateTo && recordDate > new Date(dateTo + 'T23:59:59')) return false;
-      } catch(e) {}
+        const d = new Date(r.createdTime);
+        if (!isNaN(d.getTime())) {
+          if (dateFrom && d < new Date(dateFrom))           return false;
+          if (dateTo   && d > new Date(dateTo + 'T23:59:59')) return false;
+        }
+      } catch (e) {}
     }
-    
     return true;
   });
-  
+
   renderDashboard();
 }
 
 function clearFilters() {
-  document.getElementById('filterUnit').value = '';
-  document.getElementById('filterBranch').value = '';
-  document.getElementById('filterStatus').value = '';
-  document.getElementById('filterLenderType').value = '';
-  document.getElementById('filterTagging').value = '';
-  document.getElementById('filterDateFrom').value = '';
-  document.getElementById('filterDateTo').value = '';
-  filteredData =
+  ['filterUnit','filterBranch','filterStatus','filterLenderType','filterTagging',
+   'filterDateFrom','filterDateTo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  filteredData = rawData.masterData || [];
+  renderDashboard();
+}
+
+// =====================================================================
+// CHART HELPERS
+// =====================================================================
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderDoughnut(id, labels, data, colors) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx || !data.some(v => v > 0)) return;
+  charts[id] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+    }
+  });
+}
+
+function renderBar(id, labels, data, color, horizontal) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Count', data,
+        backgroundColor: Array.isArray(color) ? color : color,
+        borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: horizontal ? 'y' : 'x',
+      plugins: { legend: { display: false } },
+      scales: { [horizontal ? 'x' : 'y']: { beginAtZero: true } }
+    }
+  });
+}
+
+function renderHBar(id, labels, data, color) {
+  return renderBar(id, labels, data, color, true);
+}
+
+// =====================================================================
+// FORMATTING HELPERS
+// =====================================================================
+function toNum(v) {
+  const n = parseFloat(String(v).replace(/[₹,\s]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+function fmtCr(val) {
+  if (!val || isNaN(val)) return '—';
+  const cr = val / 10000000;
+  return '₹' + (cr >= 1 ? cr.toFixed(2) + ' Cr' : (val / 100000).toFixed(2) + ' L');
+}
+
+function fmtAmount(val) {
+  const n = toNum(val);
+  if (!n) return '—';
+  if (n >= 10000000) return '₹' + (n/10000000).toFixed(2) + ' Cr';
+  if (n >= 100000)   return '₹' + (n/100000).toFixed(2) + ' L';
+  return '₹' + n.toLocaleString('en-IN');
+}
+
+function fmtDate(val) {
+  if (!val) return '—';
+  try {
+    const d = new Date(val);
+    if (isNaN(d)) return String(val).substring(0, 10);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
+  } catch(e) { return String(val).substring(0, 10); }
+}
+
+function statusBadge(status) {
+  const s = String(status || '').trim();
+  let cls = 'badge-gray';
+  if (!s) return '<span class="badge badge-gray">—</span>';
+  if (s.includes('Sanction') || s.includes('Disbursement')) cls = 'badge-green';
+  else if (s.includes('Logged'))                            cls = 'badge-yellow';
+  else if (s.includes('Drop') || s.includes('Declined'))   cls = 'badge-red';
+  else if (s.includes('Doab') || s.includes('Check'))      cls = 'badge-blue';
+  else if (s.includes('NBG') || s.includes('Principle'))   cls = 'badge-purple';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+</script>
+</body>
+</html>
