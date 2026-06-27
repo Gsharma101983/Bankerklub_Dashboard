@@ -1,1099 +1,1182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BankerKlub Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    /* ── RESET & BASE ───────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --blue:    #4285f4;
-      --green:   #0f9d58;
-      --yellow:  #f4b400;
-      --red:     #db4437;
-      --purple:  #673ab7;
-      --gray:    #78909c;
-      --bg:      #f0f2f5;
-      --card:    #ffffff;
-      --border:  #e0e0e0;
-      --text:    #212121;
-      --muted:   #757575;
-      --radius:  10px;
-      --shadow:  0 2px 8px rgba(0,0,0,.08);
-    }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BankerKlub — Management Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════════════ */
+:root{
+  --navy:#0B1E3D;--ink:#142444;--gold:#C9A84C;--gold-light:#F0D98A;
+  --gold-pale:#FDF6E3;--white:#fff;--slate:#4A5568;--mist:#F4F6FA;
+  --border:#DDE3EE;--green:#1A7A4A;--green-bg:#E8F5EE;
+  --amber:#E87C1E;--amber-bg:#FFF4E6;
+  --red:#C0392B;--red-bg:#FDE8E6;
+  --shadow:0 2px 12px rgba(11,30,61,.10);
+  --shadow-lg:0 8px 32px rgba(11,30,61,.15);
+  --radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--mist);color:var(--ink);min-height:100vh}
+/* ── HEADER ── */
+.hdr{background:var(--navy);display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:62px;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:200}
+.hdr-brand{display:flex;align-items:center;gap:11px}
+.hdr-logo{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;
+  align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;
+  font-size:15px;color:var(--navy)}
+.hdr-title{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;letter-spacing:.01em}
+.hdr-sub{font-size:10px;color:var(--gold-light);text-transform:uppercase;letter-spacing:.07em}
+.live-badge{background:rgba(26,122,74,.25);border:1px solid #1A7A4A;color:#5EEBA2;
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#5EEBA2;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sync-info{font-size:10px;color:var(--gold-light);opacity:.7}
 
-    /* ── TOP BAR ────────────────────────────────────────────────────── */
-    .topbar {
-      background: #1a237e;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      height: 54px;
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 6px rgba(0,0,0,.3);
-    }
-    .topbar-left { display: flex; align-items: center; gap: 12px; }
-    .logo { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
-    .logo span { color: #ffd54f; }
-    .status-badge {
-      display: flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,.12);
-      padding: 4px 10px; border-radius: 20px; font-size: 12px;
-    }
-    #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #f4b400; transition: background .4s; }
-    .topbar-right { font-size: 12px; opacity: .8; }
+/* ── NAV TABS ── */
+.nav{background:var(--navy);border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex;padding:0 28px;gap:4px;overflow-x:auto}
+.nav-btn{padding:12px 20px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+  color:rgba(255,255,255,.5);border:none;background:transparent;cursor:pointer;
+  border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.03em;text-transform:uppercase}
+.nav-btn:hover{color:rgba(255,255,255,.85)}
+.nav-btn.active{color:var(--gold-light);border-bottom-color:var(--gold)}
 
-    /* ── NAV TABS ───────────────────────────────────────────────────── */
-    .nav-tabs {
-      display: flex; overflow-x: auto; background: #283593;
-      padding: 0 16px; gap: 4px;
-      scrollbar-width: none;
-    }
-    .nav-tabs::-webkit-scrollbar { display: none; }
-    .nav-tab {
-      padding: 10px 18px; cursor: pointer; white-space: nowrap;
-      color: rgba(255,255,255,.7); font-size: 13px; font-weight: 500;
-      border-bottom: 3px solid transparent;
-      transition: all .2s;
-    }
-    .nav-tab:hover { color: #fff; background: rgba(255,255,255,.08); }
-    .nav-tab.active { color: #fff; border-bottom-color: #ffd54f; }
+/* ── LAYOUT ── */
+.container{max-width:1400px;margin:0 auto;padding:24px 20px}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
-    /* ── LAYOUT ─────────────────────────────────────────────────────── */
-    .main { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+/* ── FILTER BAR ── */
+.filter-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.filter-bar label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--slate);display:block;margin-bottom:4px}
+.filter-bar select,.filter-bar input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);background:var(--white);
+  min-width:140px;outline:none;transition:border-color .15s}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--gold)}
+.btn{padding:8px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;
+  font-size:12px;border:none;cursor:pointer;transition:all .2s;letter-spacing:.03em;display:inline-flex;align-items:center;gap:6px}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:hover{background:#b8933f}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--slate)}
+.btn-outline:hover{background:var(--mist)}
 
-    /* ── CARDS ──────────────────────────────────────────────────────── */
-    .card {
-      background: var(--card); border-radius: var(--radius);
-      box-shadow: var(--shadow); padding: 18px; margin-bottom: 18px;
-    }
-    .card-title {
-      font-size: 13px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px;
-    }
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.kpi.blue::before{background:#3B82F6}
+.kpi.green::before{background:var(--green)}
+.kpi.gold::before{background:var(--gold)}
+.kpi.red::before{background:var(--red)}
+.kpi.amber::before{background:var(--amber)}
+.kpi.navy::before{background:var(--navy)}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--slate);margin-bottom:6px}
+.kpi-value{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--navy)}
+.kpi-value.sm{font-size:18px}
+.kpi-sub{font-size:11px;color:var(--slate);margin-top:3px}
+.kpi-drill{font-size:10px;color:var(--gold);cursor:pointer;margin-top:6px;text-decoration:underline;display:block}
 
-    /* ── METRIC CARDS ───────────────────────────────────────────────── */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 14px; margin-bottom: 20px;
-    }
-    .metric-card {
-      background: var(--card); border-radius: var(--radius);
-      box-shadow: var(--shadow); padding: 16px 18px;
-      border-left: 4px solid var(--blue);
-    }
-    .metric-card.green  { border-left-color: var(--green); }
-    .metric-card.yellow { border-left-color: var(--yellow); }
-    .metric-card.red    { border-left-color: var(--red); }
-    .metric-card.purple { border-left-color: var(--purple); }
-    .metric-card.gray   { border-left-color: var(--gray); }
-    .metric-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-    .metric-value { font-size: 28px; font-weight: 700; margin: 6px 0 2px; color: var(--text); }
-    .metric-sub   { font-size: 11px; color: var(--muted); }
+/* ── CHART GRID ── */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;margin-bottom:22px}
+.chart-box{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow)}
+.chart-box h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--slate);margin-bottom:16px}
+.chart-box canvas{max-height:220px}
 
-    /* ── CHART GRID ─────────────────────────────────────────────────── */
-    .chart-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 18px; margin-bottom: 20px;
-    }
-    .chart-wrap { position: relative; height: 280px; }
+/* ── TABLE ── */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);margin-bottom:22px}
+.table-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.table-header h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--navy)}
+.table-count{font-size:11px;color:var(--slate)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--mist)}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--slate);white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--border);color:var(--ink);vertical-align:middle}
+tr:hover td{background:#F9FAFB}
+.tag-on{background:var(--green-bg);color:var(--green);font-weight:600;padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
+.tag-alert{background:var(--red-bg);color:var(--red);font-weight:600;padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
+.tag-wip{background:var(--amber-bg);color:var(--amber);font-weight:600;padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
+.tag-na{background:var(--mist);color:var(--slate);padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
+.pagination{display:flex;gap:6px;align-items:center;padding:12px 20px;border-top:1px solid var(--border);flex-wrap:wrap}
+.pg-btn{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:var(--white);
+  font-size:11px;cursor:pointer;transition:all .15s}
+.pg-btn:hover,.pg-btn.active{background:var(--navy);color:var(--gold-light);border-color:var(--navy)}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed}
 
-    /* ── FILTERS ────────────────────────────────────────────────────── */
-    .filter-bar {
-      background: var(--card); border-radius: var(--radius);
-      box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 18px;
-    }
-    .filter-bar h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
-    .filter-grid {
-      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
-    }
-    .filter-group { display: flex; flex-direction: column; gap: 4px; }
-    .filter-group label { font-size: 11px; color: var(--muted); font-weight: 600; }
-    .filter-group select,
-    .filter-group input {
-      padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
-      font-size: 13px; background: #fafafa; min-width: 130px;
-    }
-    .filter-group select:focus,
-    .filter-group input:focus { outline: none; border-color: var(--blue); }
-    .btn {
-      padding: 8px 18px; border: none; border-radius: 6px;
-      font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s;
-    }
-    .btn:hover { opacity: .85; }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-outline { background: #fff; color: var(--muted); border: 1px solid var(--border); }
+/* ── RECOMMENDATION LAYOUT ── */
+.rec-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+.rec-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;position:sticky;top:80px}
+.rec-panel-hdr{background:var(--navy);padding:18px 20px;border-bottom:2px solid var(--gold)}
+.rec-panel-hdr h2{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:2px}
+.rec-panel-hdr p{font-size:11px;color:var(--gold-light);opacity:.8}
+.rec-panel-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.field-grp label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--slate);display:block;margin-bottom:5px}
+.field-grp select,.field-grp input{width:100%;padding:9px 13px;border:1.5px solid var(--border);
+  border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--ink);outline:none;transition:border-color .15s}
+.field-grp select:focus{border-color:var(--gold)}
+.chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chip{padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;
+  font-weight:500;color:var(--slate);cursor:pointer;text-align:center;transition:all .15s;
+  user-select:none;background:var(--white)}
+.chip:hover{border-color:var(--gold);background:var(--gold-pale)}
+.chip.active{background:var(--navy);border-color:var(--navy);color:var(--gold-light);font-weight:700}
 
-    /* ── TABLES ─────────────────────────────────────────────────────── */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th {
-      background: #f5f7ff; padding: 10px 12px; text-align: left;
-      font-weight: 600; color: var(--muted); font-size: 11px;
-      text-transform: uppercase; border-bottom: 2px solid var(--border);
-      white-space: nowrap;
-    }
-    td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-    tr:hover td { background: #fafbff; }
-    .no-data { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; }
+/* ── BANKER / CP CARDS ── */
+.cards-col{display:flex;flex-direction:column;gap:12px}
+.rec-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 22px;box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden}
+.rec-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--gold);border-radius:4px 0 0 4px}
+.rec-card:hover{border-color:var(--gold);box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.card-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.avatar{width:44px;height:44px;border-radius:10px;background:var(--navy);display:flex;
+  align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;
+  font-size:16px;color:var(--gold);flex-shrink:0}
+.card-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--navy);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:11px;color:var(--slate);margin-top:2px}
+.card-meta-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.exp-badge{background:var(--gold-pale);border:1px solid var(--gold);color:var(--navy);
+  font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.loc-pill{font-size:10px;color:var(--slate);display:flex;align-items:center;gap:3px}
+.prod-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.prod-tag{padding:3px 9px;background:var(--mist);border-radius:20px;font-size:10px;color:var(--slate)}
+.prod-tag.hi{background:var(--navy);color:var(--gold-light);font-weight:600}
+.card-phone{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green);
+  font-weight:600;text-decoration:none;margin-top:8px}
+.card-phone:hover{text-decoration:underline}
 
-    /* ── BADGES ─────────────────────────────────────────────────────── */
-    .badge {
-      display: inline-block; padding: 2px 9px; border-radius: 12px;
-      font-size: 11px; font-weight: 600; white-space: nowrap;
-    }
-    .badge-blue    { background: #e8f0fe; color: #1967d2; }
-    .badge-green   { background: #e6f4ea; color: #1e8e3e; }
-    .badge-yellow  { background: #fef9e0; color: #b06000; }
-    .badge-red     { background: #fce8e6; color: #c5221f; }
-    .badge-purple  { background: #f3e8fd; color: #7b1fa2; }
-    .badge-gray    { background: #f1f3f4; color: #5f6368; }
+/* ── LENDER CARDS ── */
+.lender-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;transition:all .2s}
+.lender-card:hover{border-color:var(--gold);box-shadow:var(--shadow-lg)}
+.lender-rank{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--gold);
+  min-width:36px;text-align:center}
+.lender-info{flex:1}
+.lender-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--navy)}
+.lender-rate{margin-top:4px}
+.rate-bar{height:6px;background:#EEF0F4;border-radius:3px;overflow:hidden;width:160px;margin-top:4px}
+.rate-fill{height:100%;background:var(--green);border-radius:3px;transition:width .6s}
+.rate-label{font-size:10px;color:var(--slate);margin-top:3px}
 
-    /* ── LOADING ────────────────────────────────────────────────────── */
-    #loadingState {
-      text-align: center; padding: 80px 20px; color: var(--muted);
-    }
-    .spinner {
-      width: 40px; height: 40px; border: 4px solid var(--border);
-      border-top-color: var(--blue); border-radius: 50%;
-      animation: spin .8s linear infinite; margin: 0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+/* ── ONBOARDING STATS ── */
+.onboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:22px}
+.ob-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:22px 24px;box-shadow:var(--shadow);text-align:center}
+.ob-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;margin:0 auto 12px}
+.ob-val{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;color:var(--navy);margin-bottom:4px}
+.ob-lbl{font-size:12px;color:var(--slate);font-weight:500}
 
-    /* ── SECTION HEADERS ────────────────────────────────────────────── */
-    .section-title {
-      font-size: 15px; font-weight: 700; color: #1a237e;
-      margin: 24px 0 12px; padding-bottom: 6px;
-      border-bottom: 2px solid #e8eaf6;
-    }
+/* ── EMPTY / LOADING ── */
+.state-msg{padding:60px 20px;text-align:center;color:var(--slate)}
+.state-msg h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.state-msg p{font-size:13px;line-height:1.6}
+.spinner{border:3px solid var(--border);border-top-color:var(--gold);width:36px;height:36px;
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── RESPONSIVE ─────────────────────────────────────────────────── */
-    @media (max-width: 600px) {
-      .metrics-grid { grid-template-columns: 1fr 1fr; }
-      .chart-grid   { grid-template-columns: 1fr; }
-      .metric-value { font-size: 22px; }
-    }
-  </style>
+/* ── MODAL / DRILL ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(11,30,61,.45);z-index:1000;
+  display:none;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--white);border-radius:var(--radius);width:90%;max-width:900px;
+  max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.modal-hdr{background:var(--navy);padding:18px 24px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:2px solid var(--gold)}
+.modal-hdr h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer}
+.modal-body{overflow-y:auto;padding:20px}
+
+/* ── ERROR BANNER ── */
+.error-banner{background:var(--red-bg);border:1px solid var(--red);color:var(--red);
+  padding:10px 16px;border-radius:8px;font-size:12px;margin-bottom:16px;display:none}
+.error-banner.show{display:block}
+
+/* CONFIG NOTICE */
+.config-notice{background:var(--amber-bg);border:1px solid var(--amber);border-radius:var(--radius);
+  padding:16px 20px;margin-bottom:20px;font-size:12px;color:var(--ink)}
+.config-notice strong{color:var(--amber)}
+.config-notice code{background:rgba(0,0,0,.07);padding:2px 6px;border-radius:4px;font-size:11px}
+
+@media(max-width:768px){
+  .rec-layout{grid-template-columns:1fr}
+  .rec-panel{position:static}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .chart-grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 
-<!-- ═══ TOP BAR ══════════════════════════════════════════════════════ -->
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="logo">Banker<span>Klub</span></div>
-    <div class="status-badge">
-      <div id="statusDot"></div>
-      <span id="statusText">Connecting...</span>
+<!-- ═══════ HEADER ═══════ -->
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">BK</div>
+    <div>
+      <div class="hdr-title">BankerKlub</div>
+      <div class="hdr-sub">Management Intelligence Dashboard</div>
     </div>
   </div>
-  <div class="topbar-right" id="lastUpdated"></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="live-badge"><span class="live-dot"></span> Live</div>
+    <div class="sync-info" id="syncInfo">Syncing…</div>
+  </div>
+</header>
+
+<!-- ═══════ TABS ═══════ -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchTab('pipeline',this)">📊 Pipeline &amp; Revenue</button>
+  <button class="nav-btn" onclick="switchTab('onboarding',this)">🏦 Onboarding</button>
+  <button class="nav-btn" onclick="switchTab('banker',this)">👤 Banker Recommendation</button>
+  <button class="nav-btn" onclick="switchTab('cp',this)">🤝 CP Recommendation</button>
+  <button class="nav-btn" onclick="switchTab('lender',this)">🏛 Lender Recommendation</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 1 — PIPELINE & REVENUE
+═══════════════════════════════════════════════ -->
+<div id="tab-pipeline" class="tab-content active">
+<div class="container">
+
+  <div class="config-notice" id="configNotice">
+    ⚠️ <strong>Setup required:</strong> Replace <code>API_URL</code> at the top of this file with your Google Apps Script Web App URL.
+    See <strong>README.md</strong> for deployment steps.
+  </div>
+
+  <div class="error-banner" id="errBanner"></div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div>
+      <label>Tagging</label>
+      <select id="fTagging" onchange="applyFilters()">
+        <option value="">All</option>
+        <option>ON Track</option><option>Alert</option><option>WIP</option>
+      </select>
+    </div>
+    <div>
+      <label>Current Tagging In</label>
+      <select id="fCurrentTag" onchange="applyFilters()">
+        <option value="">All</option><option>Lead</option><option>Deal</option>
+      </select>
+    </div>
+    <div>
+      <label>Lead Source</label>
+      <select id="fLeadSource" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div>
+      <label>Unit Name</label>
+      <select id="fUnit" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div>
+      <label>Mandate Branch</label>
+      <select id="fBranch" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div>
+      <label>Mandate Type</label>
+      <select id="fMandateType" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div>
+      <label>Case Status</label>
+      <select id="fCaseStatus" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div>
+      <label>Ageing Slab</label>
+      <select id="fAgeingSlab" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div>
+      <label>Execution Owner</label>
+      <select id="fExecOwner" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div style="align-self:flex-end">
+      <button class="btn btn-outline" onclick="resetFilters()">✕ Reset</button>
+    </div>
+    <div style="align-self:flex-end;margin-left:auto">
+      <button class="btn btn-gold" onclick="loadData()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi blue"><div class="kpi-label">Total Records</div><div class="kpi-value" id="k-total">—</div><div class="kpi-sub">All mandates</div><span class="kpi-drill" onclick="openDrill('all')">View all ↗</span></div>
+    <div class="kpi green"><div class="kpi-label">Leads</div><div class="kpi-value" id="k-leads">—</div><div class="kpi-sub">Current Tagging In</div><span class="kpi-drill" onclick="openDrill('lead')">Drill into leads ↗</span></div>
+    <div class="kpi gold"><div class="kpi-label">Deals</div><div class="kpi-value" id="k-deals">—</div><div class="kpi-sub">Current Tagging In</div><span class="kpi-drill" onclick="openDrill('deal')">Drill into deals ↗</span></div>
+    <div class="kpi green"><div class="kpi-label">ON Track</div><div class="kpi-value" id="k-ontrack">—</div><div class="kpi-sub">Green status</div><span class="kpi-drill" onclick="openDrill('ontrack')">View ↗</span></div>
+    <div class="kpi amber"><div class="kpi-label">WIP</div><div class="kpi-value" id="k-wip">—</div><div class="kpi-sub">Amber status</div><span class="kpi-drill" onclick="openDrill('wip')">View ↗</span></div>
+    <div class="kpi red"><div class="kpi-label">Alert</div><div class="kpi-value" id="k-alert">—</div><div class="kpi-sub">Red status</div><span class="kpi-drill" onclick="openDrill('alert')">View ↗</span></div>
+    <div class="kpi navy"><div class="kpi-label">Avg. TAT</div><div class="kpi-value" id="k-tat">—</div><div class="kpi-sub">Days: Lead → Signoff</div></div>
+  </div>
+
+  <!-- REVENUE KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi blue"><div class="kpi-label">Total Debt Amt</div><div class="kpi-value sm" id="r-debt">—</div><div class="kpi-sub">Cr.</div></div>
+    <div class="kpi gold"><div class="kpi-label">Total Equity Amt</div><div class="kpi-value sm" id="r-equity">—</div><div class="kpi-sub">Cr.</div></div>
+    <div class="kpi navy"><div class="kpi-label">Fixed Fee Amt</div><div class="kpi-value sm" id="r-fixed">—</div><div class="kpi-sub">Cr.</div></div>
+    <div class="kpi green"><div class="kpi-label">Expected Revenue</div><div class="kpi-value sm" id="r-expected">—</div><div class="kpi-sub">Cr.</div></div>
+    <div class="kpi amber"><div class="kpi-label">Payment Received</div><div class="kpi-value sm" id="r-received">—</div><div class="kpi-sub">Cr.</div></div>
+    <div class="kpi red"><div class="kpi-label">Refund</div><div class="kpi-value sm" id="r-refund">—</div><div class="kpi-sub">Cr.</div></div>
+    <div class="kpi green"><div class="kpi-label">Net Revenue</div><div class="kpi-value sm" id="r-net">—</div><div class="kpi-sub">Cr. after refunds</div></div>
+    <div class="kpi navy"><div class="kpi-label">Advance Collected</div><div class="kpi-value sm" id="r-advance">—</div><div class="kpi-sub">Cr.</div></div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="chart-grid">
+    <div class="chart-box"><h3>Tagging Mix — Leads vs Deals</h3><canvas id="chartTagMix"></canvas></div>
+    <div class="chart-box"><h3>Mandate Type Distribution</h3><canvas id="chartMandateType"></canvas></div>
+    <div class="chart-box"><h3>Case Status Breakdown</h3><canvas id="chartCaseStatus"></canvas></div>
+    <div class="chart-box"><h3>Ageing Slab Distribution</h3><canvas id="chartAgeing"></canvas></div>
+    <div class="chart-box"><h3>Unit-wise Distribution</h3><canvas id="chartUnit"></canvas></div>
+    <div class="chart-box"><h3>Lead Source Mix</h3><canvas id="chartLeadSource"></canvas></div>
+    <div class="chart-box"><h3>Branch-wise Distribution</h3><canvas id="chartBranch"></canvas></div>
+    <div class="chart-box"><h3>Revenue Pipeline (Cr.)</h3><canvas id="chartRevenue"></canvas></div>
+  </div>
+
+  <!-- MASTER TABLE -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3>Master Records</h3>
+      <span class="table-count" id="tableCount">Loading…</span>
+    </div>
+    <div style="overflow-x:auto">
+    <table id="masterTable">
+      <thead><tr>
+        <th>S.No</th><th>Lead ID</th><th>Company</th><th>Tagging</th><th>In</th>
+        <th>Lead Source</th><th>Unit</th><th>Branch</th><th>Type</th>
+        <th>Exec Owner</th><th>Mandate Status</th><th>Case Status</th>
+        <th>Ageing</th><th>TAT</th><th>Exp.Rev (Cr)</th><th>Net Rev (Cr)</th>
+      </tr></thead>
+      <tbody id="masterTbody"></tbody>
+    </table>
+    </div>
+    <div class="pagination" id="masterPag"></div>
+  </div>
+
+</div>
 </div>
 
-<!-- ═══ NAV TABS ═════════════════════════════════════════════════════ -->
-<div class="nav-tabs">
-  <div class="nav-tab active" data-tab="overview">📊 Overview</div>
-  <div class="nav-tab" data-tab="pipeline">📋 Pipeline Analysis</div>
-  <div class="nav-tab" data-tab="revenue">💰 Revenue</div>
-  <div class="nav-tab" data-tab="allocation">📌 Lead Allocation</div>
-  <div class="nav-tab" data-tab="bankers">🏦 Banker Analytics</div>
-  <div class="nav-tab" data-tab="cp">🤝 Channel Partners</div>
+<!-- ═══════════════════════════════════════════════
+     TAB 2 — ONBOARDING
+═══════════════════════════════════════════════ -->
+<div id="tab-onboarding" class="tab-content">
+<div class="container">
+  <div class="onboard-grid">
+    <div class="ob-card">
+      <div class="ob-icon" style="background:#E8F5EE">🏦</div>
+      <div class="ob-val" id="ob-bankers">—</div>
+      <div class="ob-lbl">Total Bankers Onboarded</div>
+    </div>
+    <div class="ob-card">
+      <div class="ob-icon" style="background:#FDF6E3">🤝</div>
+      <div class="ob-val" id="ob-cp">—</div>
+      <div class="ob-lbl">Total Channel Partners</div>
+    </div>
+    <div class="ob-card">
+      <div class="ob-icon" style="background:#EEF2FF">📣</div>
+      <div class="ob-val" id="ob-ref">—</div>
+      <div class="ob-lbl">Total Referral Leads</div>
+    </div>
+    <div class="ob-card">
+      <div class="ob-icon" style="background:#F0FDF4">📋</div>
+      <div class="ob-val" id="ob-bankleads">—</div>
+      <div class="ob-lbl">Banker-sourced Leads</div>
+    </div>
+    <div class="ob-card">
+      <div class="ob-icon" style="background:#FFF4E6">📋</div>
+      <div class="ob-val" id="ob-cpleads">—</div>
+      <div class="ob-lbl">CP-sourced Leads</div>
+    </div>
+  </div>
+
+  <div class="chart-grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+    <div class="chart-box"><h3>Onboarding Mix</h3><canvas id="chartObMix"></canvas></div>
+    <div class="chart-box"><h3>Lead Source Contribution</h3><canvas id="chartObSource"></canvas></div>
+  </div>
+
+  <!-- Banker List -->
+  <div class="table-wrap" style="margin-bottom:20px">
+    <div class="table-header"><h3>Banker Onboarding List</h3><span class="table-count" id="bankerListCount"></span></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>#</th><th>Name</th><th>Bank/Company</th><th>City</th><th>State</th><th>Phone</th><th>Status</th></tr></thead>
+      <tbody id="bankerListBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- CP List -->
+  <div class="table-wrap">
+    <div class="table-header"><h3>Channel Partner Onboarding List</h3><span class="table-count" id="cpListCount"></span></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>#</th><th>Name</th><th>Company</th><th>City</th><th>State</th><th>Phone</th><th>Status</th></tr></thead>
+      <tbody id="cpListBody"></tbody>
+    </table></div>
+  </div>
+</div>
 </div>
 
-<!-- ═══ MAIN CONTENT ══════════════════════════════════════════════════ -->
-<div class="main">
-
-  <!-- Loading -->
-  <div id="loadingState">
-    <div class="spinner"></div>
-    <p>Connecting to Google Sheets...</p>
-  </div>
-
-  <!-- ══════════════════════ TAB: OVERVIEW ══════════════════════════ -->
-  <div class="tab-content" id="tab-overview">
-
-    <!-- KPI Row 1: Core Counts -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Total Records</div>
-        <div class="metric-value" id="totalRecords">—</div>
-        <div class="metric-sub">All mandates</div>
+<!-- ═══════════════════════════════════════════════
+     TAB 3 — BANKER RECOMMENDATION
+═══════════════════════════════════════════════ -->
+<div id="tab-banker" class="tab-content">
+<div class="container">
+  <div class="rec-layout">
+    <div class="rec-panel">
+      <div class="rec-panel-hdr">
+        <h2>Banker Finder</h2>
+        <p>Match bankers to your mandate</p>
       </div>
-      <div class="metric-card green">
-        <div class="metric-label">Leads</div>
-        <div class="metric-value" id="totalLeads">—</div>
-        <div class="metric-sub">From "Current Tagging in"</div>
-      </div>
-      <div class="metric-card yellow">
-        <div class="metric-label">Deals</div>
-        <div class="metric-value" id="totalDeals">—</div>
-        <div class="metric-sub">From "Current Tagging in"</div>
-      </div>
-      <div class="metric-card purple">
-        <div class="metric-label">Bankers</div>
-        <div class="metric-value" id="totalBankers">—</div>
-        <div class="metric-sub">Onboarded</div>
-      </div>
-      <div class="metric-card red">
-        <div class="metric-label">Channel Partners</div>
-        <div class="metric-value" id="totalCPs">—</div>
-        <div class="metric-sub">Active CPs</div>
-      </div>
-      <div class="metric-card gray">
-        <div class="metric-label">Lenders</div>
-        <div class="metric-value" id="totalLenders">—</div>
-        <div class="metric-sub">In database</div>
-      </div>
-    </div>
-
-    <!-- KPI Row 2: Revenue -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Revenue Pipeline</div>
-        <div class="metric-value" id="revPipeline">—</div>
-        <div class="metric-sub">Total Expected (Cr.)</div>
-      </div>
-      <div class="metric-card green">
-        <div class="metric-label">Revenue Collected</div>
-        <div class="metric-value" id="revCollected">—</div>
-        <div class="metric-sub">Payments received</div>
-      </div>
-      <div class="metric-card yellow">
-        <div class="metric-label">Advance Amt</div>
-        <div class="metric-value" id="revAdvance">—</div>
-        <div class="metric-sub">Cr.</div>
-      </div>
-      <div class="metric-card red">
-        <div class="metric-label">Refund Amount</div>
-        <div class="metric-value" id="revRefund">—</div>
-        <div class="metric-sub">Cr. refunded</div>
-      </div>
-      <div class="metric-card purple">
-        <div class="metric-label">Net Revenue</div>
-        <div class="metric-value" id="revNet">—</div>
-        <div class="metric-sub">After refunds</div>
-      </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-title">Tagging Mix — Leads vs Deals</div>
-        <div class="chart-wrap"><canvas id="chartTaggingMix"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Pipeline by Lender Status</div>
-        <div class="chart-wrap"><canvas id="chartPipelineStatus"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Unit-wise Distribution</div>
-        <div class="chart-wrap"><canvas id="chartUnitDist"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Branch-wise Distribution</div>
-        <div class="chart-wrap"><canvas id="chartBranchDist"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════ TAB: PIPELINE ══════════════════════════ -->
-  <div class="tab-content" id="tab-pipeline">
-
-    <!-- FILTERS -->
-    <div class="filter-bar">
-      <h3>🔍 Live Filters</h3>
-      <div class="filter-grid">
-        <div class="filter-group">
-          <label>Unit</label>
-          <select id="filterUnit"><option value="">All Units</option></select>
+      <div class="rec-panel-body">
+        <div class="field-grp">
+          <label>Mandate Type <span style="color:var(--gold)">*</span></label>
+          <div class="chip-grid" id="bankerMandateChips"></div>
         </div>
-        <div class="filter-group">
-          <label>Branch</label>
-          <select id="filterBranch"><option value="">All Branches</option></select>
-        </div>
-        <div class="filter-group">
-          <label>Lender Status</label>
-          <select id="filterStatus"><option value="">All Statuses</option></select>
-        </div>
-        <div class="filter-group">
-          <label>Lender Type</label>
-          <select id="filterLenderType"><option value="">All Types</option></select>
-        </div>
-        <div class="filter-group">
-          <label>Tagging</label>
-          <select id="filterTagging">
-            <option value="">All</option>
-            <option value="Lead">Leads Only</option>
-            <option value="Deal">Deals Only</option>
+        <div class="field-grp">
+          <label>State</label>
+          <select id="bStateSelect" onchange="onBankerStateChange()">
+            <option value="">All States</option>
           </select>
         </div>
-        <div class="filter-group">
-          <label>Date From</label>
-          <input type="date" id="filterDateFrom" />
+        <div class="field-grp">
+          <label>City</label>
+          <select id="bCitySelect" disabled onchange="runBankerSearch()">
+            <option value="">All Cities</option>
+          </select>
         </div>
-        <div class="filter-group">
-          <label>Date To</label>
-          <input type="date" id="filterDateTo" />
+        <div class="field-grp">
+          <label>Sort By</label>
+          <select id="bSortBy" onchange="runBankerSearch()">
+            <option value="exp">Experience (High → Low)</option>
+            <option value="name">Name A–Z</option>
+          </select>
         </div>
-        <div class="filter-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
-        </div>
-        <div class="filter-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-outline" onclick="clearFilters()">✕ Clear</button>
-        </div>
+        <button class="btn btn-gold" style="width:100%" onclick="runBankerSearch()">🔍 Find Bankers</button>
+        <button class="btn btn-outline" style="width:100%" onclick="resetBankerSearch()">✕ Reset</button>
       </div>
     </div>
-
-    <!-- Mandate Status + Lender Type charts -->
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-title">Mandate Status Distribution</div>
-        <div class="chart-wrap"><canvas id="chartMandateStatus"></canvas></div>
+    <div>
+      <div class="table-header" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:12px">
+        <h3 id="bankerResultTitle">Select a mandate type to begin</h3>
+        <span class="table-count" id="bankerResultCount"></span>
       </div>
-      <div class="card">
-        <div class="card-title">Lender Type Distribution</div>
-        <div class="chart-wrap"><canvas id="chartLenderType"></canvas></div>
+      <div class="cards-col" id="bankerCards">
+        <div class="state-msg"><p>Pick a mandate type on the left to see matched bankers.</p></div>
+      </div>
+      <div class="pagination" id="bankerPag" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 4 — CP RECOMMENDATION
+═══════════════════════════════════════════════ -->
+<div id="tab-cp" class="tab-content">
+<div class="container">
+  <div class="rec-layout">
+    <div class="rec-panel">
+      <div class="rec-panel-hdr">
+        <h2>CP Finder</h2>
+        <p>Match channel partners to your deal</p>
+      </div>
+      <div class="rec-panel-body">
+        <div class="field-grp">
+          <label>Mandate Type <span style="color:var(--gold)">*</span></label>
+          <div class="chip-grid" id="cpMandateChips"></div>
+        </div>
+        <div class="field-grp">
+          <label>State</label>
+          <select id="cStateSelect" onchange="onCPStateChange()">
+            <option value="">All States</option>
+          </select>
+        </div>
+        <div class="field-grp">
+          <label>City</label>
+          <select id="cCitySelect" disabled onchange="runCPSearch()">
+            <option value="">All Cities</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" style="width:100%" onclick="runCPSearch()">🔍 Find CPs</button>
+        <button class="btn btn-outline" style="width:100%" onclick="resetCPSearch()">✕ Reset</button>
       </div>
     </div>
-
-    <!-- Pipeline Table -->
-    <div class="card">
-      <div class="card-title">Pipeline Table
-        <span id="pipelineCount" style="font-weight:400;color:var(--muted);margin-left:8px;"></span>
+    <div>
+      <div class="table-header" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:12px">
+        <h3 id="cpResultTitle">Select a mandate type to begin</h3>
+        <span class="table-count" id="cpResultCount"></span>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Lead/Deal</th>
-              <th>Related Lead</th>
-              <th>Deal Name</th>
-              <th>Lender Status</th>
-              <th>Amount</th>
-              <th>Lender Type</th>
-              <th>Lender Name</th>
-              <th>Unit</th>
-              <th>Branch</th>
-              <th>Remarks</th>
-            </tr>
-          </thead>
-          <tbody id="pipelineTableBody">
-            <tr><td colspan="11" class="no-data">Loading…</td></tr>
-          </tbody>
+      <div class="cards-col" id="cpCards">
+        <div class="state-msg"><p>Pick a mandate type on the left to see matched channel partners.</p></div>
+      </div>
+      <div class="pagination" id="cpPag" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 5 — LENDER RECOMMENDATION
+═══════════════════════════════════════════════ -->
+<div id="tab-lender" class="tab-content">
+<div class="container">
+  <div class="rec-layout">
+    <div class="rec-panel">
+      <div class="rec-panel-hdr">
+        <h2>Lender Matcher</h2>
+        <p>Find best lenders for product type</p>
+      </div>
+      <div class="rec-panel-body">
+        <div class="field-grp">
+          <label>Product / Mandate Type <span style="color:var(--gold)">*</span></label>
+          <select id="lenderProductSelect" onchange="runLenderSearch()">
+            <option value="">— Select Product —</option>
+          </select>
+        </div>
+        <div class="field-grp">
+          <label>Min Success Rate (%)</label>
+          <input type="number" id="lenderMinRate" placeholder="e.g. 50" min="0" max="100" oninput="runLenderSearch()"/>
+        </div>
+        <div class="field-grp">
+          <label>Sort By</label>
+          <select id="lenderSort" onchange="runLenderSearch()">
+            <option value="rate">Success Rate (High → Low)</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" style="width:100%" onclick="runLenderSearch()">🔍 Find Lenders</button>
+        <button class="btn btn-outline" style="width:100%" onclick="resetLenderSearch()">✕ Reset</button>
+      </div>
+    </div>
+    <div>
+      <div class="table-header" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:12px">
+        <h3 id="lenderResultTitle">Select a product type to see matched lenders</h3>
+        <span class="table-count" id="lenderResultCount"></span>
+      </div>
+      <div class="cards-col" id="lenderCards">
+        <div class="state-msg"><p>Select a product / mandate type on the left.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ DRILL MODAL ═══════ -->
+<div class="modal-backdrop" id="drillModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="drillTitle">Record Detail</h3>
+      <button class="modal-close" onclick="closeDrill()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="overflow-x:auto">
+        <table id="drillTable">
+          <thead><tr>
+            <th>S.No</th><th>Lead ID</th><th>Company</th><th>Tagging</th><th>In</th>
+            <th>Lead Source</th><th>Unit</th><th>Type</th><th>Case Status</th>
+            <th>Ageing</th><th>TAT</th><th>Net Rev (Cr)</th>
+          </tr></thead>
+          <tbody id="drillTbody"></tbody>
         </table>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- ══════════════════════ TAB: REVENUE ═══════════════════════════ -->
-  <div class="tab-content" id="tab-revenue">
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-title">Revenue by Branch</div>
-        <div class="chart-wrap"><canvas id="chartRevBranch"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Revenue by Status</div>
-        <div class="chart-wrap"><canvas id="chartRevStatus"></canvas></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Revenue Table</div>
-      <div class="table-wrap" id="revenueTableWrap">
-        <p class="no-data">Loading…</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════ TAB: ALLOCATION ════════════════════════ -->
-  <div class="tab-content" id="tab-allocation">
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-title">Allocation by Unit (Leads vs Deals)</div>
-        <div class="chart-wrap"><canvas id="chartAllocUnit"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Lead vs Deal by Branch</div>
-        <div class="chart-wrap"><canvas id="chartAllocBranch"></canvas></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Allocation Table</div>
-      <div class="table-wrap" id="allocationTableWrap">
-        <p class="no-data">Loading…</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════ TAB: BANKERS ═══════════════════════════ -->
-  <div class="tab-content" id="tab-bankers">
-    <div class="metrics-grid" id="bankerMetrics"></div>
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-title">Bankers by State</div>
-        <div class="chart-wrap"><canvas id="chartBankerState"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Banker Expertise</div>
-        <div class="chart-wrap"><canvas id="chartBankerExpertise"></canvas></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Banker Directory</div>
-      <div class="table-wrap" id="bankerTableWrap">
-        <p class="no-data">Loading…</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════ TAB: CHANNEL PARTNERS ════════════════ -->
-  <div class="tab-content" id="tab-cp">
-    <div class="metrics-grid" id="cpMetrics"></div>
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-title">CPs by State</div>
-        <div class="chart-wrap"><canvas id="chartCPState"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">CP Expertise</div>
-        <div class="chart-wrap"><canvas id="chartCPExpertise"></canvas></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">CP Directory</div>
-      <div class="table-wrap" id="cpTableWrap">
-        <p class="no-data">Loading…</p>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /main -->
-
-<!-- ═══════════════════════ JAVASCRIPT ═══════════════════════════════ -->
 <script>
-// =====================================================================
-// ⚙️  CONFIGURATION
-// Replace the URL below with YOUR deployed Apps Script Web App URL
-// Deploy steps: Extensions → Apps Script → Deploy → New Deployment
-//               Type: Web App | Execute as: Me | Access: Anyone
-// =====================================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQ_Tt-bduiU9oEXXSSIOZ54ZrT9yuYCU67OFaURItVQk-NubR3P9nYY5Bb6EcV1ecNUQ/exec';
+/* ═══════════════════════════════════════════════════════════
+   CONFIGURATION
+   Replace the URL below with your Google Apps Script Web App URL
+   after deploying Code.gs as a Web App.
+═══════════════════════════════════════════════════════════ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbz3EnrakrRWwYjCts2w9sN8lv_orM1xouhnG0X-gRKQinkgTbsMIQroEx3T3c9zCCkj0A/exec';
+/* ─────────────────────────────────────────────────────────*/
 
-// =====================================================================
-// GLOBAL STATE
-// =====================================================================
-let rawData     = null;
-let filteredData = [];
-const charts    = {};
+const MANDATE_TYPES = ['Debt','Equity','Debt+Equity','NPA/OTS','OTS Funding','IPO','IPO Advisory','Hybrid'];
+const COLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#F97316','#84CC16','#EC4899','#14B8A6'];
 
-// =====================================================================
-// INIT
-// =====================================================================
-document.addEventListener('DOMContentLoaded', () => {
-  initTabs();
-  fetchData();
-});
+let ALL_DATA = {};
+let filteredRecords = [];
+let masterPage = 1;
+const PER_PAGE = 25;
 
-// =====================================================================
-// TAB NAVIGATION
-// =====================================================================
-function initTabs() {
-  document.querySelectorAll('.nav-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      tab.classList.add('active');
-      const target = document.getElementById('tab-' + tab.dataset.tab);
-      if (target) target.classList.add('active');
-    });
-  });
+// ── Recommendation state ──────────────────────────────────
+let bSelectedMandate = null, bResults = [], bPage = 1;
+let cSelectedMandate = null, cResults = [], cPage = 1;
+let chartInstances = {};
+
+// ── TAB SWITCHING ─────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
 }
 
-// =====================================================================
-// DATA FETCHING
-// =====================================================================
-async function fetchData() {
+// ── DATA LOADING ──────────────────────────────────────────
+async function loadData() {
+  showLoading();
   try {
-    setStatus('connecting', 'Fetching data…');
-
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_DEPLOYED')) {
-      throw new Error('Apps Script URL not configured. Please update APPS_SCRIPT_URL in index.html');
+    // If no API URL configured, show the notice and exit
+    if (API_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      document.getElementById('configNotice').style.display = 'block';
+      showError('⚠️ Dashboard not yet connected. Please deploy Code.gs and set the API_URL in index.html. See README.md for instructions.');
+      return;
     }
-
-    const response = await fetch(APPS_SCRIPT_URL + '?action=all');
-    if (!response.ok) throw new Error('Network error: ' + response.status);
-
-    rawData = await response.json();
-    if (rawData.error) throw new Error(rawData.error);
-
-    filteredData = rawData.masterData || [];
-
-    setStatus('connected', 'Live');
-    document.getElementById('lastUpdated').textContent =
-      'Updated: ' + new Date().toLocaleTimeString('en-IN');
-
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('tab-overview').classList.add('active');
-
-    renderDashboard();
-    populateFilters();
-
-  } catch (err) {
-    console.error('Fetch Error:', err);
-    setStatus('error', 'Connection failed');
-    document.getElementById('loadingState').innerHTML =
-      `<p style="color:var(--red);font-size:15px;margin-bottom:10px">❌ ${err.message}</p>
-       <p style="color:var(--muted);margin-bottom:16px">Check your Apps Script deployment URL and ensure it is deployed with <b>Anyone</b> access.</p>
-       <button class="btn btn-primary" onclick="location.reload()">↻ Retry</button>`;
+    document.getElementById('configNotice').style.display = 'none';
+    const res = await fetch(API_URL + '?tab=all', {cache:'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    ALL_DATA = await res.json();
+    if (ALL_DATA.error) throw new Error(ALL_DATA.error);
+    clearError();
+    document.getElementById('syncInfo').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+    applyFilters();
+    renderOnboarding();
+    renderBankerEngine();
+    renderCPEngine();
+    renderLenderEngine();
+  } catch(e) {
+    showError('Failed to load data: ' + e.message + '. Check API_URL and deployment.');
   }
 }
 
-function setStatus(state, text) {
-  document.getElementById('statusText').textContent = text;
-  document.getElementById('statusDot').style.background =
-    state === 'connected' ? 'var(--green)' : state === 'error' ? 'var(--red)' : 'var(--yellow)';
+function showLoading() {
+  document.getElementById('masterTbody').innerHTML =
+    '<tr><td colspan="16"><div class="state-msg"><div class="spinner"></div><p>Loading live data…</p></div></td></tr>';
+}
+function showError(msg) {
+  const b = document.getElementById('errBanner');
+  b.textContent = msg; b.classList.add('show');
+}
+function clearError() {
+  document.getElementById('errBanner').classList.remove('show');
 }
 
-// =====================================================================
-// RENDER ALL
-// =====================================================================
-function renderDashboard() {
-  renderMetrics();
-  renderOverviewCharts();
-  renderPipelineCharts();
-  renderPipelineTable();
-  renderRevenueSection();
-  renderAllocationSection();
-  renderBankerSection();
-  renderCPSection();
-}
-
-// =====================================================================
-// ✅ METRICS — ACCURATE LEAD/DEAL SPLIT FROM "Current Tagging in"
-// =====================================================================
-function renderMetrics() {
-  const data = filteredData;
-
-  // ── CRITICAL: Count leads & deals from the currentTaggingIn field ──
-  let leads = 0, deals = 0;
-  data.forEach(record => {
-    const tagging = String(record.currentTaggingIn || '').trim().toLowerCase();
-    if (tagging === 'deal' || tagging === 'deals' || tagging === 'd') {
-      deals++;
-    } else {
-      // 'lead', 'leads', 'l', '', or anything else → Lead
-      leads++;
-    }
-  });
-
-  // Sanity check in console
-  console.log(`✅ Lead/Deal Split: Total=${data.length} | Leads=${leads} | Deals=${deals} | Match=${data.length === leads + deals ? 'PASS ✓' : 'FAIL ✗'}`);
-
-  // Update from server summary if using rawData (unfiltered)
-  const isFiltered = filteredData.length !== (rawData.masterData || []).length;
-  if (!isFiltered && rawData.summary) {
-    // Use server-computed values for the unfiltered state
-    leads = rawData.summary.leads;
-    deals = rawData.summary.deals;
-  }
-
-  document.getElementById('totalRecords').textContent = data.length.toLocaleString('en-IN');
-  document.getElementById('totalLeads').textContent   = leads.toLocaleString('en-IN');
-  document.getElementById('totalDeals').textContent   = deals.toLocaleString('en-IN');
-  document.getElementById('totalBankers').textContent = (rawData.bankers || []).length || '—';
-  document.getElementById('totalCPs').textContent     = (rawData.channelPartners || []).length || '—';
-  document.getElementById('totalLenders').textContent = (rawData.lenders || []).length || '—';
-
-  // Revenue
-  const revenue = rawData.revenue || [];
-  let totalExpected = 0, collected = 0, advance = 0, refund = 0;
-  revenue.forEach(r => {
-    totalExpected += toNum(r.expectedRevenue);
-    collected     += toNum(r.revenueCollected);
-    advance       += toNum(r.advanceAmount);
-    refund        += toNum(r.refundAmount);
-  });
-  document.getElementById('revPipeline').textContent  = fmtCr(totalExpected);
-  document.getElementById('revCollected').textContent = fmtCr(collected);
-  document.getElementById('revAdvance').textContent   = fmtCr(advance);
-  document.getElementById('revRefund').textContent    = fmtCr(refund);
-  document.getElementById('revNet').textContent       = fmtCr(collected - refund);
-}
-
-// =====================================================================
-// OVERVIEW CHARTS
-// =====================================================================
-function renderOverviewCharts() {
-  // 1. Tagging Mix (Leads vs Deals)
-  const taggingCounts = { Leads: 0, Deals: 0 };
-  filteredData.forEach(r => {
-    const t = String(r.currentTaggingIn || '').trim().toLowerCase();
-    if (t === 'deal' || t === 'deals' || t === 'd') taggingCounts.Deals++;
-    else taggingCounts.Leads++;
-  });
-  renderDoughnut('chartTaggingMix', ['Leads', 'Deals'],
-    [taggingCounts.Leads, taggingCounts.Deals],
-    ['#4285f4', '#0f9d58']);
-
-  // 2. Pipeline by Lender Status
-  const statusMap = {};
-  filteredData.forEach(r => {
-    const s = String(r.lenderStatus || '').trim();
-    if (s) statusMap[s] = (statusMap[s] || 0) + 1;
-  });
-  const statusColors = {
-    'Doablility Check': '#4285f4', 'Doability Check': '#4285f4',
-    'Logged In': '#f4b400', 'Sanction': '#0f9d58',
-    'Disbursement': '#34a853', 'Drop/Declined': '#db4437',
-    'NBG/ In Principle Sanction': '#673ab7', 'No Action Taken': '#9e9e9e'
+// ── FILTERS ───────────────────────────────────────────────
+function populateFilters(records) {
+  const fields = {
+    fLeadSource: 'leadSource', fUnit: 'unitName', fBranch: 'mandateBranch',
+    fMandateType: 'mandateType', fCaseStatus: 'caseStatus',
+    fAgeingSlab: 'ageingSlab', fExecOwner: 'executionOwner'
   };
-  renderBar('chartPipelineStatus',
-    Object.keys(statusMap), Object.values(statusMap),
-    Object.keys(statusMap).map(k => statusColors[k] || '#78909c'), false);
-
-  // 3. Unit Distribution
-  const unitMap = {};
-  filteredData.forEach(r => { const u = String(r.unitName || '').trim(); if (u) unitMap[u] = (unitMap[u]||0)+1; });
-  renderDoughnut('chartUnitDist', Object.keys(unitMap), Object.values(unitMap),
-    ['#4285f4','#0f9d58','#f4b400','#db4437','#673ab7','#00acc1']);
-
-  // 4. Branch Distribution (horizontal bar)
-  const branchMap = {};
-  filteredData.forEach(r => { const b = String(r.branchName || '').trim(); if (b) branchMap[b] = (branchMap[b]||0)+1; });
-  renderHBar('chartBranchDist', Object.keys(branchMap), Object.values(branchMap), '#4285f4');
-}
-
-// =====================================================================
-// PIPELINE TAB CHARTS
-// =====================================================================
-function renderPipelineCharts() {
-  // Mandate Status Distribution (pie)
-  const statusMap = {};
-  filteredData.forEach(r => { const s = String(r.lenderStatus||'').trim(); if(s) statusMap[s]=(statusMap[s]||0)+1; });
-  renderDoughnut('chartMandateStatus', Object.keys(statusMap), Object.values(statusMap),
-    ['#4285f4','#f4b400','#0f9d58','#db4437','#673ab7','#9e9e9e','#00acc1']);
-
-  // Lender Type Distribution
-  const typeMap = {};
-  filteredData.forEach(r => { const t = String(r.lenderType||'').trim(); if(t) typeMap[t]=(typeMap[t]||0)+1; });
-  renderDoughnut('chartLenderType', Object.keys(typeMap), Object.values(typeMap),
-    ['#4285f4','#0f9d58','#f4b400','#db4437','#673ab7']);
-}
-
-// =====================================================================
-// PIPELINE TABLE
-// =====================================================================
-function renderPipelineTable() {
-  const tbody = document.getElementById('pipelineTableBody');
-  const countEl = document.getElementById('pipelineCount');
-  if (!tbody) return;
-
-  countEl.textContent = filteredData.length + ' records';
-
-  if (!filteredData.length) {
-    tbody.innerHTML = '<tr><td colspan="11" class="no-data">No data matching filters</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = filteredData.map(r => {
-    const tagging = String(r.currentTaggingIn || '').trim();
-    const tagLC   = tagging.toLowerCase();
-    const isLead  = !(tagLC === 'deal' || tagLC === 'deals' || tagLC === 'd');
-    const tagLabel = tagging || (isLead ? 'Lead' : 'Deal');
-    const tagBadge = `<span class="badge ${isLead ? 'badge-blue' : 'badge-green'}">${tagLabel}</span>`;
-
-    return `<tr>
-      <td>${fmtDate(r.createdTime)}</td>
-      <td>${tagBadge}</td>
-      <td>${r.relatedLead || '—'}</td>
-      <td>${r.deals || '—'}</td>
-      <td>${statusBadge(r.lenderStatus)}</td>
-      <td>${fmtAmount(r.amount)}</td>
-      <td>${r.lenderType || '—'}</td>
-      <td>${r.lenderName || '—'}</td>
-      <td>${r.unitName || '—'}</td>
-      <td>${r.branchName || '—'}</td>
-      <td>${r.statusRemarks || '—'}</td>
-    </tr>`;
-  }).join('');
-}
-
-// =====================================================================
-// REVENUE SECTION
-// =====================================================================
-function renderRevenueSection() {
-  const revenue = rawData.revenue || [];
-
-  // Charts
-  const branchRev = {}, statusRev = {};
-  revenue.forEach(r => {
-    const b = r.branch || 'Unknown';
-    const s = r.status || 'Unknown';
-    branchRev[b] = (branchRev[b] || 0) + toNum(r.expectedRevenue);
-    statusRev[s] = (statusRev[s] || 0) + toNum(r.expectedRevenue);
+  Object.entries(fields).forEach(([selId, key]) => {
+    const sel = document.getElementById(selId);
+    const cur = sel.value;
+    const vals = [...new Set(records.map(r => r[key]).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">All</option>' + vals.map(v=>`<option>${v}</option>`).join('');
+    if (vals.includes(cur)) sel.value = cur;
   });
-  renderHBar('chartRevBranch', Object.keys(branchRev), Object.values(branchRev), '#4285f4');
-  renderBar('chartRevStatus', Object.keys(statusRev), Object.values(statusRev), '#0f9d58', false);
-
-  // Table
-  if (!revenue.length) {
-    document.getElementById('revenueTableWrap').innerHTML = '<p class="no-data">No revenue data</p>';
-    return;
-  }
-  const keys = Object.keys(revenue[0]);
-  let html = `<table><thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead><tbody>`;
-  revenue.forEach(r => {
-    html += `<tr>${keys.map(k=>`<td>${r[k]||'—'}</td>`).join('')}</tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('revenueTableWrap').innerHTML = html;
-}
-
-// =====================================================================
-// ALLOCATION SECTION — Lead/Deal split per Unit & Branch
-// =====================================================================
-function renderAllocationSection() {
-  const data = filteredData;
-
-  // By Unit
-  const unitAlloc = {};
-  data.forEach(r => {
-    const unit = r.unitName || 'Unknown';
-    if (!unitAlloc[unit]) unitAlloc[unit] = { leads: 0, deals: 0 };
-    const t = String(r.currentTaggingIn || '').trim().toLowerCase();
-    if (t === 'deal' || t === 'deals' || t === 'd') unitAlloc[unit].deals++;
-    else unitAlloc[unit].leads++;
-  });
-
-  destroyChart('chartAllocUnit');
-  const ctx1 = document.getElementById('chartAllocUnit');
-  if (ctx1 && Object.keys(unitAlloc).length) {
-    charts.chartAllocUnit = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(unitAlloc),
-        datasets: [
-          { label: 'Leads', data: Object.values(unitAlloc).map(v=>v.leads), backgroundColor: '#4285f4' },
-          { label: 'Deals', data: Object.values(unitAlloc).map(v=>v.deals), backgroundColor: '#0f9d58' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false,
-        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-  }
-
-  // By Branch
-  const branchAlloc = {};
-  data.forEach(r => {
-    const b = r.branchName || 'Unknown';
-    if (!branchAlloc[b]) branchAlloc[b] = { leads: 0, deals: 0 };
-    const t = String(r.currentTaggingIn || '').trim().toLowerCase();
-    if (t === 'deal' || t === 'deals' || t === 'd') branchAlloc[b].deals++;
-    else branchAlloc[b].leads++;
-  });
-
-  destroyChart('chartAllocBranch');
-  const ctx2 = document.getElementById('chartAllocBranch');
-  if (ctx2 && Object.keys(branchAlloc).length) {
-    charts.chartAllocBranch = new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(branchAlloc),
-        datasets: [
-          { label: 'Leads', data: Object.values(branchAlloc).map(v=>v.leads), backgroundColor: '#4285f4' },
-          { label: 'Deals', data: Object.values(branchAlloc).map(v=>v.deals), backgroundColor: '#0f9d58' }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false,
-        indexAxis: 'y',
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-  }
-
-  // Allocation Table
-  let html = `<table>
-    <thead><tr><th>Branch</th><th>Total</th><th>Leads</th><th>Deals</th><th>Lead %</th><th>Deal %</th></tr></thead>
-    <tbody>`;
-  Object.keys(branchAlloc).sort().forEach(b => {
-    const { leads, deals } = branchAlloc[b];
-    const total = leads + deals;
-    const leadPct = total ? ((leads/total)*100).toFixed(1) : '0.0';
-    const dealPct = total ? ((deals/total)*100).toFixed(1) : '0.0';
-    html += `<tr>
-      <td><b>${b}</b></td><td>${total}</td>
-      <td><span class="badge badge-blue">${leads}</span></td>
-      <td><span class="badge badge-green">${deals}</span></td>
-      <td>${leadPct}%</td><td>${dealPct}%</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('allocationTableWrap').innerHTML = html || '<p class="no-data">No data</p>';
-}
-
-// =====================================================================
-// BANKER SECTION
-// =====================================================================
-function renderBankerSection() {
-  const bankers = rawData.bankers || [];
-  const el = document.getElementById('bankerMetrics');
-  if (!el) return;
-
-  const states = new Set(), cities = new Set();
-  let totalExp = 0;
-  bankers.forEach(b => {
-    if (b.state) states.add(b.state);
-    if (b.city)  cities.add(b.city);
-    totalExp += toNum(b.experience);
-  });
-  const avgExp = bankers.length ? (totalExp / bankers.length).toFixed(1) : '—';
-
-  el.innerHTML = `
-    <div class="metric-card"><div class="metric-label">Total Bankers</div><div class="metric-value">${bankers.length}</div></div>
-    <div class="metric-card green"><div class="metric-label">States Covered</div><div class="metric-value">${states.size}</div></div>
-    <div class="metric-card yellow"><div class="metric-label">Cities Covered</div><div class="metric-value">${cities.size}</div></div>
-    <div class="metric-card purple"><div class="metric-label">Avg Experience</div><div class="metric-value">${avgExp}</div><div class="metric-sub">Years</div></div>`;
-
-  // State chart
-  const stateMap = {};
-  bankers.forEach(b => { if(b.state) stateMap[b.state]=(stateMap[b.state]||0)+1; });
-  renderHBar('chartBankerState', Object.keys(stateMap), Object.values(stateMap), '#4285f4');
-
-  // Expertise chart
-  const expMap = {};
-  bankers.forEach(b => { const e = b.expertise||'Other'; expMap[e]=(expMap[e]||0)+1; });
-  renderDoughnut('chartBankerExpertise', Object.keys(expMap), Object.values(expMap),
-    ['#4285f4','#0f9d58','#f4b400','#db4437','#673ab7','#00acc1']);
-
-  // Table
-  let html = `<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Experience</th><th>Unit</th><th>Branch</th></tr></thead><tbody>`;
-  bankers.forEach(b => {
-    html += `<tr><td><b>${b.name||'—'}</b></td><td>${b.state||'—'}</td><td>${b.city||'—'}</td>
-      <td>${b.expertise||'—'}</td><td>${b.experience||'—'}</td><td>${b.unit||'—'}</td><td>${b.branch||'—'}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('bankerTableWrap').innerHTML = html;
-}
-
-// =====================================================================
-// CHANNEL PARTNER SECTION
-// =====================================================================
-function renderCPSection() {
-  const cps = rawData.channelPartners || [];
-  const el = document.getElementById('cpMetrics');
-  if (!el) return;
-
-  const states = new Set(), cities = new Set(), expertiseSet = new Set();
-  cps.forEach(c => {
-    if (c.state)     states.add(c.state);
-    if (c.city)      cities.add(c.city);
-    if (c.expertise) expertiseSet.add(c.expertise);
-  });
-
-  el.innerHTML = `
-    <div class="metric-card"><div class="metric-label">Total CPs</div><div class="metric-value">${cps.length}</div></div>
-    <div class="metric-card green"><div class="metric-label">States</div><div class="metric-value">${states.size}</div></div>
-    <div class="metric-card yellow"><div class="metric-label">Cities</div><div class="metric-value">${cities.size}</div></div>
-    <div class="metric-card purple"><div class="metric-label">Expertise Areas</div><div class="metric-value">${expertiseSet.size}</div></div>`;
-
-  // State chart
-  const stateMap = {};
-  cps.forEach(c => { if(c.state) stateMap[c.state]=(stateMap[c.state]||0)+1; });
-  renderHBar('chartCPState', Object.keys(stateMap), Object.values(stateMap), '#673ab7');
-
-  // Expertise chart
-  const expMap = {};
-  cps.forEach(c => { const e = c.expertise||'Other'; expMap[e]=(expMap[e]||0)+1; });
-  renderDoughnut('chartCPExpertise', Object.keys(expMap), Object.values(expMap),
-    ['#673ab7','#4285f4','#0f9d58','#f4b400','#db4437']);
-
-  // Table
-  let html = `<table><thead><tr><th>Name</th><th>State</th><th>City</th><th>Expertise</th><th>Contact</th><th>Unit</th><th>Branch</th></tr></thead><tbody>`;
-  cps.forEach(c => {
-    html += `<tr><td><b>${c.name||'—'}</b></td><td>${c.state||'—'}</td><td>${c.city||'—'}</td>
-      <td>${c.expertise||'—'}</td><td>${c.phone||'—'}</td><td>${c.unit||'—'}</td><td>${c.branch||'—'}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('cpTableWrap').innerHTML = html;
-}
-
-// =====================================================================
-// FILTERS
-// =====================================================================
-function populateFilters() {
-  const units = new Set(), branches = new Set(), statuses = new Set(), lenderTypes = new Set();
-  (rawData.masterData || []).forEach(r => {
-    if (r.unitName)    units.add(r.unitName);
-    if (r.branchName)  branches.add(r.branchName);
-    if (r.lenderStatus) statuses.add(r.lenderStatus);
-    if (r.lenderType)  lenderTypes.add(r.lenderType);
-  });
-  fillSelect('filterUnit',       units);
-  fillSelect('filterBranch',     branches);
-  fillSelect('filterStatus',     statuses);
-  fillSelect('filterLenderType', lenderTypes);
-}
-
-function fillSelect(id, values) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const first = el.options[0].outerHTML;
-  el.innerHTML = first + Array.from(values).sort().map(v => `<option value="${v}">${v}</option>`).join('');
 }
 
 function applyFilters() {
-  const unit       = document.getElementById('filterUnit').value;
-  const branch     = document.getElementById('filterBranch').value;
-  const status     = document.getElementById('filterStatus').value;
-  const lenderType = document.getElementById('filterLenderType').value;
-  const tagging    = document.getElementById('filterTagging').value;
-  const dateFrom   = document.getElementById('filterDateFrom').value;
-  const dateTo     = document.getElementById('filterDateTo').value;
+  if (!ALL_DATA.pipeline) return;
+  const recs = ALL_DATA.pipeline.records;
+  populateFilters(recs);
 
-  filteredData = (rawData.masterData || []).filter(r => {
-    if (unit       && r.unitName    !== unit)       return false;
-    if (branch     && r.branchName  !== branch)     return false;
-    if (status     && r.lenderStatus !== status)    return false;
-    if (lenderType && r.lenderType  !== lenderType) return false;
-
-    if (tagging) {
-      const t = String(r.currentTaggingIn || '').trim().toLowerCase();
-      const isDeal = (t === 'deal' || t === 'deals' || t === 'd');
-      if (tagging === 'Deal' && !isDeal) return false;
-      if (tagging === 'Lead' && isDeal)  return false;
-    }
-
-    if (dateFrom || dateTo) {
-      try {
-        const d = new Date(r.createdTime);
-        if (!isNaN(d.getTime())) {
-          if (dateFrom && d < new Date(dateFrom))           return false;
-          if (dateTo   && d > new Date(dateTo + 'T23:59:59')) return false;
-        }
-      } catch (e) {}
-    }
+  const get = id => document.getElementById(id).value;
+  filteredRecords = recs.filter(r => {
+    if (get('fTagging')     && r.tagging      !== get('fTagging'))     return false;
+    if (get('fCurrentTag')  && r.currentTagIn !== get('fCurrentTag'))  return false;
+    if (get('fLeadSource')  && r.leadSource   !== get('fLeadSource'))  return false;
+    if (get('fUnit')        && r.unitName     !== get('fUnit'))        return false;
+    if (get('fBranch')      && r.mandateBranch!== get('fBranch'))      return false;
+    if (get('fMandateType') && r.mandateType  !== get('fMandateType')) return false;
+    if (get('fCaseStatus')  && r.caseStatus   !== get('fCaseStatus'))  return false;
+    if (get('fAgeingSlab')  && r.ageingSlab   !== get('fAgeingSlab'))  return false;
+    if (get('fExecOwner')   && r.executionOwner!==get('fExecOwner'))   return false;
     return true;
   });
 
-  renderDashboard();
+  renderKPIs();
+  renderCharts();
+  masterPage = 1;
+  renderMasterTable();
 }
 
-function clearFilters() {
-  ['filterUnit','filterBranch','filterStatus','filterLenderType','filterTagging',
-   'filterDateFrom','filterDateTo'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  filteredData = rawData.masterData || [];
-  renderDashboard();
+function resetFilters() {
+  ['fTagging','fCurrentTag','fLeadSource','fUnit','fBranch','fMandateType','fCaseStatus','fAgeingSlab','fExecOwner']
+    .forEach(id => document.getElementById(id).value = '');
+  applyFilters();
 }
 
-// =====================================================================
-// CHART HELPERS
-// =====================================================================
+// ── KPIs ──────────────────────────────────────────────────
+function renderKPIs() {
+  const recs = filteredRecords;
+  const leads  = recs.filter(r=>r.currentTagIn==='Lead').length;
+  const deals  = recs.filter(r=>r.currentTagIn==='Deal').length;
+  const onT    = recs.filter(r=>r.tagging==='ON Track').length;
+  const wip    = recs.filter(r=>r.tagging==='WIP').length;
+  const alert  = recs.filter(r=>r.tagging==='Alert').length;
+  const tatArr = recs.filter(r=>r.tat>0).map(r=>r.tat);
+  const avgTat = tatArr.length ? Math.round(tatArr.reduce((a,b)=>a+b,0)/tatArr.length) : 0;
+
+  const sum = (key) => recs.reduce((a,r)=>a+(r[key]||0),0);
+
+  setText('k-total', recs.length);
+  setText('k-leads', leads);
+  setText('k-deals', deals);
+  setText('k-ontrack', onT);
+  setText('k-wip', wip);
+  setText('k-alert', alert);
+  setText('k-tat', avgTat + ' days');
+
+  setText('r-debt',     fmtCr(sum('debtAmt')));
+  setText('r-equity',   fmtCr(sum('equityAmt')));
+  setText('r-fixed',    fmtCr(sum('fixedFee')));
+  setText('r-expected', fmtCr(sum('expectedRev')));
+  setText('r-received', fmtCr(sum('received')));
+  setText('r-refund',   fmtCr(sum('refund')));
+  setText('r-net',      fmtCr(sum('netRevenue')));
+  setText('r-advance',  fmtCr(sum('advanceAmt')));
+}
+
+function fmtCr(v) {
+  if (v >= 100) return (v/100).toFixed(1) + ' Cr';
+  if (v >= 1)   return v.toFixed(2) + ' L';
+  return (v*100).toFixed(1) + ' K';
+}
+function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+
+// ── CHARTS ────────────────────────────────────────────────
+function renderCharts() {
+  renderPieChart('chartTagMix',
+    ['Leads','Deals'],
+    [filteredRecords.filter(r=>r.currentTagIn==='Lead').length,
+     filteredRecords.filter(r=>r.currentTagIn==='Deal').length]);
+
+  renderBarChart('chartMandateType', groupBy(filteredRecords,'mandateType'));
+  renderBarChart('chartCaseStatus',  groupBy(filteredRecords,'caseStatus'));
+  renderBarChart('chartAgeing',      groupBy(filteredRecords,'ageingSlab'));
+  renderPieChart('chartUnit',
+    ...objToArrays(groupBy(filteredRecords,'unitName')));
+  renderPieChart('chartLeadSource',
+    ...objToArrays(groupBy(filteredRecords,'leadSource')));
+  renderBarChart('chartBranch',      groupBy(filteredRecords,'mandateBranch'));
+
+  // Revenue chart
+  const sum=(k)=>filteredRecords.reduce((a,r)=>a+(r[k]||0),0);
+  const revData = {
+    'Expected': sum('expectedRev'),
+    'Received': sum('received'),
+    'Net Revenue': sum('netRevenue'),
+    'Refund': sum('refund')
+  };
+  renderBarChart('chartRevenue', revData, 'rgba');
+}
+
+function groupBy(recs, key) {
+  const out = {};
+  recs.forEach(r => { const k=r[key]||'Unknown'; out[k]=(out[k]||0)+1; });
+  return out;
+}
+function objToArrays(obj) {
+  const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  return [entries.map(e=>e[0]), entries.map(e=>e[1])];
+}
+
 function destroyChart(id) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
 }
 
-function renderDoughnut(id, labels, data, colors) {
-  destroyChart(id);
-  const ctx = document.getElementById(id);
-  if (!ctx || !data.some(v => v > 0)) return;
-  charts[id] = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
-    }
-  });
-}
-
-function renderBar(id, labels, data, color, horizontal) {
+function renderPieChart(id, labels, data) {
   destroyChart(id);
   const ctx = document.getElementById(id);
   if (!ctx) return;
-  charts[id] = new Chart(ctx, {
+  chartInstances[id] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive:true, plugins: { legend:{ position:'bottom', labels:{ font:{size:11}, padding:10 } } } }
+  });
+}
+
+function renderBarChart(id, dataObj, mode) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const labels = Object.keys(dataObj);
+  const vals   = Object.values(dataObj);
+  chartInstances[id] = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{ label: 'Count', data,
-        backgroundColor: Array.isArray(color) ? color : color,
-        borderRadius: 4 }]
-    },
+    data: { labels, datasets: [{ data: vals, backgroundColor: COLORS, borderRadius: 6, borderSkipped:false }] },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      indexAxis: horizontal ? 'y' : 'x',
-      plugins: { legend: { display: false } },
-      scales: { [horizontal ? 'x' : 'y']: { beginAtZero: true } }
+      responsive:true, indexAxis:'y',
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label: c=>c.raw}} },
+      scales: {
+        x:{ grid:{color:'#F0F0F0'}, ticks:{font:{size:10}} },
+        y:{ grid:{display:false}, ticks:{font:{size:10}} }
+      }
     }
   });
 }
 
-function renderHBar(id, labels, data, color) {
-  return renderBar(id, labels, data, color, true);
+// ── MASTER TABLE ──────────────────────────────────────────
+function renderMasterTable() {
+  const recs = filteredRecords;
+  const total = recs.length;
+  document.getElementById('tableCount').textContent = total + ' records';
+  const pages = Math.ceil(total/PER_PAGE);
+  const start = (masterPage-1)*PER_PAGE;
+  const slice = recs.slice(start, start+PER_PAGE);
+
+  document.getElementById('masterTbody').innerHTML = slice.map(r => `
+    <tr>
+      <td>${r.sno||''}</td>
+      <td style="font-size:10px;opacity:.7">${String(r.leadId||'').slice(-6)}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.companyName||''}</td>
+      <td>${tagBadge(r.tagging)}</td>
+      <td>${r.currentTagIn||''}</td>
+      <td>${r.leadSource||''}</td>
+      <td style="font-size:11px">${r.unitName||''}</td>
+      <td>${r.mandateBranch||''}</td>
+      <td>${r.mandateType||''}</td>
+      <td>${r.executionOwner||''}</td>
+      <td style="font-size:10px">${r.mandateStatus||''}</td>
+      <td>${r.caseStatus||''}</td>
+      <td>${r.ageingSlab||''}</td>
+      <td>${r.tat||''}</td>
+      <td>${r.expectedRev?r.expectedRev.toFixed(2):''}</td>
+      <td>${r.netRevenue?r.netRevenue.toFixed(2):''}</td>
+    </tr>`).join('');
+
+  renderPagination('masterPag', masterPage, pages, p => { masterPage=p; renderMasterTable(); });
 }
 
-// =====================================================================
-// FORMATTING HELPERS
-// =====================================================================
-function toNum(v) {
-  const n = parseFloat(String(v).replace(/[₹,\s]/g, ''));
-  return isNaN(n) ? 0 : n;
+function tagBadge(t) {
+  if (t==='ON Track') return '<span class="tag-on">ON Track</span>';
+  if (t==='Alert')    return '<span class="tag-alert">Alert</span>';
+  if (t==='WIP')      return '<span class="tag-wip">WIP</span>';
+  return '<span class="tag-na">'+t+'</span>';
 }
 
-function fmtCr(val) {
-  if (!val || isNaN(val)) return '—';
-  const cr = val / 10000000;
-  return '₹' + (cr >= 1 ? cr.toFixed(2) + ' Cr' : (val / 100000).toFixed(2) + ' L');
+function renderPagination(containerId, current, total, cb) {
+  const el = document.getElementById(containerId);
+  if (!el || total <= 1) { if(el) el.innerHTML=''; return; }
+  let html = `<button class="pg-btn" onclick="(${cb.toString()})(${current-1})" ${current===1?'disabled':''}>← Prev</button>`;
+  for (let i=1;i<=Math.min(total,8);i++) {
+    html += `<button class="pg-btn ${i===current?'active':''}" onclick="(${cb.toString()})(${i})">${i}</button>`;
+  }
+  if (total > 8) html += `<span style="font-size:12px;color:var(--slate)">… of ${total}</span>`;
+  html += `<button class="pg-btn" onclick="(${cb.toString()})(${current+1})" ${current===total?'disabled':''}>Next →</button>`;
+  el.innerHTML = html;
 }
 
-function fmtAmount(val) {
-  const n = toNum(val);
-  if (!n) return '—';
-  if (n >= 10000000) return '₹' + (n/10000000).toFixed(2) + ' Cr';
-  if (n >= 100000)   return '₹' + (n/100000).toFixed(2) + ' L';
-  return '₹' + n.toLocaleString('en-IN');
+// ── DRILL MODAL ───────────────────────────────────────────
+function openDrill(filter) {
+  let recs = filteredRecords;
+  let title = 'All Records';
+  if (filter==='lead')    { recs = recs.filter(r=>r.currentTagIn==='Lead'); title='Leads'; }
+  if (filter==='deal')    { recs = recs.filter(r=>r.currentTagIn==='Deal'); title='Deals'; }
+  if (filter==='ontrack') { recs = recs.filter(r=>r.tagging==='ON Track');  title='ON Track'; }
+  if (filter==='wip')     { recs = recs.filter(r=>r.tagging==='WIP');       title='WIP'; }
+  if (filter==='alert')   { recs = recs.filter(r=>r.tagging==='Alert');     title='Alert'; }
+
+  document.getElementById('drillTitle').textContent = title + ' — ' + recs.length + ' records';
+  document.getElementById('drillTbody').innerHTML = recs.map(r=>`
+    <tr>
+      <td>${r.sno}</td><td style="font-size:10px">${String(r.leadId||'').slice(-6)}</td>
+      <td>${r.companyName}</td><td>${tagBadge(r.tagging)}</td><td>${r.currentTagIn}</td>
+      <td>${r.leadSource}</td><td style="font-size:11px">${r.unitName}</td>
+      <td>${r.mandateType}</td><td>${r.caseStatus}</td><td>${r.ageingSlab}</td>
+      <td>${r.tat}</td><td>${r.netRevenue?r.netRevenue.toFixed(2):''}</td>
+    </tr>`).join('');
+  document.getElementById('drillModal').classList.add('open');
+}
+function closeDrill() { document.getElementById('drillModal').classList.remove('open'); }
+document.getElementById('drillModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDrill(); });
+
+// ── ONBOARDING TAB ────────────────────────────────────────
+function renderOnboarding() {
+  const ob = ALL_DATA.onboarding;
+  if (!ob) return;
+  setText('ob-bankers',   ob.bankerOnboarded);
+  setText('ob-cp',        ob.cpOnboarded);
+  setText('ob-ref',       ob.referralCount);
+  setText('ob-bankleads', ob.bankerLeads);
+  setText('ob-cpleads',   ob.cpLeads);
+
+  renderPieChart('chartObMix',
+    ['Bankers','Channel Partners','Referrals'],
+    [ob.bankerOnboarded, ob.cpOnboarded, ob.referralCount]);
+  renderPieChart('chartObSource',
+    ['Banker Leads','CP Leads','Referral Leads'],
+    [ob.bankerLeads, ob.cpLeads, ob.referralCount]);
+
+  // Banker list
+  document.getElementById('bankerListCount').textContent = (ob.bankerList||[]).length + ' bankers';
+  document.getElementById('bankerListBody').innerHTML = (ob.bankerList||[]).map((b,i)=>`
+    <tr><td>${i+1}</td><td><strong>${b.name}</strong></td><td>${b.bank}</td>
+    <td>${b.city}</td><td>${b.state}</td>
+    <td>${b.phone?`<a href="tel:${b.phone}" style="color:var(--green)">${b.phone}</a>`:''}</td>
+    <td><span class="tag-na">${b.status||'Active'}</span></td></tr>`).join('');
+
+  document.getElementById('cpListCount').textContent = (ob.cpList||[]).length + ' partners';
+  document.getElementById('cpListBody').innerHTML = (ob.cpList||[]).map((c,i)=>`
+    <tr><td>${i+1}</td><td><strong>${c.name}</strong></td><td>${c.company}</td>
+    <td>${c.city}</td><td>${c.state}</td>
+    <td>${c.phone?`<a href="tel:${c.phone}" style="color:var(--green)">${c.phone}</a>`:''}</td>
+    <td><span class="tag-na">${c.status||'Active'}</span></td></tr>`).join('');
 }
 
-function fmtDate(val) {
-  if (!val) return '—';
-  try {
-    const d = new Date(val);
-    if (isNaN(d)) return String(val).substring(0, 10);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
-  } catch(e) { return String(val).substring(0, 10); }
+// ── BANKER RECOMMENDATION ─────────────────────────────────
+function renderBankerEngine() {
+  const bankers = ALL_DATA.banker_re || [];
+
+  // Build mandate chips
+  const allProducts = [...new Set(bankers.flatMap(b=>b.products))].sort();
+  const display = allProducts.length ? allProducts : MANDATE_TYPES;
+  const grid = document.getElementById('bankerMandateChips');
+  grid.innerHTML = display.map(m=>
+    `<div class="chip" data-m="${m}" onclick="selectBankerMandate('${m}',this)">${m}</div>`
+  ).join('');
+
+  // States
+  const states = [...new Set(bankers.map(b=>b.state).filter(Boolean))].sort();
+  const stSel = document.getElementById('bStateSelect');
+  stSel.innerHTML = '<option value="">All States</option>' + states.map(s=>`<option>${s}</option>`).join('');
 }
 
-function statusBadge(status) {
-  const s = String(status || '').trim();
-  let cls = 'badge-gray';
-  if (!s) return '<span class="badge badge-gray">—</span>';
-  if (s.includes('Sanction') || s.includes('Disbursement')) cls = 'badge-green';
-  else if (s.includes('Logged'))                            cls = 'badge-yellow';
-  else if (s.includes('Drop') || s.includes('Declined'))   cls = 'badge-red';
-  else if (s.includes('Doab') || s.includes('Check'))      cls = 'badge-blue';
-  else if (s.includes('NBG') || s.includes('Principle'))   cls = 'badge-purple';
-  return `<span class="badge ${cls}">${s}</span>`;
+function selectBankerMandate(m, chip) {
+  document.querySelectorAll('#bankerMandateChips .chip').forEach(c=>c.classList.remove('active'));
+  if (bSelectedMandate === m) { bSelectedMandate = null; }
+  else { bSelectedMandate = m; chip.classList.add('active'); runBankerSearch(); }
 }
+
+function onBankerStateChange() {
+  const state = document.getElementById('bStateSelect').value;
+  const bankers = ALL_DATA.banker_re || [];
+  const cities = [...new Set(bankers.filter(b=>!state||b.state===state).map(b=>b.city).filter(Boolean))].sort();
+  const citySel = document.getElementById('bCitySelect');
+  citySel.innerHTML = '<option value="">All Cities</option>' + cities.map(c=>`<option>${c}</option>`).join('');
+  citySel.disabled = !state;
+  if (bSelectedMandate) runBankerSearch();
+}
+
+function runBankerSearch() {
+  if (!bSelectedMandate) {
+    document.getElementById('bankerCards').innerHTML = '<div class="state-msg"><p>Pick a mandate type on the left.</p></div>';
+    document.getElementById('bankerResultTitle').textContent = 'Select a mandate type to begin';
+    document.getElementById('bankerResultCount').textContent = '';
+    return;
+  }
+  const state = document.getElementById('bStateSelect').value;
+  const city  = document.getElementById('bCitySelect').value;
+  const sort  = document.getElementById('bSortBy').value;
+  const bankers = ALL_DATA.banker_re || [];
+
+  bResults = bankers.filter(b => {
+    if (!b.products.includes(bSelectedMandate)) return false;
+    if (state && b.state !== state) return false;
+    if (city  && b.city  !== city)  return false;
+    return true;
+  });
+
+  if (sort === 'exp') bResults.sort((a,b) => parseInt(b.experience||0) - parseInt(a.experience||0));
+  else bResults.sort((a,b) => a.name.localeCompare(b.name));
+
+  bPage = 1;
+  renderBankerCards();
+}
+
+function renderBankerCards() {
+  document.getElementById('bankerResultTitle').textContent = bSelectedMandate + ' — Banker Matches';
+  document.getElementById('bankerResultCount').textContent = bResults.length + ' bankers';
+  const total = bResults.length;
+  if (!total) {
+    document.getElementById('bankerCards').innerHTML = '<div class="state-msg"><h3>No bankers found</h3><p>Try broadening your location filter.</p></div>';
+    document.getElementById('bankerPag').innerHTML = '';
+    return;
+  }
+  const pages = Math.ceil(total/PER_PAGE);
+  const slice = bResults.slice((bPage-1)*PER_PAGE, bPage*PER_PAGE);
+  document.getElementById('bankerCards').innerHTML = slice.map(b => recCard(b,'banker')).join('');
+  renderPagination('bankerPag', bPage, pages, p => { bPage=p; renderBankerCards(); });
+}
+
+function resetBankerSearch() {
+  bSelectedMandate = null;
+  document.querySelectorAll('#bankerMandateChips .chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('bStateSelect').value = '';
+  document.getElementById('bCitySelect').innerHTML = '<option value="">All Cities</option>';
+  document.getElementById('bCitySelect').disabled = true;
+  document.getElementById('bankerCards').innerHTML = '<div class="state-msg"><p>Pick a mandate type on the left.</p></div>';
+  document.getElementById('bankerResultTitle').textContent = 'Select a mandate type to begin';
+  document.getElementById('bankerResultCount').textContent = '';
+  document.getElementById('bankerPag').innerHTML = '';
+}
+
+// ── CP RECOMMENDATION ─────────────────────────────────────
+function renderCPEngine() {
+  const cps = ALL_DATA.cp_re || [];
+  const allProducts = [...new Set(cps.flatMap(c=>c.products))].sort();
+  const display = allProducts.length ? allProducts : MANDATE_TYPES;
+  const grid = document.getElementById('cpMandateChips');
+  grid.innerHTML = display.map(m=>
+    `<div class="chip" data-m="${m}" onclick="selectCPMandate('${m}',this)">${m}</div>`
+  ).join('');
+  const states = [...new Set(cps.map(c=>c.state).filter(Boolean))].sort();
+  document.getElementById('cStateSelect').innerHTML = '<option value="">All States</option>' + states.map(s=>`<option>${s}</option>`).join('');
+}
+
+function selectCPMandate(m, chip) {
+  document.querySelectorAll('#cpMandateChips .chip').forEach(c=>c.classList.remove('active'));
+  if (cSelectedMandate === m) { cSelectedMandate = null; }
+  else { cSelectedMandate = m; chip.classList.add('active'); runCPSearch(); }
+}
+
+function onCPStateChange() {
+  const state = document.getElementById('cStateSelect').value;
+  const cps = ALL_DATA.cp_re || [];
+  const cities = [...new Set(cps.filter(c=>!state||c.state===state).map(c=>c.city).filter(Boolean))].sort();
+  const citySel = document.getElementById('cCitySelect');
+  citySel.innerHTML = '<option value="">All Cities</option>' + cities.map(c=>`<option>${c}</option>`).join('');
+  citySel.disabled = !state;
+  if (cSelectedMandate) runCPSearch();
+}
+
+function runCPSearch() {
+  if (!cSelectedMandate) { return; }
+  const state = document.getElementById('cStateSelect').value;
+  const city  = document.getElementById('cCitySelect').value;
+  const cps = ALL_DATA.cp_re || [];
+  cResults = cps.filter(c => {
+    if (!c.products.includes(cSelectedMandate)) return false;
+    if (state && c.state !== state) return false;
+    if (city  && c.city  !== city)  return false;
+    return true;
+  });
+  cPage = 1;
+  renderCPCards();
+}
+
+function renderCPCards() {
+  document.getElementById('cpResultTitle').textContent = cSelectedMandate + ' — CP Matches';
+  document.getElementById('cpResultCount').textContent = cResults.length + ' partners';
+  if (!cResults.length) {
+    document.getElementById('cpCards').innerHTML = '<div class="state-msg"><h3>No channel partners found</h3><p>Try broadening your location.</p></div>';
+    document.getElementById('cpPag').innerHTML=''; return;
+  }
+  const pages = Math.ceil(cResults.length/PER_PAGE);
+  const slice = cResults.slice((cPage-1)*PER_PAGE, cPage*PER_PAGE);
+  document.getElementById('cpCards').innerHTML = slice.map(c => recCard(c,'cp')).join('');
+  renderPagination('cpPag', cPage, pages, p => { cPage=p; renderCPCards(); });
+}
+
+function resetCPSearch() {
+  cSelectedMandate = null;
+  document.querySelectorAll('#cpMandateChips .chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('cStateSelect').value='';
+  document.getElementById('cCitySelect').innerHTML='<option value="">All Cities</option>';
+  document.getElementById('cCitySelect').disabled=true;
+  document.getElementById('cpCards').innerHTML='<div class="state-msg"><p>Pick a mandate type on the left.</p></div>';
+  document.getElementById('cpResultTitle').textContent='Select a mandate type to begin';
+  document.getElementById('cpResultCount').textContent='';
+  document.getElementById('cpPag').innerHTML='';
+}
+
+// ── LENDER RECOMMENDATION ─────────────────────────────────
+function renderLenderEngine() {
+  const data = ALL_DATA.lender_re;
+  if (!data) return;
+  const sel = document.getElementById('lenderProductSelect');
+  sel.innerHTML = '<option value="">— Select Product —</option>' +
+    data.productTypes.map(p=>`<option>${p}</option>`).join('');
+}
+
+function runLenderSearch() {
+  const product = document.getElementById('lenderProductSelect').value;
+  const minRate = parseFloat(document.getElementById('lenderMinRate').value)||0;
+  const sort    = document.getElementById('lenderSort').value;
+  const data    = ALL_DATA.lender_re;
+  if (!data || !product) return;
+
+  let results = data.lenders.filter(l => l.products[product] === true && l.successRate >= minRate);
+  if (sort === 'rate') results.sort((a,b) => b.successRate - a.successRate);
+  else results.sort((a,b) => a.name.localeCompare(b.name));
+
+  document.getElementById('lenderResultTitle').textContent = product + ' — Lender Matches';
+  document.getElementById('lenderResultCount').textContent = results.length + ' lenders';
+
+  if (!results.length) {
+    document.getElementById('lenderCards').innerHTML = '<div class="state-msg"><h3>No lenders found</h3><p>Try lowering the min success rate.</p></div>';
+    return;
+  }
+
+  document.getElementById('lenderCards').innerHTML = results.map((l,i) => `
+    <div class="lender-card">
+      <div class="lender-rank">#${i+1}</div>
+      <div class="lender-info">
+        <div class="lender-name">${l.name}</div>
+        <div class="lender-rate">
+          <div class="rate-bar"><div class="rate-fill" style="width:${l.successRate}%"></div></div>
+          <div class="rate-label">Success Rate: <strong>${l.successRate}%</strong> across all products</div>
+        </div>
+      </div>
+      <div>
+        <span class="exp-badge" style="background:var(--green-bg);border-color:var(--green);color:var(--green)">
+          ${l.products[product] ? '✓ Eligible' : '✗ N/A'}
+        </span>
+      </div>
+    </div>`).join('');
+}
+
+function resetLenderSearch() {
+  document.getElementById('lenderProductSelect').value = '';
+  document.getElementById('lenderMinRate').value = '';
+  document.getElementById('lenderCards').innerHTML = '<div class="state-msg"><p>Select a product / mandate type on the left.</p></div>';
+  document.getElementById('lenderResultTitle').textContent = 'Select a product type to see matched lenders';
+  document.getElementById('lenderResultCount').textContent = '';
+}
+
+// ── SHARED CARD RENDERER ──────────────────────────────────
+function recCard(person, type) {
+  const name     = person.name || '';
+  const initials = name.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const phone    = String(person.phone||'').replace(/\s/g,'');
+  const sub      = type==='banker' ? (person.lastCompany||'Bank N/A') : (person.company||'Firm N/A');
+  const exp      = person.experience ? person.experience+' yrs' : '';
+  const loc      = [person.city, person.state].filter(Boolean).join(', ');
+  const tags     = (person.products||[]).map(p=>
+    `<span class="prod-tag ${p===(bSelectedMandate||cSelectedMandate)?'hi':''}">${p}</span>`
+  ).join('');
+  const phoneHtml = phone
+    ? `<a class="card-phone" href="tel:+${phone}">📞 ${phone}</a>`
+    : `<span class="card-phone" style="opacity:.4;cursor:default">No phone listed</span>`;
+
+  return `<div class="rec-card">
+    <div class="card-top">
+      <div class="card-left">
+        <div class="avatar">${initials}</div>
+        <div>
+          <div class="card-name">${name}</div>
+          <div class="card-sub">${sub}</div>
+        </div>
+      </div>
+      <div class="card-meta-right">
+        ${exp?`<span class="exp-badge">${exp}</span>`:''}
+        ${loc?`<div class="loc-pill">📍 ${loc}</div>`:''}
+      </div>
+    </div>
+    ${phoneHtml}
+    <div class="prod-tags">${tags}</div>
+    ${person.expertise?`<div style="font-size:11px;color:var(--slate);margin-top:8px"><strong>Expertise:</strong> ${person.expertise}</div>`:''}
+  </div>`;
+}
+
+// ── AUTO-REFRESH every 5 minutes ──────────────────────────
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
 </script>
 </body>
 </html>
