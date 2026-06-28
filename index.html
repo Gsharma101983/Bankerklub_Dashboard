@@ -331,7 +331,7 @@ tr:hover td{background:#F9FAFB}
     <div class="kpi green"><div class="kpi-label">Expected Revenue</div><div class="kpi-value sm" id="r-expected">—</div><div class="kpi-sub">Cr.</div></div>
     <div class="kpi amber"><div class="kpi-label">Payment Received</div><div class="kpi-value sm" id="r-received">—</div><div class="kpi-sub">Cr.</div></div>
     <div class="kpi red"><div class="kpi-label">Refund</div><div class="kpi-value sm" id="r-refund">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi green"><div class="kpi-label">Net Revenue</div><div class="kpi-value sm" id="r-net">—</div><div class="kpi-sub">Cr. after refunds</div></div>
+    <div class="kpi green"><div class="kpi-label">Net Revenue</div><div class="kpi-value sm" id="r-net">—</div><div class="kpi-sub">Cr.</div></div>
     <div class="kpi navy"><div class="kpi-label">Advance Collected</div><div class="kpi-value sm" id="r-advance">—</div><div class="kpi-sub">Cr.</div></div>
   </div>
 
@@ -732,6 +732,56 @@ function resetFilters() {
   applyFilters();
 }
 
+// ══════════════════════════════════════════════════════════
+// NUMBER FORMATTING — Indian comma system, always in Crores
+// ══════════════════════════════════════════════════════════
+
+/**
+ * Format a number using Indian comma grouping.
+ * Examples:
+ *   101730.25  → "1,01,730.25"
+ *   172.70     → "172.70"
+ *   0.169      → "0.17"
+ *   2.3        → "2.30"
+ */
+function formatIndian(num, decimals) {
+  if (num === null || num === undefined || isNaN(num)) return '—';
+  decimals = (decimals === undefined) ? 2 : decimals;
+  var sign = num < 0 ? '-' : '';
+  var abs  = Math.abs(num);
+  var fixed = abs.toFixed(decimals);
+  var parts = fixed.split('.');
+  var intPart = parts[0];
+  var decPart = parts[1];
+
+  var result = '';
+  if (intPart.length <= 3) {
+    result = intPart;
+  } else {
+    // Last 3 digits, then groups of 2 going left
+    result = intPart.slice(-3);
+    var rem = intPart.slice(0, -3);
+    while (rem.length > 2) {
+      result = rem.slice(-2) + ',' + result;
+      rem = rem.slice(0, -2);
+    }
+    if (rem.length > 0) result = rem + ',' + result;
+  }
+
+  return sign + result + (decPart ? '.' + decPart : '');
+}
+
+/**
+ * Always format a Crore value in Indian comma format with 2 decimals.
+ * Input: numeric value already in Crores.
+ * Output: string like "1,01,730.25"
+ * Used for all monetary KPI cards — no auto-switching to L or K.
+ */
+function fmtCr(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return formatIndian(v, 2);
+}
+
 // ── KPIs ──────────────────────────────────────────────────
 function renderKPIs() {
   const recs = filteredRecords;
@@ -745,13 +795,13 @@ function renderKPIs() {
 
   const sum = (key) => recs.reduce((a,r)=>a+(r[key]||0),0);
 
-  setText('k-total', recs.length);
-  setText('k-leads', leads);
-  setText('k-deals', deals);
-  setText('k-ontrack', onT);
-  setText('k-wip', wip);
-  setText('k-alert', alert);
-  setText('k-tat', avgTat + ' days');
+  setText('k-total',   formatIndian(recs.length, 0));
+  setText('k-leads',   formatIndian(leads, 0));
+  setText('k-deals',   formatIndian(deals, 0));
+  setText('k-ontrack', formatIndian(onT, 0));
+  setText('k-wip',     formatIndian(wip, 0));
+  setText('k-alert',   formatIndian(alert, 0));
+  setText('k-tat',     formatIndian(avgTat, 0) + ' days');
 
   setText('r-debt',     fmtCr(sum('debtAmt')));
   setText('r-equity',   fmtCr(sum('equityAmt')));
@@ -763,11 +813,6 @@ function renderKPIs() {
   setText('r-advance',  fmtCr(sum('advanceAmt')));
 }
 
-function fmtCr(v) {
-  if (v >= 100) return (v/100).toFixed(1) + ' Cr';
-  if (v >= 1)   return v.toFixed(2) + ' L';
-  return (v*100).toFixed(1) + ' K';
-}
 function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
 
 // ── CHARTS ────────────────────────────────────────────────
@@ -867,8 +912,8 @@ function renderMasterTable() {
       <td>${r.caseStatus||''}</td>
       <td>${r.ageingSlab||''}</td>
       <td>${r.tat||''}</td>
-      <td>${r.expectedRev?r.expectedRev.toFixed(2):''}</td>
-      <td>${r.netRevenue?r.netRevenue.toFixed(2):''}</td>
+      <td>${r.expectedRev ? fmtCr(r.expectedRev) : ''}</td>
+      <td>${r.netRevenue  ? fmtCr(r.netRevenue)  : ''}</td>
     </tr>`).join('');
 
   renderPagination('masterPag', masterPage, pages, p => { masterPage=p; renderMasterTable(); });
@@ -910,7 +955,7 @@ function openDrill(filter) {
       <td>${r.companyName}</td><td>${tagBadge(r.tagging)}</td><td>${r.currentTagIn}</td>
       <td>${r.leadSource}</td><td style="font-size:11px">${r.unitName}</td>
       <td>${r.mandateType}</td><td>${r.caseStatus}</td><td>${r.ageingSlab}</td>
-      <td>${r.tat}</td><td>${r.netRevenue?r.netRevenue.toFixed(2):''}</td>
+      <td>${r.tat}</td><td>${r.netRevenue ? fmtCr(r.netRevenue) : ''}</td>
     </tr>`).join('');
   document.getElementById('drillModal').classList.add('open');
 }
