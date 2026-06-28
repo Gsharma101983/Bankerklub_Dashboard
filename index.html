@@ -630,16 +630,35 @@ async function loadData() {
   showLoading();
   try {
     // If no API URL configured, show the notice and exit
-    if (API_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    if (!API_URL || API_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       document.getElementById('configNotice').style.display = 'block';
-      showError('⚠️ Dashboard not yet connected. Please deploy Code.gs and set the API_URL in index.html. See README.md for instructions.');
+      showError('⚠️ Dashboard not yet connected. Please deploy Code.gs and set the API_URL in index.html.');
       return;
     }
     document.getElementById('configNotice').style.display = 'none';
-    const res = await fetch(API_URL + '?tab=all', {cache:'no-store'});
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    ALL_DATA = await res.json();
-    if (ALL_DATA.error) throw new Error(ALL_DATA.error);
+
+    // Apps Script Web Apps require redirect following — use no redirect mode won't work.
+    // We use a simple fetch with follow redirects (default) and no cache.
+    const url = API_URL.includes('?') ? API_URL + '&tab=all' : API_URL + '?tab=all';
+    const res = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' }
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + res.statusText);
+    const text = await res.text();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch(parseErr) {
+      throw new Error('Response is not valid JSON. Raw: ' + text.slice(0, 200));
+    }
+
+    ALL_DATA = parsed;
+    if (ALL_DATA.error) throw new Error('Apps Script error: ' + ALL_DATA.error);
+
     clearError();
     document.getElementById('syncInfo').textContent = 'Updated: ' + new Date().toLocaleTimeString();
     applyFilters();
@@ -647,8 +666,10 @@ async function loadData() {
     renderBankerEngine();
     renderCPEngine();
     renderLenderEngine();
+
   } catch(e) {
-    showError('Failed to load data: ' + e.message + '. Check API_URL and deployment.');
+    console.error('Dashboard load error:', e);
+    showError('❌ ' + e.message + ' | Open browser Console (F12) for details. Common fixes: (1) Check API_URL is correct (2) Re-deploy Apps Script as Web App with access "Anyone" (3) Re-authorize the script.');
   }
 }
 
