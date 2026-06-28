@@ -4,591 +4,445 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BankerKlub — Management Dashboard</title>
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ═══════════════════════════════════════════════════════════
-   TOKENS
-═══════════════════════════════════════════════════════════ */
 :root{
-  --navy:#0B1E3D;--ink:#142444;--gold:#C9A84C;--gold-light:#F0D98A;
-  --gold-pale:#FDF6E3;--white:#fff;--slate:#4A5568;--mist:#F4F6FA;
-  --border:#DDE3EE;--green:#1A7A4A;--green-bg:#E8F5EE;
-  --amber:#E87C1E;--amber-bg:#FFF4E6;
-  --red:#C0392B;--red-bg:#FDE8E6;
-  --shadow:0 2px 12px rgba(11,30,61,.10);
-  --shadow-lg:0 8px 32px rgba(11,30,61,.15);
-  --radius:14px;
+  --bg:#0f1117;--card:#1a1d27;--card2:#21253a;--accent:#4f8ef7;--accent2:#7c5cbf;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--text:#e2e8f0;--muted:#64748b;
+  --border:#2d3248;--teal:#06b6d4;--purple:#a855f7;--pink:#ec4899;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Calibri','Calibri Light',Arial,sans-serif;background:var(--mist);color:var(--ink);min-height:100vh}
-/* ── HEADER ── */
-.hdr{background:var(--navy);display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;height:62px;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:200}
-.hdr-brand{display:flex;align-items:center;gap:11px}
-.hdr-logo{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;
-  align-items:center;justify-content:center;font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:800;
-  font-size:15px;color:var(--navy)}
-.hdr-title{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:800;font-size:17px;color:#fff;letter-spacing:.01em}
-.hdr-sub{font-size:10px;color:var(--gold-light);text-transform:uppercase;letter-spacing:.07em}
-.live-badge{background:rgba(26,122,74,.25);border:1px solid #1A7A4A;color:#5EEBA2;
-  font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
-.live-dot{width:7px;height:7px;border-radius:50%;background:#5EEBA2;animation:pulse 1.4s infinite}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+/* ── Header ── */
+.header{background:linear-gradient(135deg,#1a1d27 0%,#21253a 100%);border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.logo{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff}
+.header-title h1{font-size:1.3rem;font-weight:700}
+.header-title p{font-size:.75rem;color:var(--muted)}
+.live-badge{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:.72rem;
+  background:#1e3a2f;color:var(--green);padding:4px 12px;border-radius:20px;border:1px solid #166534}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.sync-info{font-size:10px;color:var(--gold-light);opacity:.7}
-
-/* ── NAV TABS ── */
-.nav{background:var(--navy);border-bottom:1px solid rgba(255,255,255,.08);
-  display:flex;padding:0 28px;gap:4px;overflow-x:auto}
-.nav-btn{padding:12px 20px;font-family:'Calibri','Calibri Light',Arial,sans-serif;font-size:12px;font-weight:600;
-  color:rgba(255,255,255,.5);border:none;background:transparent;cursor:pointer;
-  border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.03em;text-transform:uppercase}
-.nav-btn:hover{color:rgba(255,255,255,.85)}
-.nav-btn.active{color:var(--gold-light);border-bottom-color:var(--gold)}
-
-/* ── LAYOUT ── */
-.container{max-width:1400px;margin:0 auto;padding:24px 20px}
-.tab-content{display:none}
-.tab-content.active{display:block}
-
-/* ── FILTER BAR ── */
-.filter-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
-.filter-bar label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--slate);display:block;margin-bottom:4px}
-.filter-bar select,.filter-bar input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
-  font-family:'Calibri','Calibri Light',Arial,sans-serif;font-size:13px;color:var(--ink);background:var(--white);
-  min-width:140px;outline:none;transition:border-color .15s}
-.filter-bar select:focus,.filter-bar input:focus{border-color:var(--gold)}
-.btn{padding:8px 18px;border-radius:8px;font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:700;
-  font-size:12px;border:none;cursor:pointer;transition:all .2s;letter-spacing:.03em;display:inline-flex;align-items:center;gap:6px}
-.btn-gold{background:var(--gold);color:var(--navy)}
-.btn-gold:hover{background:#b8933f}
-.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--slate)}
-.btn-outline:hover{background:var(--mist)}
-
-/* ── KPI GRID ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:22px}
-.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
-.kpi.blue::before{background:#3B82F6}
-.kpi.green::before{background:var(--green)}
-.kpi.gold::before{background:var(--gold)}
-.kpi.red::before{background:var(--red)}
-.kpi.amber::before{background:var(--amber)}
-.kpi.navy::before{background:var(--navy)}
-.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--slate);margin-bottom:6px}
-.kpi-value{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:700;font-size:28px;color:var(--navy);letter-spacing:-0.5px}
-.kpi-value.sm{font-size:18px}
-.kpi-sub{font-size:11px;color:var(--slate);margin-top:3px}
-.kpi-drill{font-size:10px;color:var(--gold);cursor:pointer;margin-top:6px;text-decoration:underline;display:block}
-
-/* ── CHART GRID ── */
-.chart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;margin-bottom:22px}
-.chart-box{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;box-shadow:var(--shadow)}
-.chart-box h3{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-size:12px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.07em;color:var(--slate);margin-bottom:16px}
-.chart-box canvas{max-height:220px}
-
-/* ── TABLE ── */
-.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;box-shadow:var(--shadow);margin-bottom:22px}
-.table-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
-.table-header h3{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-size:13px;font-weight:800;color:var(--navy)}
-.table-count{font-size:11px;color:var(--slate)}
-table{width:100%;border-collapse:collapse;font-size:12px}
-thead tr{background:var(--mist)}
-th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.07em;color:var(--slate);white-space:nowrap}
-td{padding:10px 14px;border-top:1px solid var(--border);color:var(--ink);vertical-align:middle}
-tr:hover td{background:#F9FAFB}
-.tag-on{background:var(--green-bg);color:var(--green);font-weight:600;padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
-.tag-alert{background:var(--red-bg);color:var(--red);font-weight:600;padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
-.tag-wip{background:var(--amber-bg);color:var(--amber);font-weight:600;padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
-.tag-na{background:var(--mist);color:var(--slate);padding:3px 8px;border-radius:20px;font-size:10px;display:inline-block}
-.pagination{display:flex;gap:6px;align-items:center;padding:12px 20px;border-top:1px solid var(--border);flex-wrap:wrap}
-.pg-btn{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:var(--white);
-  font-size:11px;cursor:pointer;transition:all .15s}
-.pg-btn:hover,.pg-btn.active{background:var(--navy);color:var(--gold-light);border-color:var(--navy)}
-.pg-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* ── RECOMMENDATION LAYOUT ── */
-.rec-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
-.rec-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow);overflow:hidden;position:sticky;top:80px}
-.rec-panel-hdr{background:var(--navy);padding:18px 20px;border-bottom:2px solid var(--gold)}
-.rec-panel-hdr h2{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:2px}
-.rec-panel-hdr p{font-size:11px;color:var(--gold-light);opacity:.8}
-.rec-panel-body{padding:20px;display:flex;flex-direction:column;gap:16px}
-.field-grp label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--slate);display:block;margin-bottom:5px}
-.field-grp select,.field-grp input{width:100%;padding:9px 13px;border:1.5px solid var(--border);
-  border-radius:8px;font-size:13px;font-family:'Calibri','Calibri Light',Arial,sans-serif;color:var(--ink);outline:none;transition:border-color .15s}
-.field-grp select:focus{border-color:var(--gold)}
-.chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.chip{padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;
-  font-weight:500;color:var(--slate);cursor:pointer;text-align:center;transition:all .15s;
-  user-select:none;background:var(--white)}
-.chip:hover{border-color:var(--gold);background:var(--gold-pale)}
-.chip.active{background:var(--navy);border-color:var(--navy);color:var(--gold-light);font-weight:700}
-
-/* ── BANKER / CP CARDS ── */
-.cards-col{display:flex;flex-direction:column;gap:12px}
-.rec-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  padding:18px 22px;box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden}
-.rec-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-  background:var(--gold);border-radius:4px 0 0 4px}
-.rec-card:hover{border-color:var(--gold);box-shadow:var(--shadow-lg);transform:translateY(-1px)}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
-.card-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-.avatar{width:44px;height:44px;border-radius:10px;background:var(--navy);display:flex;
-  align-items:center;justify-content:center;font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:800;
-  font-size:16px;color:var(--gold);flex-shrink:0}
-.card-name{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:700;font-size:15px;color:var(--navy);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-sub{font-size:11px;color:var(--slate);margin-top:2px}
-.card-meta-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-.exp-badge{background:var(--gold-pale);border:1px solid var(--gold);color:var(--navy);
-  font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
-.loc-pill{font-size:10px;color:var(--slate);display:flex;align-items:center;gap:3px}
-.prod-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.prod-tag{padding:3px 9px;background:var(--mist);border-radius:20px;font-size:10px;color:var(--slate)}
-.prod-tag.hi{background:var(--navy);color:var(--gold-light);font-weight:600}
-.card-phone{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green);
-  font-weight:600;text-decoration:none;margin-top:8px}
-.card-phone:hover{text-decoration:underline}
-
-/* ── LENDER CARDS ── */
-.lender-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  padding:16px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;transition:all .2s}
-.lender-card:hover{border-color:var(--gold);box-shadow:var(--shadow-lg)}
-.lender-rank{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:800;font-size:22px;color:var(--gold);
-  min-width:36px;text-align:center}
-.lender-info{flex:1}
-.lender-name{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:700;font-size:15px;color:var(--navy)}
-.lender-rate{margin-top:4px}
-.rate-bar{height:6px;background:#EEF0F4;border-radius:3px;overflow:hidden;width:160px;margin-top:4px}
-.rate-fill{height:100%;background:var(--green);border-radius:3px;transition:width .6s}
-.rate-label{font-size:10px;color:var(--slate);margin-top:3px}
-
-/* ── ONBOARDING STATS ── */
-.onboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:22px}
-.ob-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
-  padding:22px 24px;box-shadow:var(--shadow);text-align:center}
-.ob-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;
-  justify-content:center;font-size:22px;margin:0 auto 12px}
-.ob-val{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-weight:800;font-size:36px;color:var(--navy);margin-bottom:4px}
-.ob-lbl{font-size:12px;color:var(--slate);font-weight:500}
-
-/* ── EMPTY / LOADING ── */
-.state-msg{padding:60px 20px;text-align:center;color:var(--slate)}
-.state-msg h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
-.state-msg p{font-size:13px;line-height:1.6}
-.spinner{border:3px solid var(--border);border-top-color:var(--gold);width:36px;height:36px;
-  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── MODAL / DRILL ── */
-.modal-backdrop{position:fixed;inset:0;background:rgba(11,30,61,.45);z-index:1000;
-  display:none;align-items:center;justify-content:center}
-.modal-backdrop.open{display:flex}
-.modal{background:var(--white);border-radius:var(--radius);width:90%;max-width:900px;
-  max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
-.modal-hdr{background:var(--navy);padding:18px 24px;display:flex;align-items:center;
-  justify-content:space-between;border-bottom:2px solid var(--gold)}
-.modal-hdr h3{font-family:'Calibri','Calibri Light',Arial,sans-serif;font-size:14px;font-weight:800;color:#fff}
-.modal-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer}
-.modal-body{overflow-y:auto;padding:20px}
-
-/* ── ERROR BANNER ── */
-.error-banner{background:var(--red-bg);border:1px solid var(--red);color:var(--red);
-  padding:10px 16px;border-radius:8px;font-size:12px;margin-bottom:16px;display:none}
-.error-banner.show{display:block}
-
-/* CONFIG NOTICE */
-.config-notice{background:var(--amber-bg);border:1px solid var(--amber);border-radius:var(--radius);
-  padding:16px 20px;margin-bottom:20px;font-size:12px;color:var(--ink)}
-.config-notice strong{color:var(--amber)}
-.config-notice code{background:rgba(0,0,0,.07);padding:2px 6px;border-radius:4px;font-size:11px}
-
-@media(max-width:768px){
-  .rec-layout{grid-template-columns:1fr}
-  .rec-panel{position:static}
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .chart-grid{grid-template-columns:1fr}
-}
+.setup-banner{background:#2a1f0a;border:1px solid #92400e;color:#fbbf24;padding:12px 24px;font-size:.82rem;
+  display:none}
+.setup-banner.show{display:block}
+/* ── Nav Tabs ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--card);padding:0 24px;overflow-x:auto}
+.tab-btn{padding:14px 20px;border:none;background:none;color:var(--muted);cursor:pointer;
+  font-size:.83rem;font-weight:500;white-space:nowrap;border-bottom:2px solid transparent;transition:.2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--text)}
+/* ── Sections ── */
+.section{display:none;padding:24px}
+.section.active{display:block}
+/* ── Filters ── */
+.filter-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px}
+.filter-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px}
+.filter-group label{font-size:.72rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.filter-group select,.filter-group input{background:var(--bg);border:1px solid var(--border);
+  color:var(--text);padding:7px 10px;border-radius:7px;font-size:.8rem;cursor:pointer}
+.filter-group select:focus,.filter-group input:focus{outline:none;border-color:var(--accent)}
+.btn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;font-size:.8rem;font-weight:600;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.85}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+/* ── KPI Grid ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:20px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;
+  cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.kpi-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-color,var(--accent))}
+.kpi-label{font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-value{font-size:1.7rem;font-weight:800;line-height:1}
+.kpi-sub{font-size:.7rem;color:var(--muted);margin-top:4px}
+.kpi-card.green{--accent-color:var(--green)}
+.kpi-card.amber{--accent-color:var(--amber)}
+.kpi-card.red{--accent-color:var(--red)}
+.kpi-card.teal{--accent-color:var(--teal)}
+.kpi-card.purple{--accent-color:var(--purple)}
+.kpi-card.pink{--accent-color:var(--pink)}
+/* ── Charts ── */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:20px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.chart-card h3{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:14px;text-transform:uppercase;letter-spacing:.04em}
+.chart-card canvas{max-height:220px}
+/* ── Table ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.table-header h3{font-size:.9rem;font-weight:700}
+.table-scroll{overflow-x:auto;max-height:460px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:.78rem;min-width:900px}
+thead th{background:var(--card2);padding:10px 12px;text-align:left;font-size:.7rem;color:var(--muted);
+  font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;position:sticky;top:0;z-index:2}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:.15s}
+tbody tr:hover{background:var(--card2)}
+tbody td{padding:9px 12px;vertical-align:top;max-width:200px;word-break:break-word}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.tag-on{background:#14532d;color:#86efac}
+.tag-wip{background:#78350f;color:#fde68a}
+.tag-alert{background:#7f1d1d;color:#fca5a5}
+.tag-yes{background:#0f172a;color:var(--teal);border:1px solid var(--teal)}
+.tag-no{background:#0f172a;color:var(--muted);border:1px solid var(--border)}
+.comment-cell{max-width:260px;font-size:.72rem;color:var(--muted);line-height:1.4}
+/* ── Onboarding ── */
+.ob-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:20px}
+/* ── Finder / Recommender ── */
+.finder-layout{display:grid;grid-template-columns:300px 1fr;gap:20px}
+@media(max-width:768px){.finder-layout{grid-template-columns:1fr}}
+.finder-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.finder-panel h2{font-size:1rem;font-weight:700;margin-bottom:4px}
+.finder-panel p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
+.finder-field{margin-bottom:12px}
+.finder-field label{display:block;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.finder-field select,.finder-field input{width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);padding:9px 12px;border-radius:8px;font-size:.82rem}
+.finder-field select:focus,.finder-field input:focus{outline:none;border-color:var(--accent)}
+.finder-btns{display:flex;gap:8px}
+.finder-results{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.finder-results h3{font-size:.82rem;color:var(--muted);margin-bottom:14px}
+.result-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;
+  cursor:pointer;transition:.15s}
+.result-card:hover{border-color:var(--accent)}
+.result-card h4{font-size:.9rem;font-weight:700;margin-bottom:4px}
+.result-card .meta{font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.68rem;font-weight:600}
+.badge-blue{background:#1e3a5f;color:#93c5fd}
+.badge-purple{background:#2e1d6e;color:#c4b5fd}
+.badge-green{background:#14532d;color:#86efac}
+.badge-amber{background:#78350f;color:#fde68a}
+.badge-teal{background:#0d4a52;color:#5eead4}
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:min(92vw,860px);max-height:85vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem}
+.modal-body{overflow:auto;padding:0}
+/* ── Utility ── */
+.spinner{text-align:center;padding:40px;color:var(--muted)}
+.empty{text-align:center;padding:60px;color:var(--muted)}
+.cr-val{color:var(--teal);font-weight:700}
+.search-bar{flex:1;min-width:200px}
+.search-bar input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:7px 12px;border-radius:7px;font-size:.8rem}
+/* Job allocation count badge */
+.job-count{display:inline-flex;align-items:center;gap:5px;background:#0d2d4a;color:#7dd3fc;
+  border:1px solid #1e40af;border-radius:6px;padding:3px 8px;font-size:.72rem;font-weight:700}
+.interested-count{display:inline-flex;align-items:center;gap:5px;background:#1a0533;color:#d8b4fe;
+  border:1px solid #6b21a8;border-radius:6px;padding:3px 8px;font-size:.72rem;font-weight:700}
 </style>
 </head>
 <body>
 
-<!-- ═══════ HEADER ═══════ -->
-<header class="hdr">
-  <div class="hdr-brand">
-    <div class="hdr-logo">BK</div>
-    <div>
-      <div class="hdr-title">BankerKlub</div>
-      <div class="hdr-sub">Management Intelligence Dashboard</div>
-    </div>
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">BK</div>
+  <div class="header-title">
+    <h1>BankerKlub</h1>
+    <p>Management Intelligence Dashboard</p>
   </div>
-  <div style="display:flex;align-items:center;gap:16px">
-    <div class="live-badge"><span class="live-dot"></span> Live</div>
-    <div class="sync-info" id="syncInfo">Syncing…</div>
-  </div>
-</header>
+  <div class="live-badge"><div class="live-dot"></div><span id="syncStatus">Syncing…</span></div>
+</div>
 
-<!-- ═══════ TABS ═══════ -->
-<nav class="nav">
-  <button class="nav-btn active" onclick="switchTab('pipeline',this)">📊 Pipeline &amp; Revenue</button>
-  <button class="nav-btn" onclick="switchTab('onboarding',this)">🏦 Onboarding</button>
-  <button class="nav-btn" onclick="switchTab('banker',this)">👤 Banker Recommendation</button>
-  <button class="nav-btn" onclick="switchTab('cp',this)">🤝 CP Recommendation</button>
-  <button class="nav-btn" onclick="switchTab('lender',this)">🏛 Lender Recommendation</button>
-</nav>
+<div class="setup-banner" id="setupBanner">
+  ⚠️ <strong>Setup required:</strong> Replace <code>API_URL</code> at the top of this file with your Google Apps Script Web App URL. See <strong>README.md</strong> for deployment steps.
+</div>
 
-<!-- ═══════════════════════════════════════════════
-     TAB 1 — PIPELINE & REVENUE
-═══════════════════════════════════════════════ -->
-<div id="tab-pipeline" class="tab-content active">
-<div class="container">
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('pipeline')">📊 Pipeline &amp; Revenue</button>
+  <button class="tab-btn" onclick="showTab('onboarding')">🏦 Onboarding</button>
+  <button class="tab-btn" onclick="showTab('banker')">👤 Banker Recommendation</button>
+  <button class="tab-btn" onclick="showTab('cp')">🤝 CP Recommendation</button>
+  <button class="tab-btn" onclick="showTab('lender')">🏛 Lender Recommendation</button>
+</div>
 
-  <div class="config-notice" id="configNotice">
-    ⚠️ <strong>Setup required:</strong> Replace <code>API_URL</code> at the top of this file with your Google Apps Script Web App URL.
-    See <strong>README.md</strong> for deployment steps.
-  </div>
+<!-- ═══════════════════════════════════════════
+     SECTION 1 · PIPELINE & REVENUE
+═══════════════════════════════════════════ -->
+<div class="section active" id="sec-pipeline">
 
-  <div class="error-banner" id="errBanner"></div>
-
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
-    <div>
-      <label>Tagging</label>
-      <select id="fTagging" onchange="applyFilters()">
-        <option value="">All</option>
-        <option>ON Track</option><option>Alert</option><option>WIP</option>
-      </select>
-    </div>
-    <div>
-      <label>Current Tagging In</label>
-      <select id="fCurrentTag" onchange="applyFilters()">
-        <option value="">All</option><option>Lead</option><option>Deal</option>
-      </select>
-    </div>
-    <div>
-      <label>Lead Source</label>
-      <select id="fLeadSource" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div>
-      <label>Unit Name</label>
-      <select id="fUnit" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div>
-      <label>Mandate Branch</label>
-      <select id="fBranch" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div>
-      <label>Mandate Type</label>
-      <select id="fMandateType" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div>
-      <label>Case Status</label>
-      <select id="fCaseStatus" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div>
-      <label>Ageing Slab</label>
-      <select id="fAgeingSlab" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div>
-      <label>Execution Owner</label>
-      <select id="fExecOwner" onchange="applyFilters()"><option value="">All</option></select>
-    </div>
-    <div style="align-self:flex-end">
-      <button class="btn btn-outline" onclick="resetFilters()">✕ Reset</button>
-    </div>
-    <div style="align-self:flex-end;margin-left:auto">
-      <button class="btn btn-gold" onclick="loadData()">🔄 Refresh</button>
+  <!-- Filters -->
+  <div class="filter-panel">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Tagging</label>
+        <select id="f-tag">
+          <option value="">All</option>
+          <option>ON Track</option><option>Alert</option><option>WIP</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Current Tagging In</label>
+        <select id="f-in">
+          <option value="">All</option><option>Lead</option><option>Deal</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Lead Source</label>
+        <select id="f-src"></select>
+      </div>
+      <div class="filter-group">
+        <label>Unit Name</label>
+        <select id="f-unit"></select>
+      </div>
+      <div class="filter-group">
+        <label>Mandate Branch</label>
+        <select id="f-branch"></select>
+      </div>
+      <div class="filter-group">
+        <label>Mandate Type</label>
+        <select id="f-mtype"></select>
+      </div>
+      <div class="filter-group">
+        <label>Case Status</label>
+        <select id="f-status"></select>
+      </div>
+      <div class="filter-group">
+        <label>Ageing Slab</label>
+        <select id="f-age"></select>
+      </div>
+      <div class="filter-group">
+        <label>Exec Owner</label>
+        <select id="f-exec"></select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <button class="btn btn-ghost" onclick="resetFilters()">✕ Reset</button>
+        <button class="btn btn-primary" onclick="applyFilters()">🔄 Refresh</button>
+      </div>
     </div>
   </div>
 
-  <!-- KPI CARDS -->
-  <div class="kpi-grid" id="kpiGrid">
-    <div class="kpi blue"><div class="kpi-label">Total Records</div><div class="kpi-value" id="k-total">—</div><div class="kpi-sub">All mandates</div><span class="kpi-drill" onclick="openDrill('all')">View all ↗</span></div>
-    <div class="kpi green"><div class="kpi-label">Leads</div><div class="kpi-value" id="k-leads">—</div><div class="kpi-sub">Current Tagging In</div><span class="kpi-drill" onclick="openDrill('lead')">Drill into leads ↗</span></div>
-    <div class="kpi gold"><div class="kpi-label">Deals</div><div class="kpi-value" id="k-deals">—</div><div class="kpi-sub">Current Tagging In</div><span class="kpi-drill" onclick="openDrill('deal')">Drill into deals ↗</span></div>
-    <div class="kpi green"><div class="kpi-label">ON Track</div><div class="kpi-value" id="k-ontrack">—</div><div class="kpi-sub">Green status</div><span class="kpi-drill" onclick="openDrill('ontrack')">View ↗</span></div>
-    <div class="kpi amber"><div class="kpi-label">WIP</div><div class="kpi-value" id="k-wip">—</div><div class="kpi-sub">Amber status</div><span class="kpi-drill" onclick="openDrill('wip')">View ↗</span></div>
-    <div class="kpi red"><div class="kpi-label">Alert</div><div class="kpi-value" id="k-alert">—</div><div class="kpi-sub">Red status</div><span class="kpi-drill" onclick="openDrill('alert')">View ↗</span></div>
-    <div class="kpi navy"><div class="kpi-label">Avg. TAT</div><div class="kpi-value" id="k-tat">—</div><div class="kpi-sub">Days: Lead → Signoff</div></div>
+  <!-- KPI Row 1 -->
+  <div class="kpi-grid" id="kpi-main"></div>
+
+  <!-- KPI Row 2 - Financial -->
+  <div class="kpi-grid" id="kpi-finance"></div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card"><h3>Tagging Mix — Leads vs Deals</h3><canvas id="ch-tagging"></canvas></div>
+    <div class="chart-card"><h3>Mandate Type Distribution</h3><canvas id="ch-mtype"></canvas></div>
+    <div class="chart-card"><h3>Case Status Breakdown</h3><canvas id="ch-status"></canvas></div>
+    <div class="chart-card"><h3>Ageing Slab Distribution</h3><canvas id="ch-age"></canvas></div>
+    <div class="chart-card"><h3>Unit-wise Distribution</h3><canvas id="ch-unit"></canvas></div>
+    <div class="chart-card"><h3>Lead Source Mix</h3><canvas id="ch-src"></canvas></div>
+    <div class="chart-card"><h3>Branch-wise Distribution</h3><canvas id="ch-branch"></canvas></div>
+    <div class="chart-card"><h3>Revenue Pipeline (Cr.)</h3><canvas id="ch-rev"></canvas></div>
   </div>
 
-  <!-- REVENUE KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi blue"><div class="kpi-label">Total Debt Amt</div><div class="kpi-value sm" id="r-debt">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi gold"><div class="kpi-label">Total Equity Amt</div><div class="kpi-value sm" id="r-equity">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi navy"><div class="kpi-label">Fixed Fee Amt</div><div class="kpi-value sm" id="r-fixed">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi green"><div class="kpi-label">Expected Revenue</div><div class="kpi-value sm" id="r-expected">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi amber"><div class="kpi-label">Payment Received</div><div class="kpi-value sm" id="r-received">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi red"><div class="kpi-label">Refund</div><div class="kpi-value sm" id="r-refund">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi green"><div class="kpi-label">Net Revenue</div><div class="kpi-value sm" id="r-net">—</div><div class="kpi-sub">Cr.</div></div>
-    <div class="kpi navy"><div class="kpi-label">Advance Collected</div><div class="kpi-value sm" id="r-advance">—</div><div class="kpi-sub">Cr.</div></div>
-  </div>
-
-  <!-- CHARTS -->
-  <div class="chart-grid">
-    <div class="chart-box"><h3>Tagging Mix — Leads vs Deals</h3><canvas id="chartTagMix"></canvas></div>
-    <div class="chart-box"><h3>Mandate Type Distribution</h3><canvas id="chartMandateType"></canvas></div>
-    <div class="chart-box"><h3>Case Status Breakdown</h3><canvas id="chartCaseStatus"></canvas></div>
-    <div class="chart-box"><h3>Ageing Slab Distribution</h3><canvas id="chartAgeing"></canvas></div>
-    <div class="chart-box"><h3>Unit-wise Distribution</h3><canvas id="chartUnit"></canvas></div>
-    <div class="chart-box"><h3>Lead Source Mix</h3><canvas id="chartLeadSource"></canvas></div>
-    <div class="chart-box"><h3>Branch-wise Distribution</h3><canvas id="chartBranch"></canvas></div>
-    <div class="chart-box"><h3>Revenue Pipeline (Cr.)</h3><canvas id="chartRevenue"></canvas></div>
-  </div>
-
-  <!-- MASTER TABLE -->
+  <!-- Master Records Table -->
   <div class="table-wrap">
     <div class="table-header">
-      <h3>Master Records</h3>
-      <span class="table-count" id="tableCount">Loading…</span>
+      <h3>📋 Master Records</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="search-bar"><input type="text" id="masterSearch" placeholder="Search records…" oninput="renderMasterTable()"></div>
+        <span id="masterCount" style="font-size:.75rem;color:var(--muted)"></span>
+      </div>
     </div>
-    <div style="overflow-x:auto">
-    <table id="masterTable">
-      <thead><tr>
-        <th>S.No</th><th>Lead ID</th><th>Company</th><th>Tagging</th><th>In</th>
-        <th>Lead Source</th><th>Unit</th><th>Branch</th><th>Type</th>
-        <th>Exec Owner</th><th>Mandate Status</th><th>Case Status</th>
-        <th>Ageing</th><th>TAT</th><th>Exp.Rev (Cr)</th><th>Net Rev (Cr)</th>
-      </tr></thead>
-      <tbody id="masterTbody"></tbody>
-    </table>
-    </div>
-    <div class="pagination" id="masterPag"></div>
-  </div>
-
-</div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     TAB 2 — ONBOARDING
-═══════════════════════════════════════════════ -->
-<div id="tab-onboarding" class="tab-content">
-<div class="container">
-  <div class="onboard-grid">
-    <div class="ob-card">
-      <div class="ob-icon" style="background:#E8F5EE">🏦</div>
-      <div class="ob-val" id="ob-bankers">—</div>
-      <div class="ob-lbl">Total Bankers Onboarded</div>
-    </div>
-    <div class="ob-card">
-      <div class="ob-icon" style="background:#FDF6E3">🤝</div>
-      <div class="ob-val" id="ob-cp">—</div>
-      <div class="ob-lbl">Total Channel Partners</div>
-    </div>
-    <div class="ob-card">
-      <div class="ob-icon" style="background:#EEF2FF">📣</div>
-      <div class="ob-val" id="ob-ref">—</div>
-      <div class="ob-lbl">Total Referral Leads</div>
-    </div>
-    <div class="ob-card">
-      <div class="ob-icon" style="background:#F0FDF4">📋</div>
-      <div class="ob-val" id="ob-bankleads">—</div>
-      <div class="ob-lbl">Banker-sourced Leads</div>
-    </div>
-    <div class="ob-card">
-      <div class="ob-icon" style="background:#FFF4E6">📋</div>
-      <div class="ob-val" id="ob-cpleads">—</div>
-      <div class="ob-lbl">CP-sourced Leads</div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>S.No</th><th>Lead ID</th><th>Company</th><th>Tagging</th><th>In</th>
+            <th>Lead Source</th><th>Unit</th><th>Branch</th><th>Type</th>
+            <th>Exec Owner</th><th>Mandate Status</th><th>Case Status</th>
+            <th>Ageing</th><th>TAT</th><th>Exp.Rev (Cr)</th><th>Net Rev (Cr)</th>
+            <th>Advance Amt (Cr)</th>
+            <th>Job Allocation</th><th>Interested Bankers</th>
+            <th>Comments</th>
+          </tr>
+        </thead>
+        <tbody id="masterBody"><tr><td colspan="20" class="spinner">Loading…</td></tr></tbody>
+      </table>
     </div>
   </div>
+</div>
 
-  <div class="chart-grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
-    <div class="chart-box"><h3>Onboarding Mix</h3><canvas id="chartObMix"></canvas></div>
-    <div class="chart-box"><h3>Lead Source Contribution</h3><canvas id="chartObSource"></canvas></div>
+<!-- ═══════════════════════════════════════════
+     SECTION 2 · ONBOARDING
+═══════════════════════════════════════════ -->
+<div class="section" id="sec-onboarding">
+  <div class="ob-kpi-grid" id="ob-kpis"></div>
+  <div class="charts-grid">
+    <div class="chart-card"><h3>Onboarding Mix</h3><canvas id="ch-ob-mix"></canvas></div>
+    <div class="chart-card"><h3>Lead Source Contribution</h3><canvas id="ch-ob-src"></canvas></div>
   </div>
 
   <!-- Banker List -->
-  <div class="table-wrap" style="margin-bottom:20px">
-    <div class="table-header"><h3>Banker Onboarding List</h3><span class="table-count" id="bankerListCount"></span></div>
-    <div style="overflow-x:auto"><table>
-      <thead><tr><th>#</th><th>Name</th><th>Bank/Company</th><th>City</th><th>State</th><th>Phone</th><th>Status</th></tr></thead>
-      <tbody id="bankerListBody"></tbody>
-    </table></div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3>🏦 Banker Onboarding List</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="search-bar"><input type="text" id="bankerSearch" placeholder="Search bankers…" oninput="renderBankerTable()"></div>
+        <span id="bankerCount" style="font-size:.75rem;color:var(--muted)"></span>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Bank/Company</th><th>City</th><th>State</th><th>Phone</th><th>Specialisation</th><th>Status</th></tr></thead>
+        <tbody id="bankerBody"><tr><td colspan="8" class="spinner">Loading…</td></tr></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- CP List -->
   <div class="table-wrap">
-    <div class="table-header"><h3>Channel Partner Onboarding List</h3><span class="table-count" id="cpListCount"></span></div>
-    <div style="overflow-x:auto"><table>
-      <thead><tr><th>#</th><th>Name</th><th>Company</th><th>City</th><th>State</th><th>Phone</th><th>Status</th></tr></thead>
-      <tbody id="cpListBody"></tbody>
-    </table></div>
-  </div>
-</div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     TAB 3 — BANKER RECOMMENDATION
-═══════════════════════════════════════════════ -->
-<div id="tab-banker" class="tab-content">
-<div class="container">
-  <div class="rec-layout">
-    <div class="rec-panel">
-      <div class="rec-panel-hdr">
-        <h2>Banker Finder</h2>
-        <p>Match bankers to your mandate</p>
-      </div>
-      <div class="rec-panel-body">
-        <div class="field-grp">
-          <label>Mandate Type <span style="color:var(--gold)">*</span></label>
-          <div class="chip-grid" id="bankerMandateChips"></div>
-        </div>
-        <div class="field-grp">
-          <label>State</label>
-          <select id="bStateSelect" onchange="onBankerStateChange()">
-            <option value="">All States</option>
-          </select>
-        </div>
-        <div class="field-grp">
-          <label>City</label>
-          <select id="bCitySelect" disabled onchange="runBankerSearch()">
-            <option value="">All Cities</option>
-          </select>
-        </div>
-        <div class="field-grp">
-          <label>Sort By</label>
-          <select id="bSortBy" onchange="runBankerSearch()">
-            <option value="exp">Experience (High → Low)</option>
-            <option value="name">Name A–Z</option>
-          </select>
-        </div>
-        <button class="btn btn-gold" style="width:100%" onclick="runBankerSearch()">🔍 Find Bankers</button>
-        <button class="btn btn-outline" style="width:100%" onclick="resetBankerSearch()">✕ Reset</button>
+    <div class="table-header">
+      <h3>🤝 Channel Partner Onboarding List</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="search-bar"><input type="text" id="cpSearch" placeholder="Search CPs…" oninput="renderCPTable()"></div>
+        <span id="cpCount" style="font-size:.75rem;color:var(--muted)"></span>
       </div>
     </div>
-    <div>
-      <div class="table-header" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:12px">
-        <h3 id="bankerResultTitle">Select a mandate type to begin</h3>
-        <span class="table-count" id="bankerResultCount"></span>
-      </div>
-      <div class="cards-col" id="bankerCards">
-        <div class="state-msg"><p>Pick a mandate type on the left to see matched bankers.</p></div>
-      </div>
-      <div class="pagination" id="bankerPag" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-top:8px"></div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Company</th><th>City</th><th>State</th><th>Phone</th><th>Status</th></tr></thead>
+        <tbody id="cpBody"><tr><td colspan="7" class="spinner">Loading…</td></tr></tbody>
+      </table>
     </div>
   </div>
 </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════
-     TAB 4 — CP RECOMMENDATION
-═══════════════════════════════════════════════ -->
-<div id="tab-cp" class="tab-content">
-<div class="container">
-  <div class="rec-layout">
-    <div class="rec-panel">
-      <div class="rec-panel-hdr">
-        <h2>CP Finder</h2>
-        <p>Match channel partners to your deal</p>
+<!-- ═══════════════════════════════════════════
+     SECTION 3 · BANKER RECOMMENDATION
+═══════════════════════════════════════════ -->
+<div class="section" id="sec-banker">
+  <div class="finder-layout">
+    <div class="finder-panel">
+      <h2>👤 Banker Finder</h2>
+      <p>Match bankers to your mandate</p>
+      <div class="finder-field">
+        <label>Mandate Type *</label>
+        <select id="br-mtype"></select>
       </div>
-      <div class="rec-panel-body">
-        <div class="field-grp">
-          <label>Mandate Type <span style="color:var(--gold)">*</span></label>
-          <div class="chip-grid" id="cpMandateChips"></div>
-        </div>
-        <div class="field-grp">
-          <label>State</label>
-          <select id="cStateSelect" onchange="onCPStateChange()">
-            <option value="">All States</option>
-          </select>
-        </div>
-        <div class="field-grp">
-          <label>City</label>
-          <select id="cCitySelect" disabled onchange="runCPSearch()">
-            <option value="">All Cities</option>
-          </select>
-        </div>
-        <button class="btn btn-gold" style="width:100%" onclick="runCPSearch()">🔍 Find CPs</button>
-        <button class="btn btn-outline" style="width:100%" onclick="resetCPSearch()">✕ Reset</button>
+      <div class="finder-field">
+        <label>State</label>
+        <select id="br-state"><option value="">All States</option></select>
+      </div>
+      <div class="finder-field">
+        <label>City</label>
+        <select id="br-city"><option value="">All Cities</option></select>
+      </div>
+      <div class="finder-field">
+        <label>Sort By</label>
+        <select id="br-sort">
+          <option value="exp">Experience (High → Low)</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+      <div class="finder-btns">
+        <button class="btn btn-primary" onclick="findBankers()">🔍 Find Bankers</button>
+        <button class="btn btn-ghost" onclick="resetBankerFinder()">✕ Reset</button>
       </div>
     </div>
-    <div>
-      <div class="table-header" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:12px">
-        <h3 id="cpResultTitle">Select a mandate type to begin</h3>
-        <span class="table-count" id="cpResultCount"></span>
-      </div>
-      <div class="cards-col" id="cpCards">
-        <div class="state-msg"><p>Pick a mandate type on the left to see matched channel partners.</p></div>
-      </div>
-      <div class="pagination" id="cpPag" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-top:8px"></div>
+    <div class="finder-results" id="br-results">
+      <div class="empty">Pick a mandate type on the left to see matched bankers.</div>
     </div>
   </div>
 </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════
-     TAB 5 — LENDER RECOMMENDATION
-═══════════════════════════════════════════════ -->
-<div id="tab-lender" class="tab-content">
-<div class="container">
-  <div class="rec-layout">
-    <div class="rec-panel">
-      <div class="rec-panel-hdr">
-        <h2>Lender Matcher</h2>
-        <p>Find best lenders for product type</p>
+<!-- ═══════════════════════════════════════════
+     SECTION 4 · CP RECOMMENDATION
+═══════════════════════════════════════════ -->
+<div class="section" id="sec-cp">
+  <div class="finder-layout">
+    <div class="finder-panel">
+      <h2>🤝 CP Finder</h2>
+      <p>Match channel partners to your deal</p>
+      <div class="finder-field">
+        <label>Mandate Type *</label>
+        <select id="cp-mtype"></select>
       </div>
-      <div class="rec-panel-body">
-        <div class="field-grp">
-          <label>Product / Mandate Type <span style="color:var(--gold)">*</span></label>
-          <select id="lenderProductSelect" onchange="runLenderSearch()">
-            <option value="">— Select Product —</option>
-          </select>
-        </div>
-        <div class="field-grp">
-          <label>Min Success Rate (%)</label>
-          <input type="number" id="lenderMinRate" placeholder="Min 60%" value="60" min="0" max="100" oninput="runLenderSearch()"/>
-        </div>
-        <div class="field-grp">
-          <label>Sort By</label>
-          <select id="lenderSort" onchange="runLenderSearch()">
-            <option value="rate">Success Rate (High → Low)</option>
-            <option value="name">Name A–Z</option>
-          </select>
-        </div>
-        <button class="btn btn-gold" style="width:100%" onclick="runLenderSearch()">🔍 Find Lenders</button>
-        <button class="btn btn-outline" style="width:100%" onclick="resetLenderSearch()">✕ Reset</button>
+      <div class="finder-field">
+        <label>State</label>
+        <select id="cp-state"><option value="">All States</option></select>
+      </div>
+      <div class="finder-field">
+        <label>City</label>
+        <select id="cp-city"><option value="">All Cities</option></select>
+      </div>
+      <div class="finder-btns">
+        <button class="btn btn-primary" onclick="findCPs()">🔍 Find CPs</button>
+        <button class="btn btn-ghost" onclick="resetCPFinder()">✕ Reset</button>
       </div>
     </div>
-    <div>
-      <div class="table-header" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:12px">
-        <h3 id="lenderResultTitle">Select a product type to see matched lenders</h3>
-        <span class="table-count" id="lenderResultCount"></span>
-      </div>
-      <div class="cards-col" id="lenderCards">
-        <div class="state-msg"><p>Select a product / mandate type on the left.</p></div>
-      </div>
+    <div class="finder-results" id="cp-results">
+      <div class="empty">Pick a mandate type on the left to see matched channel partners.</div>
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 5 · LENDER RECOMMENDATION
+═══════════════════════════════════════════ -->
+<div class="section" id="sec-lender">
+  <div class="finder-layout">
+    <div class="finder-panel">
+      <h2>🏛 Lender Matcher</h2>
+      <p>Find best lenders for product type</p>
+      <div class="finder-field">
+        <label>Product / Mandate Type *</label>
+        <select id="lr-mtype"><option value="">— Select Product —</option></select>
+      </div>
+      <!-- NEW: Type filter -->
+      <div class="finder-field">
+        <label>Type (Lender Type)</label>
+        <select id="lr-type"><option value="">All Types</option></select>
+      </div>
+      <!-- NEW: Name of Financial Institute -->
+      <div class="finder-field">
+        <label>Name of Financial Institute</label>
+        <select id="lr-name"><option value="">All Institutes</option></select>
+      </div>
+      <!-- NEW: Focus Sector -->
+      <div class="finder-field">
+        <label>Focus Sector</label>
+        <select id="lr-sector"><option value="">All Sectors</option></select>
+      </div>
+      <div class="finder-field">
+        <label>Min Success Rate (%)</label>
+        <input type="number" id="lr-rate" value="0" min="0" max="100"/>
+      </div>
+      <div class="finder-field">
+        <label>Sort By</label>
+        <select id="lr-sort">
+          <option value="rate">Success Rate (High → Low)</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+      <div class="finder-btns">
+        <button class="btn btn-primary" onclick="findLenders()">🔍 Find Lenders</button>
+        <button class="btn btn-ghost" onclick="resetLenderFinder()">✕ Reset</button>
+      </div>
+    </div>
+    <div class="finder-results" id="lr-results">
+      <div class="empty">Select a product / mandate type on the left.</div>
+    </div>
+  </div>
 </div>
 
-<!-- ═══════ DRILL MODAL ═══════ -->
-<div class="modal-backdrop" id="drillModal">
+<!-- ── Drill-down Modal ── -->
+<div class="modal-overlay" id="drillModal">
   <div class="modal">
-    <div class="modal-hdr">
+    <div class="modal-header">
       <h3 id="drillTitle">Record Detail</h3>
       <button class="modal-close" onclick="closeDrill()">✕</button>
     </div>
     <div class="modal-body">
-      <div style="overflow-x:auto">
-        <table id="drillTable">
+      <div class="table-scroll" style="padding:0">
+        <table>
           <thead><tr>
             <th>S.No</th><th>Lead ID</th><th>Company</th><th>Tagging</th><th>In</th>
             <th>Lead Source</th><th>Unit</th><th>Type</th><th>Case Status</th>
-            <th>Ageing</th><th>TAT</th><th>Net Rev (Cr)</th>
+            <th>Ageing</th><th>TAT</th><th>Advance Amt (Cr)</th><th>Net Rev (Cr)</th>
+            <th>Job Allocation</th><th>Interested Bankers</th><th>Comments</th>
           </tr></thead>
-          <tbody id="drillTbody"></tbody>
+          <tbody id="drillBody"></tbody>
         </table>
       </div>
     </div>
@@ -596,659 +450,847 @@ tr:hover td{background:#F9FAFB}
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
-   CONFIGURATION
-   Replace the URL below with your Google Apps Script Web App URL
-   after deploying Code.gs as a Web App.
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   CONFIG — Replace with your Apps Script Web App URL
+═══════════════════════════════════════════════════ */
 const API_URL = 'https://script.google.com/macros/s/AKfycbwIwy1SsA6CDoIBBh2eZnwFnefPbNgPwgA5Bbs-xsp88QPZaI55qxo5CWcW1YY-C4WRig/exec';
-/* ─────────────────────────────────────────────────────────*/
 
-const MANDATE_TYPES = ['Debt','Debt+Equity','Equity','Structured Debt','IPO Advisory','Pre-IPO','NPA/OTS','Bill Discounting','Acquisition Finance','Working Capital','Term Loan','Other','Retail Loan'];
-const COLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#F97316','#84CC16','#EC4899','#14B8A6'];
+/* ── State ── */
+let rawMaster=[], rawBankers=[], rawCPs=[], rawLenders=[];
+let filteredMaster=[];
+let charts={};
 
-let ALL_DATA = {};
-let filteredRecords = [];
-let masterPage = 1;
-const PER_PAGE = 25;
+/* ── Boot ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  if(API_URL==='YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'){
+    document.getElementById('setupBanner').classList.add('show');
+    loadDemoData();
+  } else {
+    fetchAll();
+    setInterval(fetchAll, 60000); // live sync every 60s
+  }
+});
 
-// ── Recommendation state ──────────────────────────────────
-let bSelectedMandate = null, bResults = [], bPage = 1;
-let cSelectedMandate = null, cResults = [], cPage = 1;
-let chartInstances = {};
+/* ── Live sync status ── */
+function setStatus(msg){document.getElementById('syncStatus').textContent=msg}
 
-// ── TAB SWITCHING ─────────────────────────────────────────
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
-}
-
-// ── DATA LOADING ──────────────────────────────────────────
-async function loadData() {
-  showLoading();
-  try {
-    // If no API URL configured, show the notice and exit
-    if (!API_URL || API_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-      document.getElementById('configNotice').style.display = 'block';
-      showError('⚠️ Dashboard not yet connected. Please deploy Code.gs and set the API_URL in index.html.');
-      return;
-    }
-    document.getElementById('configNotice').style.display = 'none';
-
-    // Apps Script Web Apps require redirect following — use no redirect mode won't work.
-    // We use a simple fetch with follow redirects (default) and no cache.
-    const url = API_URL.includes('?') ? API_URL + '&tab=all' : API_URL + '?tab=all';
-    const res = await fetch(url, {
-      method: 'GET',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain' }
-    });
-
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + res.statusText);
-    const text = await res.text();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch(parseErr) {
-      throw new Error('Response is not valid JSON. Raw: ' + text.slice(0, 200));
-    }
-
-    ALL_DATA = parsed;
-    if (ALL_DATA.error) throw new Error('Apps Script error: ' + ALL_DATA.error);
-
-    clearError();
-    document.getElementById('syncInfo').textContent = 'Updated: ' + new Date().toLocaleTimeString();
-    applyFilters();
-    renderOnboarding();
-    renderBankerEngine();
-    renderCPEngine();
-    renderLenderEngine();
-
-  } catch(e) {
-    console.error('Dashboard load error:', e);
-    showError('❌ ' + e.message + ' | Open browser Console (F12) for details. Common fixes: (1) Check API_URL is correct (2) Re-deploy Apps Script as Web App with access "Anyone" (3) Re-authorize the script.');
+/* ── Fetch All Sheets ── */
+async function fetchAll(){
+  setStatus('Syncing…');
+  try{
+    const url=`${API_URL}?action=getAll&t=${Date.now()}`;
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    rawMaster=data.master||[];
+    rawBankers=data.bankers||[];
+    rawCPs=data.cps||[];
+    rawLenders=data.lenders||[];
+    processData();
+    setStatus(`Live · ${new Date().toLocaleTimeString()}`);
+  } catch(e){
+    console.error(e);
+    setStatus('Error — retrying…');
+    setTimeout(fetchAll,15000);
   }
 }
 
-function showLoading() {
-  document.getElementById('masterTbody').innerHTML =
-    '<tr><td colspan="16"><div class="state-msg"><div class="spinner"></div><p>Loading live data…</p></div></td></tr>';
-}
-function showError(msg) {
-  const b = document.getElementById('errBanner');
-  b.textContent = msg; b.classList.add('show');
-}
-function clearError() {
-  document.getElementById('errBanner').classList.remove('show');
+/* ═══════════════════════════════════════════════════
+   DATA PROCESSING
+═══════════════════════════════════════════════════ */
+function processData(){
+  populateFilters();
+  applyFilters();
+  populateOnboarding();
+  populateFinderDropdowns();
+  populateLenderDropdowns();
 }
 
-// ── FILTERS ───────────────────────────────────────────────
-function populateFilters(records) {
-  const fields = {
-    fLeadSource: 'leadSource', fUnit: 'unitName', fBranch: 'mandateBranch',
-    fMandateType: 'mandateType', fCaseStatus: 'caseStatus',
-    fAgeingSlab: 'ageingSlab', fExecOwner: 'executionOwner'
-  };
-  Object.entries(fields).forEach(([selId, key]) => {
-    const sel = document.getElementById(selId);
-    const cur = sel.value;
-    const vals = [...new Set(records.map(r => r[key]).filter(Boolean))].sort();
-    sel.innerHTML = '<option value="">All</option>' + vals.map(v=>`<option>${v}</option>`).join('');
-    if (vals.includes(cur)) sel.value = cur;
+/* ── Build filter dropdowns ── */
+function populateFilters(){
+  const fields=[
+    {id:'f-src',col:'Lead Source'},
+    {id:'f-unit',col:'Unit Name'},
+    {id:'f-branch',col:'Mandate Branch'},
+    {id:'f-mtype',col:'Mandate Type'},
+    {id:'f-status',col:'Case Status'},
+    {id:'f-age',col:'Ageing Slab'},
+    {id:'f-exec',col:'Execution Owner'}
+  ];
+  fields.forEach(f=>{
+    const sel=document.getElementById(f.id);
+    const cur=sel.value;
+    const vals=[...new Set(rawMaster.map(r=>r[f.col]||'').filter(Boolean))].sort();
+    sel.innerHTML='<option value="">All</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
+    if(cur) sel.value=cur;
   });
 }
 
-function applyFilters() {
-  if (!ALL_DATA.pipeline) return;
-  const recs = ALL_DATA.pipeline.records;
-  populateFilters(recs);
-
-  const get = id => document.getElementById(id).value;
-  filteredRecords = recs.filter(r => {
-    if (get('fTagging')     && r.tagging      !== get('fTagging'))     return false;
-    if (get('fCurrentTag')  && r.currentTagIn !== get('fCurrentTag'))  return false;
-    if (get('fLeadSource')  && r.leadSource   !== get('fLeadSource'))  return false;
-    if (get('fUnit')        && r.unitName     !== get('fUnit'))        return false;
-    if (get('fBranch')      && r.mandateBranch!== get('fBranch'))      return false;
-    if (get('fMandateType') && r.mandateType  !== get('fMandateType')) return false;
-    if (get('fCaseStatus')  && r.caseStatus   !== get('fCaseStatus'))  return false;
-    if (get('fAgeingSlab')  && r.ageingSlab   !== get('fAgeingSlab'))  return false;
-    if (get('fExecOwner')   && r.executionOwner!==get('fExecOwner'))   return false;
-    return true;
-  });
-
+/* ── Apply filters & re-render ── */
+function applyFilters(){
+  const tag=v('f-tag'),tin=v('f-in'),src=v('f-src'),unit=v('f-unit'),
+        branch=v('f-branch'),mtype=v('f-mtype'),status=v('f-status'),
+        age=v('f-age'),exec=v('f-exec');
+  filteredMaster=rawMaster.filter(r=>
+    (!tag||r['Tagging']===tag)&&
+    (!tin||r['Current Tagging In']===tin)&&
+    (!src||r['Lead Source']===src)&&
+    (!unit||r['Unit Name']===unit)&&
+    (!branch||r['Mandate Branch']===branch)&&
+    (!mtype||r['Mandate Type']===mtype)&&
+    (!status||r['Case Status']===status)&&
+    (!age||r['Ageing Slab']===age)&&
+    (!exec||r['Execution Owner']===exec)
+  );
   renderKPIs();
   renderCharts();
-  masterPage = 1;
   renderMasterTable();
 }
 
-function resetFilters() {
-  ['fTagging','fCurrentTag','fLeadSource','fUnit','fBranch','fMandateType','fCaseStatus','fAgeingSlab','fExecOwner']
-    .forEach(id => document.getElementById(id).value = '');
+function resetFilters(){
+  ['f-tag','f-in','f-src','f-unit','f-branch','f-mtype','f-status','f-age','f-exec']
+    .forEach(id=>{ document.getElementById(id).value=''; });
   applyFilters();
 }
 
-// ══════════════════════════════════════════════════════════
-// NUMBER FORMATTING — Indian comma system, always in Crores
-// ══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
+   KPI RENDERING
+═══════════════════════════════════════════════════ */
+function renderKPIs(){
+  const data=filteredMaster;
+  const n=data.length;
+  const leads=data.filter(r=>r['Current Tagging In']==='Lead').length;
+  const deals=data.filter(r=>r['Current Tagging In']==='Deal').length;
+  const on=data.filter(r=>r['Tagging']==='ON Track').length;
+  const wip=data.filter(r=>r['Tagging']==='WIP').length;
+  const alert=data.filter(r=>r['Tagging']==='Alert').length;
+  const tats=data.map(r=>parseFloat(r['TAT (In Days) Leads to Mandate Signoff']||0)).filter(x=>x>0);
+  const avgTat=tats.length? (tats.reduce((a,b)=>a+b,0)/tats.length).toFixed(1):'-';
+  // Job Allocation YES count
+  const jobYes=data.filter(r=>(r['Job Allocation']||'').toString().trim().toUpperCase()==='YES').length;
+  // Interested Bankers Count total
+  const intBankers=data.reduce((acc,r)=>acc+(parseInt(r['Interested Bankers Count']||0)||0),0);
 
-/**
- * Format a number using Indian comma grouping.
- * Examples:
- *   101730.25  → "1,01,730.25"
- *   172.70     → "172.70"
- *   0.169      → "0.17"
- *   2.3        → "2.30"
- */
-function formatIndian(num, decimals) {
-  if (num === null || num === undefined || isNaN(num)) return '—';
-  decimals = (decimals === undefined) ? 2 : decimals;
-  var sign = num < 0 ? '-' : '';
-  var abs  = Math.abs(num);
-  var fixed = abs.toFixed(decimals);
-  var parts = fixed.split('.');
-  var intPart = parts[0];
-  var decPart = parts[1];
+  document.getElementById('kpi-main').innerHTML=`
+    ${kpiCard('Total Records',n,'All mandates','',()=>drillAll('All Records',data))}
+    ${kpiCard('Leads',leads,'Current Tagging In','',()=>drillAll('Leads',data.filter(r=>r['Current Tagging In']==='Lead')))}
+    ${kpiCard('Deals',deals,'Current Tagging In','',()=>drillAll('Deals',data.filter(r=>r['Current Tagging In']==='Deal')))}
+    ${kpiCard('ON Track',on,'Green status','green',()=>drillAll('ON Track',data.filter(r=>r['Tagging']==='ON Track')))}
+    ${kpiCard('WIP',wip,'Amber status','amber',()=>drillAll('WIP',data.filter(r=>r['Tagging']==='WIP')))}
+    ${kpiCard('Alert',alert,'Red status','red',()=>drillAll('Alert',data.filter(r=>r['Tagging']==='Alert')))}
+    ${kpiCard('Avg. TAT',avgTat,'Days: Lead → Signoff','teal')}
+    ${kpiCard('Job Allocated',jobYes,'Count where Job Allocation = YES','purple',()=>drillAll('Job Allocated Cases',data.filter(r=>(r['Job Allocation']||'').toUpperCase()==='YES')))}
+    ${kpiCard('Interested Bankers',intBankers,'Total count across all cases','pink',()=>drillAll('Cases with Interested Bankers',data.filter(r=>parseInt(r['Interested Bankers Count']||0)>0)))}
+  `;
 
-  var result = '';
-  if (intPart.length <= 3) {
-    result = intPart;
-  } else {
-    // Last 3 digits, then groups of 2 going left
-    result = intPart.slice(-3);
-    var rem = intPart.slice(0, -3);
-    while (rem.length > 2) {
-      result = rem.slice(-2) + ',' + result;
-      rem = rem.slice(0, -2);
-    }
-    if (rem.length > 0) result = rem + ',' + result;
-  }
+  // Financial KPIs
+  const sum=k=>data.reduce((a,r)=>a+(parseFloat(r[k]||0)||0),0);
+  const debt=sum('Total Debt Amt');
+  const equity=sum('Total Equity Amt');
+  const fixed=sum('Total Fixed Fee Amt');
+  const expRev=sum('Total Expected Revenue');
+  const pmtRcvd=sum('Total Payment Received');
+  const refund=sum('Refund');
+  const netRev=sum('Net Revenue');
+  // Advance Amt from "Advance Amt" column (already in Cr in sheet as we can see from data - col AE is already Cr format)
+  const advanceAmt=sum('Advance Amt');
 
-  return sign + result + (decPart ? '.' + decPart : '');
-}
-
-/**
- * Always format a Crore value in Indian comma format with 2 decimals.
- * Input: numeric value already in Crores.
- * Output: string like "1,01,730.25"
- * Used for all monetary KPI cards — no auto-switching to L or K.
- */
-function fmtCr(v) {
-  if (v === null || v === undefined || isNaN(v)) return '—';
-  return formatIndian(v, 2);
-}
-
-// ── KPIs ──────────────────────────────────────────────────
-function renderKPIs() {
-  const recs = filteredRecords;
-  const leads  = recs.filter(r=>r.currentTagIn==='Lead').length;
-  const deals  = recs.filter(r=>r.currentTagIn==='Deal').length;
-  const onT    = recs.filter(r=>r.tagging==='ON Track').length;
-  const wip    = recs.filter(r=>r.tagging==='WIP').length;
-  const alert  = recs.filter(r=>r.tagging==='Alert').length;
-  const tatArr = recs.filter(r=>r.tat>0).map(r=>r.tat);
-  const avgTat = tatArr.length ? Math.round(tatArr.reduce((a,b)=>a+b,0)/tatArr.length) : 0;
-
-  const sum = (key) => recs.reduce((a,r)=>a+(r[key]||0),0);
-
-  setText('k-total',   formatIndian(recs.length, 0));
-  setText('k-leads',   formatIndian(leads, 0));
-  setText('k-deals',   formatIndian(deals, 0));
-  setText('k-ontrack', formatIndian(onT, 0));
-  setText('k-wip',     formatIndian(wip, 0));
-  setText('k-alert',   formatIndian(alert, 0));
-  setText('k-tat',     formatIndian(avgTat, 0) + ' days');
-
-  setText('r-debt',     fmtCr(sum('debtAmt')));
-  setText('r-equity',   fmtCr(sum('equityAmt')));
-  setText('r-fixed',    fmtCr(sum('fixedFee')));
-  setText('r-expected', fmtCr(sum('expectedRev')));
-  setText('r-received', fmtCr(sum('received')));
-  setText('r-refund',   fmtCr(sum('refund')));
-  setText('r-net',      fmtCr(sum('netRevenue')));
-  setText('r-advance',  fmtCr(sum('advanceAmt')));
-}
-
-function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
-
-// ── CHARTS ────────────────────────────────────────────────
-function renderCharts() {
-  renderPieChart('chartTagMix',
-    ['Leads','Deals'],
-    [filteredRecords.filter(r=>r.currentTagIn==='Lead').length,
-     filteredRecords.filter(r=>r.currentTagIn==='Deal').length]);
-
-  renderBarChart('chartMandateType', groupBy(filteredRecords,'mandateType'));
-  renderBarChart('chartCaseStatus',  groupBy(filteredRecords,'caseStatus'));
-  renderBarChart('chartAgeing',      groupBy(filteredRecords,'ageingSlab'));
-  renderPieChart('chartUnit',
-    ...objToArrays(groupBy(filteredRecords,'unitName')));
-  renderPieChart('chartLeadSource',
-    ...objToArrays(groupBy(filteredRecords,'leadSource')));
-  renderBarChart('chartBranch',      groupBy(filteredRecords,'mandateBranch'));
-
-  // Revenue chart
-  const sum=(k)=>filteredRecords.reduce((a,r)=>a+(r[k]||0),0);
-  const revData = {
-    'Expected': sum('expectedRev'),
-    'Received': sum('received'),
-    'Net Revenue': sum('netRevenue'),
-    'Refund': sum('refund')
-  };
-  renderBarChart('chartRevenue', revData, 'rgba');
-}
-
-function groupBy(recs, key) {
-  const out = {};
-  recs.forEach(r => { const k=r[key]||'Unknown'; out[k]=(out[k]||0)+1; });
-  return out;
-}
-function objToArrays(obj) {
-  const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  return [entries.map(e=>e[0]), entries.map(e=>e[1])];
-}
-
-function destroyChart(id) {
-  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
-}
-
-function renderPieChart(id, labels, data) {
-  destroyChart(id);
-  const ctx = document.getElementById(id);
-  if (!ctx) return;
-  chartInstances[id] = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels, datasets: [{ data, backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive:true, plugins: { legend:{ position:'bottom', labels:{ font:{size:11}, padding:10 } } } }
+  document.getElementById('kpi-finance').innerHTML=`
+    ${kpiCard('Total Debt Amt',fmtCr(debt),'Cr.','teal',()=>drillAll('Debt Cases',data.filter(r=>parseFloat(r['Total Debt Amt']||0)>0)))}
+    ${kpiCard('Total Equity Amt',fmtCr(equity),'Cr.','purple',()=>drillAll('Equity Cases',data.filter(r=>parseFloat(r['Total Equity Amt']||0)>0)))}
+    ${kpiCard('Fixed Fee Amt',fmtCr(fixed),'Cr.','pink',()=>drillAll('Fixed Fee Cases',data.filter(r=>parseFloat(r['Total Fixed Fee Amt']||0)>0)))}
+    ${kpiCard('Expected Revenue',fmtCr(expRev),'Cr.','',()=>drillAll('Cases with Expected Revenue',data.filter(r=>parseFloat(r['Total Expected Revenue']||0)>0)))}
+    ${kpiCard('Payment Received',fmtCr(pmtRcvd),'Cr.','green',()=>drillAll('Cases with Payment',data.filter(r=>parseFloat(r['Total Payment Received']||0)>0)))}
+    ${kpiCard('Refund',fmtCr(refund),'Cr.','red',()=>drillAll('Refund Cases',data.filter(r=>parseFloat(r['Refund']||0)>0)))}
+    ${kpiCard('Net Revenue',fmtCr(netRev),'Cr. after refunds','green',()=>drillAll('Net Revenue Cases',data.filter(r=>parseFloat(r['Net Revenue']||0)>0)))}
+    ${kpiCard('Advance Collected',fmtCr(advanceAmt),'Cr.','amber',()=>drillAll('Advance Collected Cases',data.filter(r=>parseFloat(r['Advance Amt']||0)>0)))}
+  `;
+  // Attach drill click handlers after DOM insert
+  document.querySelectorAll('.kpi-card[data-drill]').forEach(el=>{
+    el.onclick=()=>{ /* handled inline above */ };
   });
 }
 
-function renderBarChart(id, dataObj, mode) {
-  destroyChart(id);
-  const ctx = document.getElementById(id);
-  if (!ctx) return;
-  const labels = Object.keys(dataObj);
-  const vals   = Object.values(dataObj);
-  chartInstances[id] = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [{ data: vals, backgroundColor: COLORS, borderRadius: 6, borderSkipped:false }] },
-    options: {
-      responsive:true, indexAxis:'y',
-      plugins: { legend:{display:false}, tooltip:{callbacks:{label: c=>c.raw}} },
-      scales: {
-        x:{ grid:{color:'#F0F0F0'}, ticks:{font:{size:10}} },
-        y:{ grid:{display:false}, ticks:{font:{size:10}} }
-      }
-    }
-  });
-}
-
-// ── MASTER TABLE ──────────────────────────────────────────
-function renderMasterTable() {
-  const recs = filteredRecords;
-  const total = recs.length;
-  document.getElementById('tableCount').textContent = total + ' records';
-  const pages = Math.ceil(total/PER_PAGE);
-  const start = (masterPage-1)*PER_PAGE;
-  const slice = recs.slice(start, start+PER_PAGE);
-
-  document.getElementById('masterTbody').innerHTML = slice.map(r => `
-    <tr>
-      <td>${r.sno||''}</td>
-      <td style="font-size:10px;opacity:.7">${String(r.leadId||'').slice(-6)}</td>
-      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.companyName||''}</td>
-      <td>${tagBadge(r.tagging)}</td>
-      <td>${r.currentTagIn||''}</td>
-      <td>${r.leadSource||''}</td>
-      <td style="font-size:11px">${r.unitName||''}</td>
-      <td>${r.mandateBranch||''}</td>
-      <td>${r.mandateType||''}</td>
-      <td>${r.executionOwner||''}</td>
-      <td style="font-size:10px">${r.mandateStatus||''}</td>
-      <td>${r.caseStatus||''}</td>
-      <td>${r.ageingSlab||''}</td>
-      <td>${r.tat||''}</td>
-      <td>${r.expectedRev ? fmtCr(r.expectedRev) : ''}</td>
-      <td>${r.netRevenue  ? fmtCr(r.netRevenue)  : ''}</td>
-    </tr>`).join('');
-
-  renderPagination('masterPag', masterPage, pages, p => { masterPage=p; renderMasterTable(); });
-}
-
-function tagBadge(t) {
-  if (t==='ON Track') return '<span class="tag-on">ON Track</span>';
-  if (t==='Alert')    return '<span class="tag-alert">Alert</span>';
-  if (t==='WIP')      return '<span class="tag-wip">WIP</span>';
-  return '<span class="tag-na">'+t+'</span>';
-}
-
-function renderPagination(containerId, current, total, cb) {
-  const el = document.getElementById(containerId);
-  if (!el || total <= 1) { if(el) el.innerHTML=''; return; }
-  let html = `<button class="pg-btn" onclick="(${cb.toString()})(${current-1})" ${current===1?'disabled':''}>← Prev</button>`;
-  for (let i=1;i<=Math.min(total,8);i++) {
-    html += `<button class="pg-btn ${i===current?'active':''}" onclick="(${cb.toString()})(${i})">${i}</button>`;
-  }
-  if (total > 8) html += `<span style="font-size:12px;color:var(--slate)">… of ${total}</span>`;
-  html += `<button class="pg-btn" onclick="(${cb.toString()})(${current+1})" ${current===total?'disabled':''}>Next →</button>`;
-  el.innerHTML = html;
-}
-
-// ── DRILL MODAL ───────────────────────────────────────────
-function openDrill(filter) {
-  let recs = filteredRecords;
-  let title = 'All Records';
-  if (filter==='lead')    { recs = recs.filter(r=>r.currentTagIn==='Lead'); title='Leads'; }
-  if (filter==='deal')    { recs = recs.filter(r=>r.currentTagIn==='Deal'); title='Deals'; }
-  if (filter==='ontrack') { recs = recs.filter(r=>r.tagging==='ON Track');  title='ON Track'; }
-  if (filter==='wip')     { recs = recs.filter(r=>r.tagging==='WIP');       title='WIP'; }
-  if (filter==='alert')   { recs = recs.filter(r=>r.tagging==='Alert');     title='Alert'; }
-
-  document.getElementById('drillTitle').textContent = title + ' — ' + recs.length + ' records';
-  document.getElementById('drillTbody').innerHTML = recs.map(r=>`
-    <tr>
-      <td>${r.sno}</td><td style="font-size:10px">${String(r.leadId||'').slice(-6)}</td>
-      <td>${r.companyName}</td><td>${tagBadge(r.tagging)}</td><td>${r.currentTagIn}</td>
-      <td>${r.leadSource}</td><td style="font-size:11px">${r.unitName}</td>
-      <td>${r.mandateType}</td><td>${r.caseStatus}</td><td>${r.ageingSlab}</td>
-      <td>${r.tat}</td><td>${r.netRevenue ? fmtCr(r.netRevenue) : ''}</td>
-    </tr>`).join('');
-  document.getElementById('drillModal').classList.add('open');
-}
-function closeDrill() { document.getElementById('drillModal').classList.remove('open'); }
-document.getElementById('drillModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDrill(); });
-
-// ── ONBOARDING TAB ────────────────────────────────────────
-function renderOnboarding() {
-  const ob = ALL_DATA.onboarding;
-  if (!ob) return;
-  setText('ob-bankers',   ob.bankerOnboarded);
-  setText('ob-cp',        ob.cpOnboarded);
-  setText('ob-ref',       ob.referralCount);
-  setText('ob-bankleads', ob.bankerLeads);
-  setText('ob-cpleads',   ob.cpLeads);
-
-  renderPieChart('chartObMix',
-    ['Bankers','Channel Partners','Referrals'],
-    [ob.bankerOnboarded, ob.cpOnboarded, ob.referralCount]);
-  renderPieChart('chartObSource',
-    ['Banker Leads','CP Leads','Referral Leads'],
-    [ob.bankerLeads, ob.cpLeads, ob.referralCount]);
-
-  // Banker list
-  document.getElementById('bankerListCount').textContent = (ob.bankerList||[]).length + ' bankers';
-  document.getElementById('bankerListBody').innerHTML = (ob.bankerList||[]).map((b,i)=>`
-    <tr><td>${i+1}</td><td><strong>${b.name}</strong></td><td>${b.bank}</td>
-    <td>${b.city}</td><td>${b.state}</td>
-    <td>${b.phone?`<a href="tel:${b.phone}" style="color:var(--green)">${b.phone}</a>`:''}</td>
-    <td><span class="tag-na">${b.status||'Active'}</span></td></tr>`).join('');
-
-  document.getElementById('cpListCount').textContent = (ob.cpList||[]).length + ' partners';
-  document.getElementById('cpListBody').innerHTML = (ob.cpList||[]).map((c,i)=>`
-    <tr><td>${i+1}</td><td><strong>${c.name}</strong></td><td>${c.company}</td>
-    <td>${c.city}</td><td>${c.state}</td>
-    <td>${c.phone?`<a href="tel:${c.phone}" style="color:var(--green)">${c.phone}</a>`:''}</td>
-    <td><span class="tag-na">${c.status||'Active'}</span></td></tr>`).join('');
-}
-
-// ── BANKER RECOMMENDATION ─────────────────────────────────
-function renderBankerEngine() {
-  const bankers = ALL_DATA.banker_re || [];
-
-  // Build mandate chips
-  const allProducts = [...new Set(bankers.flatMap(b=>b.products))].sort();
-  const display = allProducts.length ? allProducts : MANDATE_TYPES;
-  const grid = document.getElementById('bankerMandateChips');
-  grid.innerHTML = display.map(m=>
-    `<div class="chip" data-m="${m}" onclick="selectBankerMandate('${m}',this)">${m}</div>`
-  ).join('');
-
-  // States
-  const states = [...new Set(bankers.map(b=>b.state).filter(Boolean))].sort();
-  const stSel = document.getElementById('bStateSelect');
-  stSel.innerHTML = '<option value="">All States</option>' + states.map(s=>`<option>${s}</option>`).join('');
-}
-
-function selectBankerMandate(m, chip) {
-  document.querySelectorAll('#bankerMandateChips .chip').forEach(c=>c.classList.remove('active'));
-  if (bSelectedMandate === m) { bSelectedMandate = null; }
-  else { bSelectedMandate = m; chip.classList.add('active'); runBankerSearch(); }
-}
-
-function onBankerStateChange() {
-  const state = document.getElementById('bStateSelect').value;
-  const bankers = ALL_DATA.banker_re || [];
-  const cities = [...new Set(bankers.filter(b=>!state||b.state===state).map(b=>b.city).filter(Boolean))].sort();
-  const citySel = document.getElementById('bCitySelect');
-  citySel.innerHTML = '<option value="">All Cities</option>' + cities.map(c=>`<option>${c}</option>`).join('');
-  citySel.disabled = !state;
-  if (bSelectedMandate) runBankerSearch();
-}
-
-function runBankerSearch() {
-  if (!bSelectedMandate) {
-    document.getElementById('bankerCards').innerHTML = '<div class="state-msg"><p>Pick a mandate type on the left.</p></div>';
-    document.getElementById('bankerResultTitle').textContent = 'Select a mandate type to begin';
-    document.getElementById('bankerResultCount').textContent = '';
-    return;
-  }
-  const state = document.getElementById('bStateSelect').value;
-  const city  = document.getElementById('bCitySelect').value;
-  const sort  = document.getElementById('bSortBy').value;
-  const bankers = ALL_DATA.banker_re || [];
-
-  bResults = bankers.filter(b => {
-    if (!b.products.includes(bSelectedMandate)) return false;
-    if (state && b.state !== state) return false;
-    if (city  && b.city  !== city)  return false;
-    return true;
-  });
-
-  if (sort === 'exp') bResults.sort((a,b) => parseInt(b.experience||0) - parseInt(a.experience||0));
-  else bResults.sort((a,b) => a.name.localeCompare(b.name));
-
-  bPage = 1;
-  renderBankerCards();
-}
-
-function renderBankerCards() {
-  document.getElementById('bankerResultTitle').textContent = bSelectedMandate + ' — Banker Matches';
-  document.getElementById('bankerResultCount').textContent = bResults.length + ' bankers';
-  const total = bResults.length;
-  if (!total) {
-    document.getElementById('bankerCards').innerHTML = '<div class="state-msg"><h3>No bankers found</h3><p>Try broadening your location filter.</p></div>';
-    document.getElementById('bankerPag').innerHTML = '';
-    return;
-  }
-  const pages = Math.ceil(total/PER_PAGE);
-  const slice = bResults.slice((bPage-1)*PER_PAGE, bPage*PER_PAGE);
-  document.getElementById('bankerCards').innerHTML = slice.map(b => recCard(b,'banker')).join('');
-  renderPagination('bankerPag', bPage, pages, p => { bPage=p; renderBankerCards(); });
-}
-
-function resetBankerSearch() {
-  bSelectedMandate = null;
-  document.querySelectorAll('#bankerMandateChips .chip').forEach(c=>c.classList.remove('active'));
-  document.getElementById('bStateSelect').value = '';
-  document.getElementById('bCitySelect').innerHTML = '<option value="">All Cities</option>';
-  document.getElementById('bCitySelect').disabled = true;
-  document.getElementById('bankerCards').innerHTML = '<div class="state-msg"><p>Pick a mandate type on the left.</p></div>';
-  document.getElementById('bankerResultTitle').textContent = 'Select a mandate type to begin';
-  document.getElementById('bankerResultCount').textContent = '';
-  document.getElementById('bankerPag').innerHTML = '';
-}
-
-// ── CP RECOMMENDATION ─────────────────────────────────────
-function renderCPEngine() {
-  const cps = ALL_DATA.cp_re || [];
-  // Use fixed mandate types + any extra from data
-  const dataProducts = [...new Set(cps.flatMap(c=>c.products))].sort();
-  const display = dataProducts.length ? dataProducts : MANDATE_TYPES;
-  const grid = document.getElementById('cpMandateChips');
-  grid.innerHTML = display.map(m=>
-    `<div class="chip" data-m="${m}" onclick="selectCPMandate('${m}',this)">${m}</div>`
-  ).join('');
-  const states = [...new Set(cps.map(c=>c.state).filter(Boolean))].sort();
-  const stSel = document.getElementById('cStateSelect');
-  stSel.innerHTML = '<option value="">All States</option>' + states.map(s=>`<option>${s}</option>`).join('');
-  // Show count
-  document.getElementById('cpResultCount').textContent = cps.length + ' total CPs loaded';
-}
-
-function selectCPMandate(m, chip) {
-  document.querySelectorAll('#cpMandateChips .chip').forEach(c=>c.classList.remove('active'));
-  if (cSelectedMandate === m) { cSelectedMandate = null; }
-  else { cSelectedMandate = m; chip.classList.add('active'); runCPSearch(); }
-}
-
-function onCPStateChange() {
-  const state = document.getElementById('cStateSelect').value;
-  const cps = ALL_DATA.cp_re || [];
-  const cities = [...new Set(cps.filter(c=>!state||c.state===state).map(c=>c.city).filter(Boolean))].sort();
-  const citySel = document.getElementById('cCitySelect');
-  citySel.innerHTML = '<option value="">All Cities</option>' + cities.map(c=>`<option>${c}</option>`).join('');
-  citySel.disabled = !state;
-  if (cSelectedMandate) runCPSearch();
-}
-
-function runCPSearch() {
-  if (!cSelectedMandate) { return; }
-  const state = document.getElementById('cStateSelect').value;
-  const city  = document.getElementById('cCitySelect').value;
-  const cps = ALL_DATA.cp_re || [];
-  // If CP has no products marked, show all CPs for any mandate type selection
-  const hasProducts = cps.some(c => c.products && c.products.length > 0);
-  cResults = cps.filter(c => {
-    if (hasProducts && !c.products.includes(cSelectedMandate)) return false;
-    if (state && c.state !== state) return false;
-    if (city  && c.city  !== city)  return false;
-    return true;
-  });
-  cPage = 1;
-  renderCPCards();
-}
-
-function renderCPCards() {
-  document.getElementById('cpResultTitle').textContent = cSelectedMandate + ' — CP Matches';
-  document.getElementById('cpResultCount').textContent = cResults.length + ' partners';
-  if (!cResults.length) {
-    document.getElementById('cpCards').innerHTML = '<div class="state-msg"><h3>No channel partners found</h3><p>Try broadening your location.</p></div>';
-    document.getElementById('cpPag').innerHTML=''; return;
-  }
-  const pages = Math.ceil(cResults.length/PER_PAGE);
-  const slice = cResults.slice((cPage-1)*PER_PAGE, cPage*PER_PAGE);
-  document.getElementById('cpCards').innerHTML = slice.map(c => recCard(c,'cp')).join('');
-  renderPagination('cpPag', cPage, pages, p => { cPage=p; renderCPCards(); });
-}
-
-function resetCPSearch() {
-  cSelectedMandate = null;
-  document.querySelectorAll('#cpMandateChips .chip').forEach(c=>c.classList.remove('active'));
-  document.getElementById('cStateSelect').value='';
-  document.getElementById('cCitySelect').innerHTML='<option value="">All Cities</option>';
-  document.getElementById('cCitySelect').disabled=true;
-  document.getElementById('cpCards').innerHTML='<div class="state-msg"><p>Pick a mandate type on the left.</p></div>';
-  document.getElementById('cpResultTitle').textContent='Select a mandate type to begin';
-  document.getElementById('cpResultCount').textContent='';
-  document.getElementById('cpPag').innerHTML='';
-}
-
-// ── LENDER RECOMMENDATION ─────────────────────────────────
-function renderLenderEngine() {
-  const data = ALL_DATA.lender_re;
-  if (!data) return;
-  const sel = document.getElementById('lenderProductSelect');
-  sel.innerHTML = '<option value="">— Select Product —</option>' +
-    data.productTypes.map(p=>`<option>${p}</option>`).join('');
-}
-
-function runLenderSearch() {
-  const product = document.getElementById('lenderProductSelect').value;
-  const minRate = parseFloat(document.getElementById('lenderMinRate').value) || 60;
-  const sort    = document.getElementById('lenderSort').value;
-  const data    = ALL_DATA.lender_re;
-  if (!data || !product) return;
-
-  let results = data.lenders.filter(l => l.products[product] === true && l.successRate >= minRate);
-  if (sort === 'rate') results.sort((a,b) => b.successRate - a.successRate);
-  else results.sort((a,b) => a.name.localeCompare(b.name));
-
-  document.getElementById('lenderResultTitle').textContent = product + ' — Lender Matches';
-  document.getElementById('lenderResultCount').textContent = results.length + ' lenders';
-
-  if (!results.length) {
-    document.getElementById('lenderCards').innerHTML = '<div class="state-msg"><h3>No lenders found</h3><p>Try lowering the min success rate.</p></div>';
-    return;
-  }
-
-  document.getElementById('lenderCards').innerHTML = results.map((l,i) => `
-    <div class="lender-card">
-      <div class="lender-rank">#${i+1}</div>
-      <div class="lender-info">
-        <div class="lender-name">${l.name}</div>
-        <div class="lender-rate">
-          <div class="rate-bar"><div class="rate-fill" style="width:${l.successRate}%"></div></div>
-          <div class="rate-label">Success Rate: <strong>${l.successRate}%</strong> across all products</div>
-        </div>
-      </div>
-      <div>
-        <span class="exp-badge" style="background:var(--green-bg);border-color:var(--green);color:var(--green)">
-          ${l.products[product] ? '✓ Eligible' : '✗ N/A'}
-        </span>
-      </div>
-    </div>`).join('');
-}
-
-function resetLenderSearch() {
-  document.getElementById('lenderProductSelect').value = '';
-  document.getElementById('lenderMinRate').value = '';
-  document.getElementById('lenderCards').innerHTML = '<div class="state-msg"><p>Select a product / mandate type on the left.</p></div>';
-  document.getElementById('lenderResultTitle').textContent = 'Select a product type to see matched lenders';
-  document.getElementById('lenderResultCount').textContent = '';
-}
-
-// ── SHARED CARD RENDERER ──────────────────────────────────
-function recCard(person, type) {
-  const name     = person.name || '';
-  const initials = name.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-  const phone    = String(person.phone||'').replace(/\s/g,'');
-  const sub      = type==='banker' ? (person.lastCompany||'Bank N/A') : (person.company||'Firm N/A');
-  const exp      = person.experience ? person.experience+' yrs' : '';
-  const loc      = [person.city, person.state].filter(Boolean).join(', ');
-  const tags     = (person.products||[]).map(p=>
-    `<span class="prod-tag ${p===(bSelectedMandate||cSelectedMandate)?'hi':''}">${p}</span>`
-  ).join('');
-  const phoneHtml = phone
-    ? `<a class="card-phone" href="tel:+${phone}">📞 ${phone}</a>`
-    : `<span class="card-phone" style="opacity:.4;cursor:default">No phone listed</span>`;
-
-  return `<div class="rec-card">
-    <div class="card-top">
-      <div class="card-left">
-        <div class="avatar">${initials}</div>
-        <div>
-          <div class="card-name">${name}</div>
-          <div class="card-sub">${sub}</div>
-        </div>
-      </div>
-      <div class="card-meta-right">
-        ${exp?`<span class="exp-badge">${exp}</span>`:''}
-        ${loc?`<div class="loc-pill">📍 ${loc}</div>`:''}
-      </div>
-    </div>
-    ${phoneHtml}
-    <div class="prod-tags">${tags}</div>
-    ${person.expertise?`<div style="font-size:11px;color:var(--slate);margin-top:8px"><strong>Expertise:</strong> ${person.expertise}</div>`:''}
+function kpiCard(label,value,sub,cls='',onclick=null){
+  const id='kpi_'+Math.random().toString(36).slice(2);
+  const clkAttr=onclick? `style="cursor:pointer" onclick="(${onclick.toString()})()"` : '';
+  return `<div class="kpi-card ${cls}" ${clkAttr}>
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-sub">${sub}${onclick?'  <span style="color:var(--accent);font-size:.65rem">↗ View all</span>':''}</div>
   </div>`;
 }
 
-// ── AUTO-REFRESH every 5 minutes ──────────────────────────
-loadData();
-setInterval(loadData, 5 * 60 * 1000);
+function fmtCr(v){
+  if(isNaN(v)||v===null) return '—';
+  return parseFloat(v).toFixed(2);
+}
+
+/* ═══════════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════════ */
+const COLORS=['#4f8ef7','#7c5cbf','#22c55e','#f59e0b','#ef4444','#06b6d4','#a855f7','#ec4899','#10b981','#f97316'];
+
+function countBy(arr,key){
+  const m={};
+  arr.forEach(r=>{ const v=r[key]||'Unknown'; m[v]=(m[v]||0)+1; });
+  return m;
+}
+
+function renderBarChart(id,labels,values,title=''){
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id);
+  if(!ctx) return;
+  charts[id]=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{data:values,backgroundColor:COLORS,borderRadius:5}]},
+    options:{
+      responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:'#64748b',font:{size:10}}},y:{ticks:{color:'#64748b',font:{size:10}},beginAtZero:true}},
+      onClick:(e,els)=>{ if(els.length){ const lbl=labels[els[0].index]; drillByField(title,lbl); } }
+    }
+  });
+}
+
+function renderDoughnut(id,labels,values){
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id);
+  if(!ctx) return;
+  charts[id]=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:COLORS,borderWidth:0}]},
+    options:{
+      responsive:true,maintainAspectRatio:true,cutout:'60%',
+      plugins:{legend:{position:'right',labels:{color:'#e2e8f0',font:{size:10}}}},
+      onClick:(e,els)=>{ if(els.length){ const lbl=labels[els[0].index]; drillByValue(lbl); } }
+    }
+  });
+}
+
+// Which column to drill by for each chart
+const CHART_DRILL_MAP={
+  'Tagging Mix':'Current Tagging In',
+  'Mandate Type':'Mandate Type',
+  'Case Status':'Case Status',
+  'Ageing Slab':'Ageing Slab',
+  'Unit':'Unit Name',
+  'Lead Source':'Lead Source',
+  'Branch':'Mandate Branch'
+};
+
+function drillByField(chartTitle,label){
+  const col=CHART_DRILL_MAP[chartTitle];
+  if(!col) return;
+  const subset=filteredMaster.filter(r=>(r[col]||'Unknown')===label);
+  drillAll(`${chartTitle}: ${label}`,subset);
+}
+
+function drillByValue(label){
+  // Generic: search across common fields
+  const subset=filteredMaster.filter(r=>
+    Object.values(r).some(v=>String(v)===label)
+  );
+  drillAll(label,subset.length? subset: filteredMaster);
+}
+
+function renderCharts(){
+  const data=filteredMaster;
+
+  // Tagging mix
+  const tagMap=countBy(data,'Current Tagging In');
+  renderDoughnut('ch-tagging',Object.keys(tagMap),Object.values(tagMap));
+
+  // Mandate type
+  const mtMap=countBy(data,'Mandate Type');
+  renderBarChart('ch-mtype',Object.keys(mtMap),Object.values(mtMap),'Mandate Type');
+
+  // Case Status
+  const csMap=countBy(data,'Case Status');
+  renderBarChart('ch-status',Object.keys(csMap),Object.values(csMap),'Case Status');
+
+  // Ageing
+  const ageOrder=['0 - 30 days','31 - 60 days','61 - 90 days','Over 90 Days'];
+  const ageMap=countBy(data,'Ageing Slab');
+  const ageLabels=ageOrder.filter(k=>ageMap[k]);
+  renderBarChart('ch-age',ageLabels,ageLabels.map(k=>ageMap[k]||0),'Ageing Slab');
+
+  // Unit
+  const unitMap=countBy(data,'Unit Name');
+  renderBarChart('ch-unit',Object.keys(unitMap),Object.values(unitMap),'Unit');
+
+  // Lead source
+  const srcMap=countBy(data,'Lead Source');
+  renderDoughnut('ch-src',Object.keys(srcMap),Object.values(srcMap));
+
+  // Branch
+  const brMap=countBy(data,'Mandate Branch');
+  renderBarChart('ch-branch',Object.keys(brMap),Object.values(brMap),'Branch');
+
+  // Revenue pipeline
+  const labels=['Exp. Rev','Pmt Rcvd','Refund','Net Rev','Advance'];
+  const vals=[
+    data.reduce((a,r)=>a+(parseFloat(r['Total Expected Revenue']||0)||0),0),
+    data.reduce((a,r)=>a+(parseFloat(r['Total Payment Received']||0)||0),0),
+    data.reduce((a,r)=>a+(parseFloat(r['Refund']||0)||0),0),
+    data.reduce((a,r)=>a+(parseFloat(r['Net Revenue']||0)||0),0),
+    data.reduce((a,r)=>a+(parseFloat(r['Advance Amt']||0)||0),0),
+  ];
+  if(charts['ch-rev']) charts['ch-rev'].destroy();
+  const ctx=document.getElementById('ch-rev');
+  if(ctx){
+    charts['ch-rev']=new Chart(ctx,{
+      type:'bar',
+      data:{labels,datasets:[{data:vals,backgroundColor:['#4f8ef7','#22c55e','#ef4444','#06b6d4','#f59e0b'],borderRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{color:'#64748b',font:{size:10}}},y:{ticks:{color:'#64748b',font:{size:10}},beginAtZero:true}}}
+    });
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   MASTER TABLE
+═══════════════════════════════════════════════════ */
+function renderMasterTable(drillData=null){
+  const q=(document.getElementById('masterSearch')?.value||'').toLowerCase();
+  let data=drillData||filteredMaster;
+  if(q) data=data.filter(r=>JSON.stringify(r).toLowerCase().includes(q));
+  document.getElementById('masterCount').textContent=`${data.length} records`;
+  const tbody=document.getElementById('masterBody');
+  if(!data.length){ tbody.innerHTML='<tr><td colspan="20" class="empty">No records found</td></tr>'; return; }
+  tbody.innerHTML=data.map((r,i)=>`
+    <tr onclick="showRowDetail(${rawMaster.indexOf(r)})">
+      <td>${r['S.No']||i+1}</td>
+      <td style="font-size:.68rem;color:var(--muted)">${r['Lead ID']||''}</td>
+      <td style="font-weight:600">${esc(r['Company Name']||'')}</td>
+      <td>${tagBadge(r['Tagging']||'')}</td>
+      <td>${r['Current Tagging In']||''}</td>
+      <td>${r['Lead Source']||''}</td>
+      <td style="font-size:.72rem">${r['Unit Name']||''}</td>
+      <td>${r['Mandate Branch']||''}</td>
+      <td>${r['Mandate Type']||''}</td>
+      <td>${r['Execution Owner']||''}</td>
+      <td style="font-size:.72rem">${r['Mandate Status']||''}</td>
+      <td>${r['Case Status']||''}</td>
+      <td>${r['Ageing Slab']||''}</td>
+      <td>${r['TAT (In Days) Leads to Mandate Signoff']||'—'}</td>
+      <td class="cr-val">${fmtCr(r['Total Expected Revenue'])}</td>
+      <td class="cr-val">${fmtCr(r['Net Revenue'])}</td>
+      <td class="cr-val">${fmtCr(r['Advance Amt'])}</td>
+      <td>${yesNoBadge(r['Job Allocation'])}</td>
+      <td>${interestedBadge(r['Interested Bankers Count'])}</td>
+      <td class="comment-cell">${shortComment(r['Comments']||'')}</td>
+    </tr>
+  `).join('');
+}
+
+function tagBadge(v){
+  if(v==='ON Track') return `<span class="tag tag-on">ON Track</span>`;
+  if(v==='WIP') return `<span class="tag tag-wip">WIP</span>`;
+  if(v==='Alert') return `<span class="tag tag-alert">Alert</span>`;
+  return `<span class="tag">${esc(v)}</span>`;
+}
+function yesNoBadge(v){
+  const s=(v||'').toString().trim().toUpperCase();
+  return s==='YES'?`<span class="tag tag-yes">YES</span>`:`<span class="tag tag-no">${esc(v)||'NO'}</span>`;
+}
+function interestedBadge(v){
+  const n=parseInt(v||0)||0;
+  if(!n) return `<span style="color:var(--muted)">—</span>`;
+  return `<span class="interested-count">👥 ${n}</span>`;
+}
+function shortComment(c){
+  if(!c) return '—';
+  return c.length>120? c.slice(0,120)+'…' : c;
+}
+
+/* ═══════════════════════════════════════════════════
+   ONBOARDING
+═══════════════════════════════════════════════════ */
+function populateOnboarding(){
+  const totalB=rawBankers.length;
+  const totalCP=rawCPs.length;
+  const refLeads=rawMaster.filter(r=>r['Lead Source']==='Referral').length;
+  const bankerLeads=rawMaster.filter(r=>r['Lead Source']==='Banker').length;
+  const cpLeads=rawMaster.filter(r=>r['Lead Source']==='Channel Partner').length;
+
+  document.getElementById('ob-kpis').innerHTML=`
+    ${kpiCard('Total Bankers Onboarded',totalB,'Live count — Banker sheet','teal',()=>showBankerDrillAll())}
+    ${kpiCard('Total Channel Partners',totalCP,'Live count — CP sheet','purple',()=>showCPDrillAll())}
+    ${kpiCard('Total Referral Leads',refLeads,'Leads from referral','amber',()=>drillAll('Referral Leads',rawMaster.filter(r=>r['Lead Source']==='Referral')))}
+    ${kpiCard('Banker-sourced Leads',bankerLeads,'Leads via bankers','green',()=>drillAll('Banker Leads',rawMaster.filter(r=>r['Lead Source']==='Banker')))}
+    ${kpiCard('CP-sourced Leads',cpLeads,'Leads via channel partners','pink',()=>drillAll('CP Leads',rawMaster.filter(r=>r['Lead Source']==='Channel Partner')))}
+  `;
+
+  // Onboarding charts
+  if(charts['ch-ob-mix']) charts['ch-ob-mix'].destroy();
+  const obCtx=document.getElementById('ch-ob-mix');
+  if(obCtx){
+    charts['ch-ob-mix']=new Chart(obCtx,{
+      type:'doughnut',
+      data:{labels:['Bankers','Channel Partners'],datasets:[{data:[totalB,totalCP],backgroundColor:['#4f8ef7','#a855f7'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:true,cutout:'60%',
+        plugins:{legend:{position:'right',labels:{color:'#e2e8f0',font:{size:11}}}},
+        onClick:(e,els)=>{if(els.length){ els[0].index===0?showBankerDrillAll():showCPDrillAll(); }}}
+    });
+  }
+
+  const srcMap={'Direct':0,'Banker':0,'Channel Partner':0,'Referral':0,'Other':0};
+  rawMaster.forEach(r=>{ const s=r['Lead Source']||'Other'; srcMap[s]=(srcMap[s]||0)+1; });
+  if(charts['ch-ob-src']) charts['ch-ob-src'].destroy();
+  const obSrcCtx=document.getElementById('ch-ob-src');
+  if(obSrcCtx){
+    const labels=Object.keys(srcMap).filter(k=>srcMap[k]>0);
+    charts['ch-ob-src']=new Chart(obSrcCtx,{
+      type:'bar',
+      data:{labels,datasets:[{data:labels.map(k=>srcMap[k]),backgroundColor:COLORS,borderRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{color:'#64748b'}},y:{ticks:{color:'#64748b'},beginAtZero:true}},
+        onClick:(e,els)=>{if(els.length){drillAll(`${labels[els[0].index]} Leads`,rawMaster.filter(r=>(r['Lead Source']||'Other')===labels[els[0].index]));}}}
+    });
+  }
+
+  renderBankerTable();
+  renderCPTable();
+}
+
+function renderBankerTable(){
+  const q=(document.getElementById('bankerSearch')?.value||'').toLowerCase();
+  let data=rawBankers;
+  if(q) data=data.filter(r=>JSON.stringify(r).toLowerCase().includes(q));
+  document.getElementById('bankerCount').textContent=`${data.length} bankers`;
+  const tbody=document.getElementById('bankerBody');
+  if(!data.length){ tbody.innerHTML='<tr><td colspan="8" class="empty">No bankers found</td></tr>'; return; }
+  tbody.innerHTML=data.map((r,i)=>`
+    <tr onclick="showBankerDetail(${i})">
+      <td>${i+1}</td>
+      <td style="font-weight:600">${esc(r['Name']||r['Banker Name']||'')}</td>
+      <td>${esc(r['Bank Name']||r['Bank/Company']||r['Company']||'')}</td>
+      <td>${r['City']||''}</td>
+      <td>${r['State']||''}</td>
+      <td>${r['Mobile No']||r['Phone']||''}</td>
+      <td>${r['Specialisation']||r['Mandate Type Specialisation']||''}</td>
+      <td><span class="badge badge-green">${r['Status']||r['Onboarding Status']||'Active'}</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderCPTable(){
+  const q=(document.getElementById('cpSearch')?.value||'').toLowerCase();
+  let data=rawCPs;
+  if(q) data=data.filter(r=>JSON.stringify(r).toLowerCase().includes(q));
+  document.getElementById('cpCount').textContent=`${data.length} CPs`;
+  const tbody=document.getElementById('cpBody');
+  if(!data.length){ tbody.innerHTML='<tr><td colspan="7" class="empty">No CPs found</td></tr>'; return; }
+  tbody.innerHTML=data.map((r,i)=>`
+    <tr onclick="showCPDetail(${i})">
+      <td>${i+1}</td>
+      <td style="font-weight:600">${esc(r['Name']||r['CP Name']||'')}</td>
+      <td>${esc(r['Company']||r['Company Name']||'')}</td>
+      <td>${r['City']||''}</td>
+      <td>${r['State']||''}</td>
+      <td>${r['Mobile No']||r['Phone']||''}</td>
+      <td><span class="badge badge-purple">${r['Status']||r['Onboarding Status']||'Active'}</span></td>
+    </tr>
+  `).join('');
+}
+
+function showBankerDrillAll(){ /* highlight / tab switch handled */ showTab('onboarding'); }
+function showCPDrillAll(){ showTab('onboarding'); }
+
+/* ═══════════════════════════════════════════════════
+   BANKER FINDER
+═══════════════════════════════════════════════════ */
+function populateFinderDropdowns(){
+  // Banker finder
+  const mtypes=[...new Set(rawMaster.map(r=>r['Mandate Type']||'').filter(Boolean))].sort();
+  ['br-mtype','cp-mtype'].forEach(id=>{
+    const sel=document.getElementById(id);
+    sel.innerHTML='<option value="">— Select Type —</option>'+mtypes.map(v=>`<option>${esc(v)}</option>`).join('');
+  });
+
+  // Banker states/cities
+  const bStates=[...new Set(rawBankers.map(r=>r['State']||'').filter(Boolean))].sort();
+  document.getElementById('br-state').innerHTML='<option value="">All States</option>'+bStates.map(v=>`<option>${esc(v)}</option>`).join('');
+  const cpStates=[...new Set(rawCPs.map(r=>r['State']||'').filter(Boolean))].sort();
+  document.getElementById('cp-state').innerHTML='<option value="">All States</option>'+cpStates.map(v=>`<option>${esc(v)}</option>`).join('');
+  const bCities=[...new Set(rawBankers.map(r=>r['City']||'').filter(Boolean))].sort();
+  document.getElementById('br-city').innerHTML='<option value="">All Cities</option>'+bCities.map(v=>`<option>${esc(v)}</option>`).join('');
+  const cpCities=[...new Set(rawCPs.map(r=>r['City']||'').filter(Boolean))].sort();
+  document.getElementById('cp-city').innerHTML='<option value="">All Cities</option>'+cpCities.map(v=>`<option>${esc(v)}</option>`).join('');
+}
+
+function findBankers(){
+  const mtype=v('br-mtype');
+  const state=v('br-state');
+  const city=v('br-city');
+  const sort=v('br-sort');
+  let results=rawBankers.filter(r=>{
+    const spec=(r['Specialisation']||r['Mandate Type Specialisation']||'').toLowerCase();
+    return (!mtype||spec.includes(mtype.toLowerCase())||r['Mandate Type']===mtype||spec==='')&&
+           (!state||r['State']===state)&&
+           (!city||r['City']===city);
+  });
+  if(sort==='name') results.sort((a,b)=>(a['Name']||'').localeCompare(b['Name']||''));
+  else results.sort((a,b)=>(parseInt(b['Experience']||b['Exp']||0))-(parseInt(a['Experience']||a['Exp']||0)));
+  renderFinderResults('br-results',results,'banker',mtype);
+}
+
+function resetBankerFinder(){
+  ['br-mtype','br-state','br-city'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('br-results').innerHTML='<div class="empty">Pick a mandate type on the left to see matched bankers.</div>';
+}
+
+function findCPs(){
+  const mtype=v('cp-mtype');
+  const state=v('cp-state');
+  const city=v('cp-city');
+  let results=rawCPs.filter(r=>
+    (!mtype||(r['Specialisation']||r['Mandate Type']||'').includes(mtype))&&
+    (!state||r['State']===state)&&
+    (!city||r['City']===city)
+  );
+  renderFinderResults('cp-results',results,'cp',mtype);
+}
+
+function resetCPFinder(){
+  ['cp-mtype','cp-state','cp-city'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('cp-results').innerHTML='<div class="empty">Pick a mandate type on the left to see matched channel partners.</div>';
+}
+
+function renderFinderResults(containerId,results,type,query){
+  const el=document.getElementById(containerId);
+  if(!results.length){
+    el.innerHTML=`<div class="empty">No ${type==='banker'?'bankers':'channel partners'} found for the selected criteria.</div>`;
+    return;
+  }
+  el.innerHTML=`<div style="font-size:.75rem;color:var(--muted);margin-bottom:12px">${results.length} result(s) found</div>`+
+    results.map((r,i)=>{
+      const name=r['Name']||r['Banker Name']||r['CP Name']||`Record ${i+1}`;
+      const company=r['Bank Name']||r['Bank/Company']||r['Company']||r['Company Name']||'';
+      const city=r['City']||''; const state=r['State']||'';
+      const phone=r['Mobile No']||r['Phone']||'';
+      const spec=r['Specialisation']||r['Mandate Type Specialisation']||'';
+      const exp=r['Experience']||r['Exp']||'';
+      return `<div class="result-card" onclick="showDetailModal('${type}',${i})">
+        <h4>${esc(name)}</h4>
+        <div class="meta">
+          ${company?`<span class="badge badge-blue">${esc(company)}</span>`:''}
+          ${city?`<span>📍 ${esc(city)}${state?', '+esc(state):''}</span>`:''}
+          ${phone?`<span>📞 ${esc(phone)}</span>`:''}
+          ${spec?`<span class="badge badge-teal">🏷 ${esc(spec)}</span>`:''}
+          ${exp?`<span class="badge badge-amber">⭐ ${esc(exp)} yrs exp</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   LENDER RECOMMENDATION — FIXED & ENHANCED
+═══════════════════════════════════════════════════ */
+function populateLenderDropdowns(){
+  if(!rawLenders.length) return;
+
+  // Product / Mandate Type — from Lender_RE sheet
+  // Try common column names
+  const typeKey=findKey(rawLenders[0],['Mandate Type','Product Type','Product','Type of Facility','Facility Type','Mandate','Product / Mandate Type']);
+  const lTypeKey=findKey(rawLenders[0],['Lender Type','Type','Type of Lender','FI Type']);
+  const nameKey=findKey(rawLenders[0],['Lender Name','Name','Name of Financial Institute','Financial Institute','Bank Name','Institution Name']);
+  const sectorKey=findKey(rawLenders[0],['Focus Sector','Sector','Focus Industry','Industry Focus','Preferred Sector']);
+
+  if(typeKey){
+    const vals=[...new Set(rawLenders.map(r=>r[typeKey]||'').filter(Boolean))].sort();
+    document.getElementById('lr-mtype').innerHTML='<option value="">— Select Product —</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
+  }
+  if(lTypeKey){
+    const vals=[...new Set(rawLenders.map(r=>r[lTypeKey]||'').filter(Boolean))].sort();
+    document.getElementById('lr-type').innerHTML='<option value="">All Types</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
+  }
+  if(nameKey){
+    const vals=[...new Set(rawLenders.map(r=>r[nameKey]||'').filter(Boolean))].sort();
+    document.getElementById('lr-name').innerHTML='<option value="">All Institutes</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
+  }
+  if(sectorKey){
+    const vals=[...new Set(rawLenders.map(r=>r[sectorKey]||'').filter(Boolean))].sort();
+    document.getElementById('lr-sector').innerHTML='<option value="">All Sectors</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
+  }
+
+  // Store keys for later use
+  window._lenderKeys={typeKey,lTypeKey,nameKey,sectorKey};
+}
+
+function findKey(obj,candidates){
+  if(!obj) return null;
+  const keys=Object.keys(obj);
+  for(const c of candidates){
+    const match=keys.find(k=>k.toLowerCase()===c.toLowerCase()||k.toLowerCase().includes(c.toLowerCase()));
+    if(match) return match;
+  }
+  return null;
+}
+
+function findLenders(){
+  const keys=window._lenderKeys||{};
+  const product=v('lr-mtype');
+  const ltype=v('lr-type');
+  const lname=v('lr-name');
+  const sector=v('lr-sector');
+  const minRate=parseFloat(v('lr-rate')||0)||0;
+  const sort=v('lr-sort');
+
+  if(!rawLenders.length){
+    document.getElementById('lr-results').innerHTML='<div class="empty">No lender data loaded. Check your API / sheet connection.</div>';
+    return;
+  }
+
+  let results=rawLenders.filter(r=>{
+    const rProduct=keys.typeKey?(r[keys.typeKey]||''):'';
+    const rType=keys.lTypeKey?(r[keys.lTypeKey]||''):'';
+    const rName=keys.nameKey?(r[keys.nameKey]||''):'';
+    const rSector=keys.sectorKey?(r[keys.sectorKey]||''):'';
+    const rRate=parseFloat(r['Success Rate']||r['Success %']||r['Rate']||0)||0;
+    return (!product||rProduct===product||rProduct.toLowerCase().includes(product.toLowerCase()))&&
+           (!ltype||rType===ltype)&&
+           (!lname||rName===lname)&&
+           (!sector||rSector===sector||rSector.toLowerCase().includes(sector.toLowerCase()))&&
+           rRate>=minRate;
+  });
+
+  if(sort==='name') results.sort((a,b)=>{
+    const ak=keys.nameKey||'Lender Name';
+    return (a[ak]||'').localeCompare(b[ak]||'');
+  });
+  else results.sort((a,b)=>{
+    const ra=parseFloat(a['Success Rate']||a['Success %']||0)||0;
+    const rb=parseFloat(b['Success Rate']||b['Success %']||0)||0;
+    return rb-ra;
+  });
+
+  renderLenderResults(results,keys);
+}
+
+function renderLenderResults(results,keys){
+  const el=document.getElementById('lr-results');
+  if(!results.length){
+    el.innerHTML='<div class="empty">No lenders found for selected criteria. Try broadening your filters.</div>';
+    return;
+  }
+  const nameKey=keys.nameKey||'Lender Name';
+  const typeKey=keys.typeKey||'Mandate Type';
+  const lTypeKey=keys.lTypeKey||'Lender Type';
+  const sectorKey=keys.sectorKey||'Focus Sector';
+  el.innerHTML=`<div style="font-size:.75rem;color:var(--muted);margin-bottom:12px">${results.length} lender(s) matched</div>`+
+    results.map((r,i)=>{
+      const name=r[nameKey]||`Lender ${i+1}`;
+      const type=r[lTypeKey]||'';
+      const product=r[typeKey]||'';
+      const sector=r[sectorKey]||'';
+      const rate=r['Success Rate']||r['Success %']||'';
+      const minTicket=r['Min Ticket']||r['Min Ticket Size']||'';
+      const maxTicket=r['Max Ticket']||r['Max Ticket Size']||'';
+      const state=r['State']||'';
+      const contact=r['Contact']||r['Contact Person']||r['RM Name']||'';
+      const phone=r['Phone']||r['Mobile']||r['Contact No']||'';
+      return `<div class="result-card" onclick="showLenderDetail(${i})">
+        <h4>${esc(name)}</h4>
+        <div class="meta">
+          ${type?`<span class="badge badge-blue">🏦 ${esc(type)}</span>`:''}
+          ${product?`<span class="badge badge-teal">📋 ${esc(product)}</span>`:''}
+          ${sector?`<span class="badge badge-purple">🎯 ${esc(sector)}</span>`:''}
+          ${rate?`<span class="badge badge-green">✅ ${esc(String(rate))}% success</span>`:''}
+          ${minTicket||maxTicket?`<span>💰 ${esc(minTicket||'—')} – ${esc(maxTicket||'—')} Cr</span>`:''}
+          ${state?`<span>📍 ${esc(state)}</span>`:''}
+          ${contact?`<span>👤 ${esc(contact)}</span>`:''}
+          ${phone?`<span>📞 ${esc(phone)}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  window._lenderResults=results;
+}
+
+function resetLenderFinder(){
+  ['lr-mtype','lr-type','lr-name','lr-sector'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('lr-rate').value='0';
+  document.getElementById('lr-results').innerHTML='<div class="empty">Select a product / mandate type on the left.</div>';
+}
+
+function showLenderDetail(i){
+  const r=(window._lenderResults||[])[i];
+  if(!r) return;
+  const keys=Object.keys(r);
+  openModal('Lender Detail: '+(r[window._lenderKeys?.nameKey||'Lender Name']||''),
+    `<table style="width:100%;font-size:.8rem;border-collapse:collapse">
+      ${keys.filter(k=>r[k]).map(k=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 12px;color:var(--muted);white-space:nowrap;font-size:.72rem;text-transform:uppercase">${esc(k)}</td>
+        <td style="padding:8px 12px;font-weight:500">${esc(String(r[k]))}</td>
+      </tr>`).join('')}
+    </table>`
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   DRILL-DOWN MODALS
+═══════════════════════════════════════════════════ */
+function drillAll(title,data){
+  document.getElementById('drillTitle').textContent=`${title} (${data.length})`;
+  const tbody=document.getElementById('drillBody');
+  tbody.innerHTML=data.map((r,i)=>`
+    <tr>
+      <td>${r['S.No']||i+1}</td>
+      <td style="font-size:.68rem;color:var(--muted)">${r['Lead ID']||''}</td>
+      <td style="font-weight:600">${esc(r['Company Name']||'')}</td>
+      <td>${tagBadge(r['Tagging']||'')}</td>
+      <td>${r['Current Tagging In']||''}</td>
+      <td>${r['Lead Source']||''}</td>
+      <td style="font-size:.72rem">${r['Unit Name']||''}</td>
+      <td>${r['Mandate Type']||''}</td>
+      <td>${r['Case Status']||''}</td>
+      <td>${r['Ageing Slab']||''}</td>
+      <td>${r['TAT (In Days) Leads to Mandate Signoff']||'—'}</td>
+      <td class="cr-val">${fmtCr(r['Advance Amt'])}</td>
+      <td class="cr-val">${fmtCr(r['Net Revenue'])}</td>
+      <td>${yesNoBadge(r['Job Allocation'])}</td>
+      <td>${interestedBadge(r['Interested Bankers Count'])}</td>
+      <td class="comment-cell">${esc(r['Comments']||'—')}</td>
+    </tr>
+  `).join('');
+  document.getElementById('drillModal').classList.add('open');
+}
+
+function showRowDetail(idx){
+  const r=rawMaster[idx];
+  if(!r) return;
+  drillAll('Record: '+(r['Company Name']||r['Lead ID']||idx),[r]);
+}
+
+function showBankerDetail(idx){
+  const r=rawBankers[idx];
+  if(!r) return;
+  const keys=Object.keys(r);
+  openModal('Banker: '+(r['Name']||r['Banker Name']||idx),
+    `<table style="width:100%;font-size:.8rem;border-collapse:collapse">
+      ${keys.filter(k=>r[k]).map(k=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 12px;color:var(--muted);white-space:nowrap;font-size:.72rem;text-transform:uppercase">${esc(k)}</td>
+        <td style="padding:8px 12px;font-weight:500">${esc(String(r[k]))}</td>
+      </tr>`).join('')}
+    </table>`
+  );
+}
+
+function showCPDetail(idx){
+  const r=rawCPs[idx];
+  if(!r) return;
+  const keys=Object.keys(r);
+  openModal('CP: '+(r['Name']||r['CP Name']||idx),
+    `<table style="width:100%;font-size:.8rem;border-collapse:collapse">
+      ${keys.filter(k=>r[k]).map(k=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 12px;color:var(--muted);white-space:nowrap;font-size:.72rem;text-transform:uppercase">${esc(k)}</td>
+        <td style="padding:8px 12px;font-weight:500">${esc(String(r[k]))}</td>
+      </tr>`).join('')}
+    </table>`
+  );
+}
+
+function showDetailModal(type,idx){
+  if(type==='banker') showBankerDetail(idx);
+  else showCPDetail(idx);
+}
+
+function openModal(title,bodyHtml){
+  document.getElementById('drillTitle').textContent=title;
+  document.getElementById('drillBody').innerHTML=`<tr><td colspan="16">${bodyHtml}</td></tr>`;
+  document.getElementById('drillModal').classList.add('open');
+}
+
+function closeDrill(){ document.getElementById('drillModal').classList.remove('open'); }
+document.getElementById('drillModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeDrill(); });
+
+/* ═══════════════════════════════════════════════════
+   TAB NAV
+═══════════════════════════════════════════════════ */
+function showTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick*="${name}"]`).classList.add('active');
+  document.getElementById(`sec-${name}`).classList.add('active');
+  if(name==='onboarding') populateOnboarding();
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
+function v(id){ return document.getElementById(id)?.value||''; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ═══════════════════════════════════════════════════
+   DEMO DATA (used when API_URL is not set)
+═══════════════════════════════════════════════════ */
+function loadDemoData(){
+  rawMaster=[
+    {'S.No':1,'Lead ID':'BK001','Company Name':'Anshu Hospital Ltd','Tagging':'ON Track','Current Tagging In':'Deal',
+     'Lead Source':'Direct','Unit Name':'Unit 2 Chandigarh - Satish Kumar','Mandate Branch':'Chandigarh',
+     'Execution Owner':'Satish Kumar','Mandate Type':'IPO Advisory','Mandate Status':'Mandate Signoff',
+     'Case Status':'Closed','Ageing Slab':'0 - 30 days','TAT (In Days) Leads to Mandate Signoff':10,
+     'Total Expected Revenue':0.50,'Net Revenue':0.27,'Total Payment Received':0.27,'Refund':0,'Total Debt Amt':10,'Total Equity Amt':0,
+     'Total Fixed Fee Amt':0,'Advance Amt':0.02,'Job Allocation':'NO','Interested Bankers Count':0,
+     'Comments':'24/04/2026 - Case Completed. Residual payment awaited.'},
+    {'S.No':2,'Lead ID':'BK002','Company Name':'Sanat Realtors Pvt. Ltd','Tagging':'Alert','Current Tagging In':'Lead',
+     'Lead Source':'Direct','Unit Name':'Unit 3 Chandigarh - Sunil Puri','Mandate Branch':'Chandigarh',
+     'Execution Owner':'Sunil Puri','Mandate Type':'Debt','Mandate Status':'Mandate WIP',
+     'Case Status':'On Hold','Ageing Slab':'Over 90 Days','TAT (In Days) Leads to Mandate Signoff':149,
+     'Total Expected Revenue':7.00,'Net Revenue':0,'Total Payment Received':0,'Refund':0,'Total Debt Amt':200,'Total Equity Amt':0,
+     'Total Fixed Fee Amt':0,'Advance Amt':0,'Job Allocation':'NO','Interested Bankers Count':0,
+     'Comments':'13/03/2026 - The Party is not responding our calls.'},
+    {'S.No':3,'Lead ID':'BK003','Company Name':'Girnar Corrugators Pvt. Ltd.','Tagging':'WIP','Current Tagging In':'Deal',
+     'Lead Source':'Direct','Unit Name':'Unit 2 Indore - Manmohan Chabra','Mandate Branch':'Indore',
+     'Execution Owner':'Manmohan Chabra','Mandate Type':'Debt','Mandate Status':'Mandate Signoff',
+     'Case Status':'WIP','Ageing Slab':'Over 90 Days','TAT (In Days) Leads to Mandate Signoff':130,
+     'Total Expected Revenue':0.18,'Net Revenue':0.02,'Total Payment Received':0.02,'Refund':0,'Total Debt Amt':9,'Total Equity Amt':0,
+     'Total Fixed Fee Amt':0,'Advance Amt':0.015,'Job Allocation':'YES','Interested Bankers Count':3,
+     'Comments':'22/6/26 - under discussion with bank.'},
+    {'S.No':4,'Lead ID':'BK004','Company Name':'Rainbow Denim','Tagging':'WIP','Current Tagging In':'Lead',
+     'Lead Source':'Referral','Unit Name':'Unit 2 Chandigarh - Satish Kumar','Mandate Branch':'Chandigarh',
+     'Execution Owner':'Satish Kumar','Mandate Type':'Equity','Mandate Status':'Mandate WIP',
+     'Case Status':'WIP','Ageing Slab':'Over 90 Days','TAT (In Days) Leads to Mandate Signoff':149,
+     'Total Expected Revenue':0,'Net Revenue':0,'Total Payment Received':0.1,'Refund':0.1,'Total Debt Amt':100,'Total Equity Amt':0,
+     'Total Fixed Fee Amt':0,'Advance Amt':0.1,'Job Allocation':'NO','Interested Bankers Count':0,
+     'Comments':'06/06/2026 - Case is under process.'},
+    {'S.No':5,'Lead ID':'BK005','Company Name':'Lloyd Metals & Energy','Tagging':'WIP','Current Tagging In':'Deal',
+     'Lead Source':'Direct','Unit Name':'Unit 2 Indore - Manmohan Chabra','Mandate Branch':'Delhi',
+     'Execution Owner':'Manmohan Chabra','Mandate Type':'Debt','Mandate Status':'Mandate Not signed , Execution WIP',
+     'Case Status':'WIP','Ageing Slab':'Over 90 Days','TAT (In Days) Leads to Mandate Signoff':141,
+     'Total Expected Revenue':0.45,'Net Revenue':0,'Total Payment Received':0,'Refund':0,'Total Debt Amt':2270,'Total Equity Amt':0,
+     'Total Fixed Fee Amt':0,'Advance Amt':0,'Job Allocation':'YES','Interested Bankers Count':5,
+     'Comments':'18/6/26 - Canara Bank: Soft Sanction received for Rs 750 Cr.'},
+  ];
+
+  rawBankers=[
+    {'Name':'Rajwant Singh','Bank Name':'Punjab National Bank','City':'Chandigarh','State':'Punjab','Mobile No':'9812345678','Specialisation':'Debt','Experience':15,'Status':'Active'},
+    {'Name':'Vijay Sharma','Bank Name':'State Bank of India','City':'Chandigarh','State':'Punjab','Mobile No':'9876543210','Specialisation':'Debt,Equity','Experience':12,'Status':'Active'},
+    {'Name':'Surender Sharma','Bank Name':'Bank of Baroda','City':'Delhi','State':'Delhi','Mobile No':'9801234567','Specialisation':'Debt','Experience':10,'Status':'Active'},
+    {'Name':'Jasvir Singh','Bank Name':'Punjab & Sind Bank','City':'Chandigarh','State':'Punjab','Mobile No':'8427633399','Specialisation':'Debt,OTS','Experience':8,'Status':'Active'},
+    {'Name':'Sarvagya Bhatnagar','Bank Name':'Canara Bank','City':'Indore','State':'Madhya Pradesh','Mobile No':'9754112783','Specialisation':'OTS Funding','Experience':11,'Status':'Active'},
+  ];
+
+  rawCPs=[
+    {'Name':'Pankaj Tayal','Company':'Tayal Associates','City':'Chandigarh','State':'Punjab','Mobile No':'8130097064','Status':'Active'},
+    {'Name':'CA Premier Bhatt','Company':'Bhatt & Associates','City':'Chandigarh','State':'Punjab','Mobile No':'9876543211','Status':'Active'},
+    {'Name':'Yash Bajaj','Company':'Bajaj Consultants','City':'Indore','State':'Madhya Pradesh','Mobile No':'7009227947','Status':'Active'},
+  ];
+
+  rawLenders=[
+    {'Lender Name':'Punjab National Bank','Lender Type':'PSU Bank','Mandate Type':'Debt','Focus Sector':'Manufacturing,Real Estate','Success Rate':72,'Min Ticket':1,'Max Ticket':500,'State':'Pan India','Contact Person':'DGM Credit'},
+    {'Lender Name':'HDFC Bank','Lender Type':'Private Bank','Mandate Type':'Debt','Focus Sector':'Manufacturing,IT,Hospitality','Success Rate':68,'Min Ticket':2,'Max Ticket':1000,'State':'Pan India','Contact Person':'RM'},
+    {'Lender Name':'Aditya Birla Finance','Lender Type':'NBFC','Mandate Type':'Debt','Focus Sector':'All Sectors','Success Rate':55,'Min Ticket':1,'Max Ticket':200,'State':'Pan India','Contact Person':'Zonal Head'},
+    {'Lender Name':'Bajaj Finance','Lender Type':'NBFC','Mandate Type':'Debt','Focus Sector':'SME,Manufacturing','Success Rate':60,'Min Ticket':0.5,'Max Ticket':100,'State':'Pan India','Contact Person':'RM'},
+    {'Lender Name':'Union Bank of India','Lender Type':'PSU Bank','Mandate Type':'Debt','Focus Sector':'Education,Healthcare','Success Rate':65,'Min Ticket':1,'Max Ticket':300,'State':'Pan India','Contact Person':'AGM'},
+    {'Lender Name':'Tata Capital','Lender Type':'NBFC','Mandate Type':'Equity','Focus Sector':'FinTech,Real Estate','Success Rate':45,'Min Ticket':5,'Max Ticket':500,'State':'Pan India','Contact Person':'Investment Head'},
+    {'Lender Name':'ICICI Bank','Lender Type':'Private Bank','Mandate Type':'Debt+Equity','Focus Sector':'All Sectors','Success Rate':70,'Min Ticket':2,'Max Ticket':2000,'State':'Pan India','Contact Person':'RM'},
+    {'Lender Name':'BOI','Lender Type':'PSU Bank','Mandate Type':'NPA/OTS','Focus Sector':'All Sectors','Success Rate':50,'Min Ticket':1,'Max Ticket':200,'State':'Pan India','Contact Person':'OTS Head'},
+  ];
+
+  processData();
+  setStatus('Demo Mode — connect API to go live');
+}
 </script>
 </body>
 </html>
